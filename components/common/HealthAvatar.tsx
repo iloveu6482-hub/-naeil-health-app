@@ -11,14 +11,16 @@ interface HealthAvatarProps {
 }
 
 const avatarImages: Record<AvatarStyle, string> = {
-  "3d": "/avatars/avatar-3d.png",
-  emotional: "/avatars/avatar-emotional.png",
-  senior: "/avatars/avatar-senior.png",
+  "3d": "/avatars/default-female-3d.png",
+  emotional: "/avatars/default-female-emotional.png",
+  webtoon: "/avatars/default-female-webtoon.png",
+  senior: "/avatars/default-female-senior.png",
 };
 
 const avatarColors: Record<AvatarStyle, string> = {
   "3d": "from-[#4CAF6A] to-[#1F5A3A]",
   emotional: "from-[#F7C948] to-[#F59E0B]",
+  webtoon: "from-[#34D399] to-[#047857]",
   senior: "from-[#60A5FA] to-[#3B82F6]",
 };
 

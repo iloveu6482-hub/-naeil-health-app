@@ -2,6 +2,7 @@
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Camera, Check, ImagePlus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import CameraCapture from "@/components/avatar/CameraCapture";
@@ -11,23 +12,21 @@ import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { sampleUser } from "@/lib/sampleData";
 import { samplePointTransactions } from "@/lib/sampleData";
 import { calculatePointBalance, createSpendTransaction } from "@/lib/rewards";
-import type { AvatarStyle, UserProfile } from "@/types/user";
+import { getDefaultAvatars } from "@/lib/defaultAvatars";
+import type { DefaultAvatar } from "@/lib/defaultAvatars";
+import type { AvatarGender, AvatarStyle, UserProfile } from "@/types/user";
 import type { PointTransaction } from "@/types/reward";
 
 const AVATAR_REGENERATION_COST = 1500;
 const MONTHLY_REGENERATION_LIMIT = 1;
-
-const avatarOptions: Array<{ style: AvatarStyle; emoji: string; name: string; desc: string; recommend: string; gradient: string }> = [
-  { style: "3d", emoji: "🧑", name: "밝은 3D 캐릭터형", desc: "내 얼굴을 참고해 의상·포즈·배경까지 새롭게 생성해요.", recommend: "입체적인 건강 히어로 대시보드에 추천", gradient: "from-[#4CAF6A] to-[#1F5A3A]" },
-  { style: "emotional", emoji: "👩", name: "감성 애니메이션형", desc: "부드럽고 따뜻한 애니메이션 스타일입니다.", recommend: "편안한 건강습관 화면을 원하는 분께 추천", gradient: "from-[#F7C948] to-[#F59E0B]" },
-  { style: "senior", emoji: "🧓", name: "시니어 친화형", desc: "큰 글씨와 명확한 표현으로 누구나 쉽게 사용해요.", recommend: "40대 이상, 건강앱을 처음 시작하는 분께 추천", gradient: "from-[#60A5FA] to-[#3B82F6]" },
-];
 
 export default function AvatarPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState<UserProfile>(sampleUser);
   const [selected, setSelected] = useState<AvatarStyle>("3d");
+  const [avatarGender, setAvatarGender] = useState<AvatarGender>("female");
+  const [selectedDefaultId, setSelectedDefaultId] = useState<string>();
   const [avatarImage, setAvatarImage] = useState<string>();
   const [sourceImage, setSourceImage] = useState<string>();
   const [processing, setProcessing] = useState(false);
@@ -41,6 +40,8 @@ export default function AvatarPage() {
     const saved = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
     setProfile(saved);
     setSelected(saved.avatarStyle || "3d");
+    setAvatarGender(saved.defaultAvatarGender || (saved.gender === "male" ? "male" : "female"));
+    setSelectedDefaultId(saved.defaultAvatarId);
     setAvatarImage(saved.avatarImage);
     const transactions = getFromStorage<PointTransaction[]>(STORAGE_KEYS.POINT_TRANSACTIONS, samplePointTransactions);
     setPointBalance(calculatePointBalance(transactions));
@@ -52,6 +53,8 @@ export default function AvatarPage() {
     try {
       setSourceImage(await prepareAvatarSource(file));
       setAvatarImage(undefined);
+      setSelected("3d");
+      setSelectedDefaultId(undefined);
       setConsent(false);
       setMessage("사진 준비가 끝났어요. 아래에서 AI 건강이를 생성해주세요.");
     } catch (error) {
@@ -118,6 +121,8 @@ export default function AvatarPage() {
         avatarStyle: "3d",
         avatarImage: generatedImage,
         avatarEffect: "illustrated",
+        defaultAvatarId: undefined,
+        defaultAvatarGender: undefined,
         avatarGenerationCount: generationCount + 1,
         lastAvatarGeneratedAt: new Date().toISOString(),
         avatarRegenerationMonth: isFirstGeneration ? profile.avatarRegenerationMonth : currentMonth,
@@ -141,12 +146,24 @@ export default function AvatarPage() {
     setMessage("");
   };
 
+  const selectDefaultAvatar = (avatar: DefaultAvatar) => {
+    setAvatarGender(avatar.gender);
+    setSelected(avatar.style);
+    setSelectedDefaultId(avatar.id);
+    setAvatarImage(avatar.imageUrl);
+    setSourceImage(undefined);
+    setConsent(false);
+    setMessage(`${avatar.name} 기본 건강이를 선택했어요. 아래 저장 버튼을 눌러주세요.`);
+  };
+
   const handleStart = () => {
     const nextProfile: UserProfile = {
       ...profile,
       avatarStyle: selected,
-      avatarImage: selected === "3d" ? avatarImage : undefined,
-      avatarEffect: selected === "3d" && avatarImage ? "illustrated" : undefined,
+      avatarImage,
+      avatarEffect: selectedDefaultId ? undefined : selected === "3d" && avatarImage ? "illustrated" : undefined,
+      defaultAvatarId: selectedDefaultId,
+      defaultAvatarGender: selectedDefaultId ? avatarGender : undefined,
     };
     saveToStorage(STORAGE_KEYS.USER_PROFILE, nextProfile);
     saveToStorage(STORAGE_KEYS.AVATAR_STYLE, selected);
@@ -154,7 +171,7 @@ export default function AvatarPage() {
   };
 
   const displayImage = avatarImage || sourceImage;
-  const saveDisabled = processing || generating || (selected === "3d" && Boolean(sourceImage) && !avatarImage);
+  const saveDisabled = processing || generating || !avatarImage || (selected === "3d" && Boolean(sourceImage) && !avatarImage);
   const generationCount = profile.avatarGenerationCount || 0;
   const isFirstGeneration = generationCount === 0;
   const currentMonth = new Date().toISOString().slice(0, 7);
@@ -172,22 +189,40 @@ export default function AvatarPage() {
         </header>
 
         <main className="flex-1 space-y-4 px-4 py-6">
-          {avatarOptions.map((option) => {
-            const isSelected = selected === option.style;
-            return (
-              <button key={option.style} onClick={() => setSelected(option.style)} className={`w-full rounded-2xl border-2 p-4 text-left transition-all ${isSelected ? "border-[#4CAF6A] bg-[#EAF7EF] shadow-md" : "border-gray-200 bg-white"}`}>
-                <div className="flex items-center gap-4">
-                  <div className={`flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br ${option.gradient} text-3xl shadow`}>{option.emoji}</div>
-                  <div className="flex-1"><div className="flex items-center justify-between"><p className="text-base font-bold text-[#1F2937]">{option.name}</p>{isSelected && <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#4CAF6A]"><Check size={14} className="text-white" /></span>}</div><p className="mt-1 text-sm text-gray-600">{option.desc}</p></div>
-                </div>
-                <p className="mt-3 rounded-xl bg-white/70 px-3 py-2 text-xs font-medium text-[#4CAF6A]">💡 {option.recommend}</p>
-              </button>
-            );
-          })}
+          <section className="rounded-3xl border border-green-100 bg-white p-4 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-lg font-extrabold text-[#1F2937]">사진 없이 기본 건강이 선택</h2>
+              <p className="mt-1 text-sm leading-relaxed text-gray-500">AI 비용 없이 바로 사용할 수 있어요. 성별과 스타일을 골라주세요.</p>
+            </div>
+
+            <div className="mb-4 grid grid-cols-2 rounded-2xl bg-[#F1F7F3] p-1">
+              {(["female", "male"] as const).map((gender) => (
+                <button key={gender} onClick={() => setAvatarGender(gender)} className={`min-h-11 rounded-xl text-sm font-bold transition ${avatarGender === gender ? "bg-white text-[#1F5A3A] shadow-sm" : "text-gray-500"}`}>
+                  {gender === "female" ? "여성 건강이" : "남성 건강이"}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {getDefaultAvatars(avatarGender).map((avatar) => {
+                const isSelected = selectedDefaultId === avatar.id;
+                return (
+                  <button key={avatar.id} onClick={() => selectDefaultAvatar(avatar)} className={`overflow-hidden rounded-2xl border-2 bg-white text-left transition-all ${isSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
+                    <div className="relative aspect-[4/5] overflow-hidden bg-[#EAF7EF]">
+                      <Image src={avatar.imageUrl} alt={`${avatar.name} ${avatarGender === "female" ? "여성" : "남성"} 기본 아바타`} fill className="object-cover" />
+                      {isSelected && <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#4CAF6A] shadow"><Check size={16} className="text-white" /></span>}
+                    </div>
+                    <div className="p-3"><p className="font-extrabold text-[#1F2937]">{avatar.name}</p><p className="mt-1 text-xs leading-relaxed text-gray-500">{avatar.description}</p></div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
 
           {selected === "3d" && (
             <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
-              <div className="mb-4 flex items-center gap-2"><Sparkles size={20} className="text-[#4CAF6A]" /><h2 className="text-lg font-extrabold text-[#1F2937]">AI 건강이 생성</h2></div>
+              <div className="mb-1 flex items-center gap-2"><Sparkles size={20} className="text-[#4CAF6A]" /><h2 className="text-lg font-extrabold text-[#1F2937]">내 사진으로 AI 건강이 생성</h2></div>
+              <p className="mb-4 text-sm text-gray-500">직접 촬영하거나 사진을 올리고 싶은 경우에만 이용하세요.</p>
               <div className="flex flex-col items-center rounded-2xl bg-gradient-to-b from-[#EAF7EF] to-white p-5">
                 <AvatarPortraitCard imageUrl={displayImage} name={avatarImage ? `${profile.name}님의 AI 건강이` : sourceImage ? "AI 생성용 원본 사진" : `${profile.name}님의 건강이`} compact />
                 <p className="mt-3 text-center text-sm text-gray-600">사진을 선택하면 AI가 얼굴 특징을 참고해 새로운 의상·포즈·입체 배경을 생성합니다.</p>

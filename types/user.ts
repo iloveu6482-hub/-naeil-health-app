@@ -1,4 +1,5 @@
-export type AvatarStyle = "3d" | "emotional" | "senior";
+export type AvatarStyle = "3d" | "emotional" | "webtoon" | "senior";
+export type AvatarGender = "male" | "female";
 
 export type UserProfile = {
   id: string;
@@ -8,6 +9,8 @@ export type UserProfile = {
   avatarStyle: AvatarStyle;
   avatarImage?: string;
   avatarEffect?: "illustrated";
+  defaultAvatarId?: string;
+  defaultAvatarGender?: AvatarGender;
   avatarGenerationCount?: number;
   lastAvatarGeneratedAt?: string;
   avatarRegenerationMonth?: string;

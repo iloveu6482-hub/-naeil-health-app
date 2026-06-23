@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Camera, Droplets, FileText, Flame, Footprints, HeartPulse, Moon, Shirt, Utensils } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
 import CoachMessageCard from "@/components/dashboard/CoachMessageCard";
-import AvatarPortraitCard from "@/components/avatar/AvatarPortraitCard";
 import { getFromStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculateHealthScore } from "@/lib/healthRules";
+import { getDefaultAvatarImage } from "@/lib/defaultAvatars";
 import { sampleUser, sampleCheckup, sampleDailyLog } from "@/lib/sampleData";
 import type { UserProfile } from "@/types/user";
 import type { HealthCheckup, DailyLog } from "@/types/health";
@@ -45,6 +46,8 @@ export default function DashboardPage() {
   ];
   const coachMessage = coachMessages[new Date().getDay() % coachMessages.length];
   const calories = dailyLog.exerciseDone ? 356 : 210;
+  const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
+  const heroImage = user.avatarImage || getDefaultAvatarImage(avatarGender, user.avatarStyle) || "/avatars/default-female-3d.png";
 
   const summaryItems = [
     { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]" },
@@ -58,38 +61,35 @@ export default function DashboardPage() {
     <MobileShell>
       <AppHeader />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
-        <section className="relative overflow-hidden bg-[radial-gradient(circle_at_48%_16%,#FFFFFF_0%,#EFF9F1_32%,#B9E6C5_100%)] px-4 pb-5 pt-6">
-          <div className="pointer-events-none absolute -left-20 top-32 h-64 w-64 rounded-full bg-lime-300/25 blur-3xl" />
-          <div className="pointer-events-none absolute -right-24 top-24 h-72 w-72 rounded-full bg-emerald-300/25 blur-3xl" />
+        <section className="relative min-h-[650px] overflow-hidden bg-[#1F5A3A]">
+          <Image src={heroImage} alt={`${user.name}님의 건강이 아바타`} fill priority unoptimized={heroImage.startsWith("data:")} className="object-cover object-top" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/28 via-transparent to-[#0B3A24]/45" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
-          <div className="relative z-20 max-w-[220px]">
-            <p className="text-lg text-[#1F2937]">안녕하세요, <strong className="text-[#24944E]">{user.name}님!</strong></p>
-            <p className="mt-2 text-base leading-relaxed text-gray-700">오늘도 건강한 하루를<br />시작해볼까요?</p>
+          <div className="relative z-20 px-5 pt-6 drop-shadow-sm">
+            <p className="text-lg text-[#1F2937]">안녕하세요, <strong className="text-[#16743B]">{user.name}님!</strong></p>
+            <p className="mt-2 text-base font-medium leading-relaxed text-[#1F2937]">오늘도 건강한 하루를<br />시작해볼까요?</p>
           </div>
 
-          <div className="relative mx-auto mt-2 min-h-[485px] max-w-[390px]">
-            <div className="absolute inset-x-8 top-0 z-10">
-              <AvatarPortraitCard imageUrl={user.avatarImage} name={`${user.name}님의 건강이`} />
-            </div>
-
-            <div className="absolute left-0 top-[120px] z-20 space-y-3">
+          <div className="absolute inset-0 z-20">
+            <div className="absolute left-3 top-[205px] space-y-3">
               {[
                 { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]" },
                 { icon: Flame, label: "소모 칼로리", value: `${calories} kcal`, color: "text-[#F59E0B]" },
                 { icon: Moon, label: "수면", value: `${dailyLog.sleepHours}시간`, color: "text-[#4E66B1]" },
                 { icon: Droplets, label: "수분", value: `${dailyLog.waterCups}잔`, color: "text-[#27A9D6]" },
               ].map(({ icon: Icon, label, value, color }, index) => (
-                <div key={label} className={`w-[126px] rounded-[22px] border border-white/90 bg-white/82 px-3 py-2.5 shadow-[0_12px_30px_rgba(31,90,58,0.16)] backdrop-blur-md ${index % 2 === 0 ? "-rotate-1" : "rotate-1"}`}>
-                  <div className="flex items-center gap-2"><Icon size={20} className={color} /><div><p className="text-[11px] text-gray-500">{label}</p><p className="text-base font-extrabold text-[#1F2937]">{value}</p></div></div>
+                <div key={label} className={`w-[124px] rounded-[20px] border border-white/60 bg-white/24 px-3 py-2.5 shadow-[0_12px_30px_rgba(10,66,40,0.20)] backdrop-blur-[9px] ${index % 2 === 0 ? "-rotate-1" : "rotate-1"}`}>
+                  <div className="flex items-center gap-2"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/65"><Icon size={18} className={color} /></span><div><p className="text-[10px] font-semibold text-[#1F2937]/70">{label}</p><p className="text-sm font-black text-[#102D20]">{value}</p></div></div>
                 </div>
               ))}
             </div>
 
-            <div className="absolute right-0 top-8 z-20 max-w-[170px] rounded-2xl rounded-bl-sm border border-white bg-white/88 px-4 py-3 shadow-[0_14px_32px_rgba(31,90,58,0.18)] backdrop-blur-md">
-              <p className="text-xs font-bold text-[#24944E]">🌿 건강한 습관이</p><p className="mt-1 text-sm font-semibold leading-relaxed text-[#1F5A3A]">내일의 나를 만듭니다!</p>
+            <div className="absolute right-3 top-[120px] max-w-[168px] rounded-2xl rounded-bl-sm border border-white/65 bg-white/28 px-4 py-3 shadow-[0_14px_32px_rgba(31,90,58,0.18)] backdrop-blur-[10px]">
+              <p className="text-xs font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-1 text-sm font-extrabold leading-relaxed text-[#163D29]">내일의 나를 만듭니다!</p>
             </div>
 
-            <div className="absolute bottom-7 right-0 z-20 flex h-32 w-32 flex-col items-center justify-center rounded-full border-[8px] border-white/85 bg-white/88 text-center shadow-[0_16px_36px_rgba(31,90,58,0.24)] ring-4 ring-[#4CAF6A]/55 backdrop-blur-md">
+            <div className="absolute bottom-6 right-3 flex h-32 w-32 flex-col items-center justify-center rounded-full border-[6px] border-white/65 bg-white/28 text-center shadow-[0_16px_36px_rgba(31,90,58,0.28)] ring-2 ring-[#4CAF6A]/65 backdrop-blur-[10px]">
               <p className="text-[10px] font-semibold text-gray-500">오늘의 건강관리</p><p className="text-[10px] text-gray-500">참고 점수</p><p className="mt-1 text-4xl font-black text-[#24944E]">{score}</p><p className="text-xs text-[#4CAF6A]">/ 100</p>
             </div>
           </div>
