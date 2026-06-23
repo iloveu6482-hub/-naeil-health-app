@@ -5,7 +5,7 @@ import type { AvatarStyle } from "@/types/user";
 
 interface HealthAvatarProps {
   style: AvatarStyle;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   equippedItems?: string[];
   imageUrl?: string;
 }
@@ -23,6 +23,7 @@ const avatarColors: Record<AvatarStyle, string> = {
 };
 
 const sizeMap = {
+  xs: { wrapper: "w-8 h-8", text: "text-sm" },
   sm: { wrapper: "w-16 h-16", text: "text-xl" },
   md: { wrapper: "w-24 h-24", text: "text-3xl" },
   lg: { wrapper: "w-32 h-32", text: "text-5xl" },

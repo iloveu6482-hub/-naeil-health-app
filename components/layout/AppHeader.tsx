@@ -6,6 +6,9 @@ import { useEffect, useState } from "react";
 import { getFromStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculatePointBalance } from "@/lib/rewards";
 import type { PointTransaction } from "@/types/reward";
+import type { UserProfile } from "@/types/user";
+import HealthAvatar from "@/components/common/HealthAvatar";
+import { sampleUser } from "@/lib/sampleData";
 
 interface AppHeaderProps {
   title?: string;
@@ -15,6 +18,7 @@ interface AppHeaderProps {
 
 export default function AppHeader({ title, showBack, backHref }: AppHeaderProps) {
   const [points, setPoints] = useState(0);
+  const [user, setUser] = useState<UserProfile>(sampleUser);
 
   useEffect(() => {
     const txs = getFromStorage<PointTransaction[]>(
@@ -22,6 +26,7 @@ export default function AppHeader({ title, showBack, backHref }: AppHeaderProps)
       []
     );
     setPoints(calculatePointBalance(txs));
+    setUser(getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser));
 
     const handler = () => {
       const updated = getFromStorage<PointTransaction[]>(
@@ -49,9 +54,7 @@ export default function AppHeader({ title, showBack, backHref }: AppHeaderProps)
           </Link>
         ) : null}
         <Link href="/dashboard" className="flex items-center gap-1">
-          <div className="w-7 h-7 bg-[#4CAF6A] rounded-full flex items-center justify-center">
-            <Sprout size={16} className="text-white" />
-          </div>
+          <HealthAvatar style={user.avatarStyle} size="xs" imageUrl={user.avatarImage} />
           <span className="font-bold text-[#1F5A3A] text-base">
             {title || "내일의건강"}
           </span>

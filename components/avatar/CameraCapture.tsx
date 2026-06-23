@@ -58,18 +58,21 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
     const video = videoRef.current;
     if (!video || !ready) return;
 
-    const size = Math.min(video.videoWidth, video.videoHeight);
+    const targetRatio = 3 / 4;
+    const videoRatio = video.videoWidth / video.videoHeight;
+    const cropWidth = videoRatio > targetRatio ? video.videoHeight * targetRatio : video.videoWidth;
+    const cropHeight = videoRatio > targetRatio ? video.videoHeight : video.videoWidth / targetRatio;
     const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
+    canvas.width = 720;
+    canvas.height = 960;
     const context = canvas.getContext("2d");
     if (!context) return;
 
-    const sourceX = (video.videoWidth - size) / 2;
-    const sourceY = (video.videoHeight - size) / 2;
-    context.translate(size, 0);
+    const sourceX = (video.videoWidth - cropWidth) / 2;
+    const sourceY = (video.videoHeight - cropHeight) / 2;
+    context.translate(canvas.width, 0);
     context.scale(-1, 1);
-    context.drawImage(video, sourceX, sourceY, size, size, 0, 0, size, size);
+    context.drawImage(video, sourceX, sourceY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
     canvas.toBlob((blob) => {
       if (!blob) return;
       stopCamera();
@@ -86,13 +89,13 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
     <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 sm:items-center" role="dialog" aria-modal="true" aria-label="얼굴 사진 촬영">
       <div className="w-full max-w-[430px] rounded-t-3xl bg-white p-4 sm:rounded-3xl">
         <div className="mb-3 flex items-center justify-between">
-          <div><h2 className="text-lg font-extrabold text-[#1F2937]">건강이 얼굴 촬영</h2><p className="text-sm text-gray-500">얼굴을 원 안에 맞추고 정면을 바라보세요.</p></div>
+          <div><h2 className="text-lg font-extrabold text-[#1F2937]">건강이 상반신 촬영</h2><p className="text-sm text-gray-500">머리부터 허리까지 프레임 안에 맞춰주세요.</p></div>
           <button onClick={close} className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100" aria-label="카메라 닫기"><X size={20} /></button>
         </div>
 
-        <div className="relative aspect-square overflow-hidden rounded-3xl bg-[#10291d]">
+        <div className="relative mx-auto aspect-[3/4] max-h-[62vh] overflow-hidden rounded-3xl bg-[#10291d]">
           <video ref={videoRef} playsInline muted className="h-full w-full scale-x-[-1] object-cover" />
-          <div className="pointer-events-none absolute inset-[10%] rounded-full border-4 border-white/80 shadow-[0_0_0_999px_rgba(0,0,0,0.18)]" />
+          <div className="pointer-events-none absolute inset-x-[15%] bottom-[8%] top-[7%] rounded-[42%_42%_24%_24%] border-4 border-white/80 shadow-[0_0_0_999px_rgba(0,0,0,0.18)]" />
           {!ready && !error && <div className="absolute inset-0 flex items-center justify-center text-center text-white"><div><Camera className="mx-auto mb-2 animate-pulse" /><p className="font-semibold">카메라를 준비하고 있어요</p></div></div>}
           {error && <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-white"><div><CameraOff className="mx-auto mb-3" size={36} /><p className="font-semibold leading-relaxed">{error}</p></div></div>}
         </div>

@@ -4,8 +4,8 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Check, ImagePlus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
-import HealthAvatar from "@/components/common/HealthAvatar";
 import CameraCapture from "@/components/avatar/CameraCapture";
+import AvatarPortraitCard from "@/components/avatar/AvatarPortraitCard";
 import { createIllustratedAvatar } from "@/lib/avatarImage";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { sampleUser } from "@/lib/sampleData";
@@ -39,7 +39,7 @@ export default function AvatarPage() {
     setMessage("");
     try {
       setAvatarImage(await createIllustratedAvatar(file));
-      setMessage("사진을 밝은 그림형 아바타로 만들었어요.");
+      setMessage("실사 질감을 줄이고 밝은 카툰형 건강이로 변환했어요.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "사진을 변환하지 못했습니다.");
     } finally {
@@ -97,8 +97,8 @@ export default function AvatarPage() {
             <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center gap-2"><Sparkles size={20} className="text-[#4CAF6A]" /><h2 className="text-lg font-extrabold text-[#1F2937]">내 사진으로 건강이 만들기</h2></div>
               <div className="flex flex-col items-center rounded-2xl bg-gradient-to-b from-[#EAF7EF] to-white p-5">
-                <HealthAvatar style="3d" size="lg" imageUrl={avatarImage} />
-                <p className="mt-3 text-center text-sm text-gray-600">정면 얼굴이 잘 보이는 사진을 선택하면 더 자연스러워요.</p>
+                <AvatarPortraitCard imageUrl={avatarImage} name={`${profile.name}님의 건강이`} compact />
+                <p className="mt-3 text-center text-sm text-gray-600">예시처럼 머리부터 허리까지 나오게 촬영하거나 상반신 사진을 올려주세요.</p>
               </div>
               <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleImage} />
               <div className="mt-4 grid grid-cols-2 gap-2">
@@ -107,7 +107,7 @@ export default function AvatarPage() {
               </div>
               {avatarImage && <button onClick={() => setAvatarImage(undefined)} className="mt-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 font-bold text-gray-600"><Trash2 size={17} />현재 사진 지우기</button>}
               {message && <p className="mt-3 rounded-xl bg-green-50 p-3 text-center text-sm text-[#1F5A3A]">{message}</p>}
-              <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-gray-400"><Camera size={15} className="mt-0.5 shrink-0" />사진은 외부 서버로 전송되지 않으며 현재 브라우저에서 그림형으로 변환됩니다.</p>
+              <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-gray-400"><Camera size={15} className="mt-0.5 shrink-0" />사진은 외부 서버로 전송되지 않으며 현재 브라우저에서 카툰 색상·윤곽선 방식으로 변환됩니다. 기존 사진은 다시 업로드해야 새 효과가 적용됩니다.</p>
             </section>
           )}
         </main>
