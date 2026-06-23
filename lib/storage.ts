@@ -6,7 +6,17 @@ export function saveToStorage<T>(key: string, value: T) {
 export function getFromStorage<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
 
-  const stored = localStorage.getItem(key);
+  const legacyKeys: Record<string, string> = {
+    selectedAvatarStyle: "naeil_avatar_style",
+    healthPointTransactions: "naeil_point_transactions",
+    dailyLogs: "naeil_daily_logs",
+    challenges: "naeil_challenges",
+  };
+  let stored = localStorage.getItem(key);
+  if (!stored && legacyKeys[key]) {
+    stored = localStorage.getItem(legacyKeys[key]);
+    if (stored) localStorage.setItem(key, stored);
+  }
   if (!stored) return fallback;
 
   try {
