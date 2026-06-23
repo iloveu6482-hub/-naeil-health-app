@@ -23,11 +23,13 @@ export function removeFromStorage(key: string) {
 
 export const STORAGE_KEYS = {
   USER_PROFILE: "naeil_user_profile",
-  AVATAR_STYLE: "naeil_avatar_style",
+  AVATAR_STYLE: "selectedAvatarStyle",
   HEALTH_CHECKUP: "naeil_health_checkup",
-  DAILY_LOGS: "naeil_daily_logs",
-  CHALLENGES: "naeil_challenges",
-  POINT_TRANSACTIONS: "naeil_point_transactions",
+  DAILY_LOGS: "dailyLogs",
+  CHALLENGES: "challenges",
+  POINT_TRANSACTIONS: "healthPointTransactions",
+  MEAL_RECORDS: "mealRecords",
+  NOTIFICATION_SETTINGS: "notificationSettings",
   AVATAR_ITEMS: "naeil_avatar_items",
   REWARD_BADGES: "naeil_reward_badges",
   AI_REPORT: "naeil_ai_report",

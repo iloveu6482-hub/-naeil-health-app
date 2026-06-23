@@ -10,7 +10,7 @@ import { getFromStorage, saveToStorage, removeFromStorage, STORAGE_KEYS } from "
 import { sampleUser } from "@/lib/sampleData";
 import type { UserProfile } from "@/types/user";
 import type { AvatarItem } from "@/types/reward";
-import { User, RefreshCw, AlertTriangle } from "lucide-react";
+import { User, RefreshCw, AlertTriangle, Bell } from "lucide-react";
 import { signOutLocal } from "@/lib/auth";
 
 const avatarStyleLabels = {
@@ -97,6 +97,13 @@ export default function SettingsPage() {
             className="w-full flex items-center justify-between px-4 py-4 hover:bg-gray-50 active:bg-gray-100 transition-colors"
           >
             <span className="font-medium text-[#1F2937]">아바타 상점</span>
+            <span className="text-gray-400">→</span>
+          </button>
+          <button
+            onClick={() => router.push("/notifications")}
+            className="w-full flex items-center justify-between px-4 py-4 border-t border-gray-50 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+          >
+            <span className="flex items-center gap-2 font-medium text-[#1F2937]"><Bell size={18} className="text-[#4CAF6A]" />알림 설정</span>
             <span className="text-gray-400">→</span>
           </button>
           <button

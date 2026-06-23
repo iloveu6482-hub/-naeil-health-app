@@ -32,3 +32,19 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+@keyframes avatarFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes avatarBreathe { 0%, 100% { transform: scale(1.012); } 50% { transform: scale(1.028); } }
+@keyframes avatarGlow { 0%, 100% { opacity: .42; transform: translate(-50%, -50%) scale(.94); } 50% { opacity: .72; transform: translate(-50%, -50%) scale(1.08); } }
+
+.avatar-float { animation: avatarFloat 4.8s ease-in-out infinite; }
+.avatar-breathe { animation: avatarBreathe 3.8s ease-in-out infinite; transform-origin: 50% 72%; }
+.avatar-glow { animation: avatarGlow 5.5s ease-in-out infinite; }
+[data-avatar-mood="happy"] .avatar-float { animation-duration: 4s; }
+[data-avatar-mood="cheer"] .avatar-float { animation-duration: 3.6s; }
+[data-avatar-mood="reward"] .avatar-glow { background-color: rgb(250 204 21 / .42); }
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar-float, .avatar-breathe, .avatar-glow { animation: none !important; }
+  .avatar-float, .avatar-breathe { transform: none !important; }
+}

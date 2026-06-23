@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
@@ -9,6 +10,7 @@ import { saveToStorage, getFromStorage, STORAGE_KEYS } from "@/lib/storage";
 import { createEarnTransaction, hasEarnedTodayForReason, addPointTransaction } from "@/lib/rewards";
 import { sampleDailyLog } from "@/lib/sampleData";
 import type { DailyLog } from "@/types/health";
+import type { MealAnalysis } from "@/types/meal";
 import { Footprints, Moon, Droplets, UtensilsCrossed, Pill, Dumbbell, Heart, Smile } from "lucide-react";
 
 export default function HabitsPage() {
@@ -25,6 +27,12 @@ export default function HabitsPage() {
   const [saved, setSaved] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [earnedPoints, setEarnedPoints] = useState(0);
+  const [todayMeals, setTodayMeals] = useState<MealAnalysis[]>([]);
+
+  useEffect(() => {
+    const todayKey = new Date().toISOString().slice(0, 10);
+    setTodayMeals(getFromStorage<MealAnalysis[]>(STORAGE_KEYS.MEAL_RECORDS, []).filter((meal) => meal.mealDate === todayKey));
+  }, []);
 
   const today = new Date().toLocaleDateString("ko-KR", {
     year: "numeric",
@@ -109,6 +117,18 @@ export default function HabitsPage() {
         </div>
 
         <div className="px-4 py-4 flex flex-col gap-3">
+          <section className="rounded-2xl border border-green-100 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between"><h3 className="text-lg font-extrabold text-[#1F2937]">오늘의 건강 행동</h3><Link href="/meals/new" className="rounded-full bg-[#4CAF6A] px-3 py-2 text-xs font-bold text-white">식단 사진 기록</Link></div>
+            <div className="mt-3 space-y-2">{[
+              { label: "아침 식단 기록", done: todayMeals.some((meal) => meal.mealType === "breakfast"), reward: 5 },
+              { label: "점심 식단 기록", done: todayMeals.some((meal) => meal.mealType === "lunch"), reward: 5 },
+              { label: "저녁 식단 기록", done: todayMeals.some((meal) => meal.mealType === "dinner"), reward: 5 },
+              { label: "물 6잔 이상", done: form.waterCups >= 6, reward: 10 },
+              { label: "7,000보 걷기", done: form.steps >= 7000, reward: 20 },
+              { label: "수면 7시간 이상", done: form.sleepHours >= 7, reward: 15 },
+              { label: "운동 완료", done: form.exerciseDone, reward: 10 },
+            ].map((action) => <div key={action.label} className="flex items-center gap-3 rounded-xl bg-[#F7FBF8] px-3 py-2"><span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-black ${action.done ? "bg-[#4CAF6A] text-white" : "bg-gray-200 text-gray-400"}`}>{action.done ? "✓" : ""}</span><span className="flex-1 text-sm font-semibold text-[#1F2937]">{action.label}</span><span className="text-xs font-bold text-[#4CAF6A]">+{action.reward}P</span></div>)}</div>
+          </section>
           {/* Steps */}
           <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center gap-2 mb-3">

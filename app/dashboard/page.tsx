@@ -2,23 +2,24 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { Camera, Droplets, FileText, Flame, Footprints, HeartPulse, Moon, Shirt, Utensils } from "lucide-react";
+import { Bell, Camera, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Moon, Shirt, Target, Utensils } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
 import CoachMessageCard from "@/components/dashboard/CoachMessageCard";
+import AnimatedAvatar from "@/components/avatar/AnimatedAvatar";
 import { getFromStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculateHealthScore } from "@/lib/healthRules";
 import { getDefaultAvatarImage } from "@/lib/defaultAvatars";
 import { sampleUser, sampleCheckup, sampleDailyLog } from "@/lib/sampleData";
 import type { UserProfile } from "@/types/user";
 import type { HealthCheckup, DailyLog } from "@/types/health";
+import type { MealAnalysis } from "@/types/meal";
 
 const quickMenus = [
   { href: "/avatar", icon: Camera, label: "내 사진·아바타\n변경" },
   { href: "/avatar-shop", icon: Shirt, label: "아바타\n꾸미기" },
-  { href: "/habits", icon: Utensils, label: "식단·습관\n기록" },
+  { href: "/meals", icon: Utensils, label: "식단 사진\n기록" },
   { href: "/report", icon: FileText, label: "건강\n리포트" },
 ];
 
@@ -27,6 +28,7 @@ export default function DashboardPage() {
   const [checkup, setCheckup] = useState<HealthCheckup>(sampleCheckup);
   const [dailyLog, setDailyLog] = useState<DailyLog>(sampleDailyLog);
   const [score, setScore] = useState(0);
+  const [meals, setMeals] = useState<MealAnalysis[]>([]);
 
   useEffect(() => {
     const savedUser = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
@@ -37,6 +39,7 @@ export default function DashboardPage() {
     setCheckup(savedCheckup);
     setDailyLog(latestLog);
     setScore(calculateHealthScore(savedCheckup, latestLog));
+    setMeals(getFromStorage<MealAnalysis[]>(STORAGE_KEYS.MEAL_RECORDS, []));
   }, []);
 
   const coachMessages = [
@@ -48,6 +51,9 @@ export default function DashboardPage() {
   const calories = dailyLog.exerciseDone ? 356 : 210;
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
   const heroImage = user.avatarImage || getDefaultAvatarImage(avatarGender, user.avatarStyle) || "/avatars/default-female-3d.png";
+  const today = new Date().toISOString().slice(0, 10);
+  const todayMeals = meals.filter((meal) => meal.mealDate === today);
+  const mealCalories = todayMeals.reduce((sum, meal) => sum + meal.estimatedCalories, 0);
 
   const summaryItems = [
     { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]" },
@@ -55,6 +61,7 @@ export default function DashboardPage() {
     { icon: Flame, label: "소모 칼로리", value: `${calories}kcal`, color: "text-[#F59E0B]" },
     { icon: Droplets, label: "수분", value: `${dailyLog.waterCups}잔`, color: "text-[#27A9D6]" },
     { icon: HeartPulse, label: "혈압", value: `${checkup.systolicBp}/${checkup.diastolicBp}`, color: "text-[#E34D59]" },
+    { icon: Utensils, label: "오늘 식단", value: `${todayMeals.filter((meal) => meal.mealType !== "snack").length}/3회`, color: "text-[#E58A2B]" },
   ];
 
   return (
@@ -62,7 +69,7 @@ export default function DashboardPage() {
       <AppHeader />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
         <section className="relative min-h-[650px] overflow-hidden bg-[#1F5A3A]">
-          <Image src={heroImage} alt={`${user.name}님의 건강이 아바타`} fill priority unoptimized={heroImage.startsWith("data:")} className="object-cover object-top" />
+          <AnimatedAvatar style={user.avatarStyle} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} imageUrl={heroImage} fill priority glow alt={`${user.name}님의 건강이 아바타`} />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/28 via-transparent to-[#0B3A24]/45" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
@@ -105,6 +112,15 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        <section className="px-4 pt-6">
+          <div className="mb-3 flex items-center justify-between"><h3 className="flex items-center gap-2 text-xl font-extrabold text-[#1F2937]"><Target className="text-[#4CAF6A]" />건강이의 오늘 미션</h3><Link href="/notifications" className="flex items-center gap-1 text-sm font-bold text-gray-500"><Bell size={16} />알림 설정</Link></div>
+          <div className="space-y-3">{[
+            { title: "점심 식단 기록하기", desc: "사진 한 장으로 예상 칼로리를 확인해보세요.", reward: "5P", href: "/meals/new", icon: "🍽️" },
+            { title: "목표 걸음 수 채우기", desc: dailyLog.steps >= 7000 ? "오늘의 걷기 목표를 달성했어요!" : `${(7000 - dailyLog.steps).toLocaleString()}보만 더 걸으면 목표 달성이에요.`, reward: "20P", href: "/habits", icon: "👟" },
+            { title: "물 2잔 더 마시기", desc: dailyLog.waterCups >= 6 ? "오늘의 수분 목표를 달성했어요!" : "오늘 수분 목표까지 조금 남았어요.", reward: "10P", href: "/habits", icon: "💧" },
+          ].map((mission) => <article key={mission.title} className="flex items-center gap-3 rounded-2xl border border-green-100 bg-white p-4 shadow-sm"><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#EAF7EF] text-2xl">{mission.icon}</span><div className="min-w-0 flex-1"><p className="font-extrabold text-[#1F2937]">{mission.title}</p><p className="mt-0.5 text-xs leading-relaxed text-gray-500">{mission.desc}</p><p className="mt-1 text-xs font-bold text-[#4CAF6A]">보상: 헬스포인트 {mission.reward}</p></div><Link href={mission.href} aria-label={`${mission.title} 바로 실행하기`} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#4CAF6A] text-white"><ChevronRight /></Link></article>)}</div>
+        </section>
+
         <section className="px-4 py-6">
           <h3 className="mb-4 text-xl font-extrabold text-[#1F2937]">오늘의 건강 요약</h3>
           <div className="flex gap-2 overflow-x-auto pb-2">
@@ -114,9 +130,11 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
+          <p className="mt-2 text-sm font-bold text-[#1F5A3A]">예상 섭취 칼로리: {mealCalories.toLocaleString()} kcal</p>
         </section>
 
-        <section className="px-4 pb-6"><CoachMessageCard message={coachMessage} /></section>
+        <section className="px-4 pb-3"><CoachMessageCard message={coachMessage} style={user.avatarStyle} imageUrl={heroImage} /></section>
+        <section className="px-4 pb-6"><Link href="/notifications" className="block rounded-2xl border border-green-100 bg-[#EAF7EF] p-4"><p className="flex items-center gap-2 font-extrabold text-[#1F5A3A]"><Bell size={18} />점심시간이에요</p><p className="mt-1 text-sm text-gray-600">식사 전 사진 한 장으로 오늘의 식단을 기록해보세요.</p></Link></section>
       </main>
       <BottomNav />
     </MobileShell>

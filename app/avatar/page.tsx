@@ -2,11 +2,11 @@
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Camera, Check, ImagePlus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import CameraCapture from "@/components/avatar/CameraCapture";
 import AvatarPortraitCard from "@/components/avatar/AvatarPortraitCard";
+import AnimatedAvatar from "@/components/avatar/AnimatedAvatar";
 import { compressGeneratedAvatar, prepareAvatarSource } from "@/lib/avatarImage";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { sampleUser } from "@/lib/sampleData";
@@ -209,7 +209,7 @@ export default function AvatarPage() {
                 return (
                   <button key={avatar.id} onClick={() => selectDefaultAvatar(avatar)} className={`overflow-hidden rounded-2xl border-2 bg-white text-left transition-all ${isSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
                     <div className="relative aspect-[4/5] overflow-hidden bg-[#EAF7EF]">
-                      <Image src={avatar.imageUrl} alt={`${avatar.name} ${avatarGender === "female" ? "여성" : "남성"} 기본 아바타`} fill className="object-cover" />
+                      <AnimatedAvatar style={avatar.style} mood={isSelected ? "happy" : "idle"} imageUrl={avatar.imageUrl} fill glow={isSelected} alt={`${avatar.name} ${avatarGender === "female" ? "여성" : "남성"} 기본 아바타`} />
                       {isSelected && <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#4CAF6A] shadow"><Check size={16} className="text-white" /></span>}
                     </div>
                     <div className="p-3"><p className="font-extrabold text-[#1F2937]">{avatar.name}</p><p className="mt-1 text-xs leading-relaxed text-gray-500">{avatar.description}</p></div>

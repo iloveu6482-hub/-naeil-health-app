@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import AnimatedAvatar, { type AvatarMood } from "@/components/avatar/AnimatedAvatar";
 import type { AvatarStyle } from "@/types/user";
 
 interface HealthAvatarProps {
@@ -8,14 +8,8 @@ interface HealthAvatarProps {
   size?: "xs" | "sm" | "md" | "lg";
   equippedItems?: string[];
   imageUrl?: string;
+  mood?: AvatarMood;
 }
-
-const avatarImages: Record<AvatarStyle, string> = {
-  "3d": "/avatars/default-female-3d.png",
-  emotional: "/avatars/default-female-emotional.png",
-  webtoon: "/avatars/default-female-webtoon.png",
-  senior: "/avatars/default-female-senior.png",
-};
 
 const avatarColors: Record<AvatarStyle, string> = {
   "3d": "from-[#4CAF6A] to-[#1F5A3A]",
@@ -36,6 +30,7 @@ export default function HealthAvatar({
   size = "md",
   equippedItems = [],
   imageUrl,
+  mood = "idle",
 }: HealthAvatarProps) {
   const { wrapper, text } = sizeMap[size];
 
@@ -44,16 +39,7 @@ export default function HealthAvatar({
       <div
         className={`${wrapper} rounded-full bg-gradient-to-br ${avatarColors[style]} flex items-center justify-center shadow-lg overflow-hidden`}
       >
-        <Image
-          src={imageUrl || avatarImages[style]}
-          alt="건강이 아바타"
-          fill
-          unoptimized={Boolean(imageUrl)}
-          className={`object-cover ${imageUrl ? "scale-[1.03] contrast-[1.04] saturate-[1.08]" : ""}`}
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = "none";
-          }}
-        />
+        <AnimatedAvatar style={style} mood={mood} imageUrl={imageUrl} fill glow={size !== "xs"} />
         <span className={`${text} select-none`}>🌱</span>
       </div>
       {equippedItems.length > 0 && (

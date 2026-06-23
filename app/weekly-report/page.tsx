@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
@@ -10,11 +11,13 @@ import { calculatePointBalance } from "@/lib/rewards";
 import { sampleDailyLog } from "@/lib/sampleData";
 import type { DailyLog } from "@/types/health";
 import type { PointTransaction } from "@/types/reward";
-import { Footprints, Moon, Droplets, Dumbbell, Trophy, Sprout, TrendingUp } from "lucide-react";
+import type { MealAnalysis } from "@/types/meal";
+import { Footprints, Moon, Droplets, Dumbbell, Trophy, Sprout, TrendingUp, UtensilsCrossed, ChevronRight } from "lucide-react";
 
 export default function WeeklyReportPage() {
   const [logs, setLogs] = useState<DailyLog[]>([]);
   const [weeklyPoints, setWeeklyPoints] = useState(0);
+  const [mealCount, setMealCount] = useState(0);
 
   useEffect(() => {
     const savedLogs = getFromStorage<DailyLog[]>(STORAGE_KEYS.DAILY_LOGS, [sampleDailyLog]);
@@ -27,6 +30,8 @@ export default function WeeklyReportPage() {
       (tx) => tx.type === "earn" && new Date(tx.createdAt) >= oneWeekAgo
     );
     setWeeklyPoints(weekTxs.reduce((s, t) => s + t.amount, 0));
+    const meals = getFromStorage<MealAnalysis[]>(STORAGE_KEYS.MEAL_RECORDS, []);
+    setMealCount(meals.filter((meal) => new Date(meal.createdAt) >= oneWeekAgo).length);
   }, []);
 
   const avgSteps = Math.round(logs.reduce((s, l) => s + l.steps, 0) / logs.length);
@@ -119,6 +124,11 @@ export default function WeeklyReportPage() {
           </div>
 
           {/* Best & Improve */}
+          <Link href="/meals/report" className="flex items-center gap-3 rounded-2xl border border-green-100 bg-white p-4 shadow-sm">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#EAF7EF] text-[#4CAF6A]"><UtensilsCrossed /></span>
+            <div className="flex-1"><p className="font-extrabold text-[#1F2937]">주간 식단 리포트</p><p className="mt-1 text-sm text-gray-500">이번 주 식단 사진 {mealCount}회 기록</p></div><ChevronRight className="text-gray-400" />
+          </Link>
+
           <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3">
             <div className="bg-[#EAF7EF] rounded-xl p-3">
               <p className="text-xs text-[#4CAF6A] font-semibold mb-1">✨ 가장 잘한 습관</p>
