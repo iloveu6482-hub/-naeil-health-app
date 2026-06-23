@@ -8,6 +8,11 @@ export type UserProfile = {
   avatarStyle: AvatarStyle;
   avatarImage?: string;
   avatarEffect?: "illustrated";
+  avatarGenerationCount?: number;
+  lastAvatarGeneratedAt?: string;
+  avatarRegenerationMonth?: string;
+  avatarRegenerationCount?: number;
+  isPremium?: boolean;
 };
 
 export type LocalAccount = {

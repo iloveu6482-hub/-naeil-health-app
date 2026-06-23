@@ -9,7 +9,13 @@ import AvatarPortraitCard from "@/components/avatar/AvatarPortraitCard";
 import { compressGeneratedAvatar, prepareAvatarSource } from "@/lib/avatarImage";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { sampleUser } from "@/lib/sampleData";
+import { samplePointTransactions } from "@/lib/sampleData";
+import { calculatePointBalance, createSpendTransaction } from "@/lib/rewards";
 import type { AvatarStyle, UserProfile } from "@/types/user";
+import type { PointTransaction } from "@/types/reward";
+
+const AVATAR_REGENERATION_COST = 1500;
+const MONTHLY_REGENERATION_LIMIT = 1;
 
 const avatarOptions: Array<{ style: AvatarStyle; emoji: string; name: string; desc: string; recommend: string; gradient: string }> = [
   { style: "3d", emoji: "🧑", name: "밝은 3D 캐릭터형", desc: "내 얼굴을 참고해 의상·포즈·배경까지 새롭게 생성해요.", recommend: "입체적인 건강 히어로 대시보드에 추천", gradient: "from-[#4CAF6A] to-[#1F5A3A]" },
@@ -29,12 +35,15 @@ export default function AvatarPage() {
   const [consent, setConsent] = useState(false);
   const [message, setMessage] = useState("");
   const [showCamera, setShowCamera] = useState(false);
+  const [pointBalance, setPointBalance] = useState(0);
 
   useEffect(() => {
     const saved = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
     setProfile(saved);
     setSelected(saved.avatarStyle || "3d");
     setAvatarImage(saved.avatarImage);
+    const transactions = getFromStorage<PointTransaction[]>(STORAGE_KEYS.POINT_TRANSACTIONS, samplePointTransactions);
+    setPointBalance(calculatePointBalance(transactions));
   }, []);
 
   const processImage = async (file: File) => {
@@ -66,8 +75,23 @@ export default function AvatarPage() {
 
   const handleGenerateAvatar = async () => {
     if (!sourceImage || !consent) return;
+    const generationCount = profile.avatarGenerationCount || 0;
+    const isFirstGeneration = generationCount === 0;
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const monthlyRegenerationCount = profile.avatarRegenerationMonth === currentMonth ? profile.avatarRegenerationCount || 0 : 0;
+    const generationCost = isFirstGeneration || profile.isPremium ? 0 : AVATAR_REGENERATION_COST;
+
+    if (!isFirstGeneration && monthlyRegenerationCount >= MONTHLY_REGENERATION_LIMIT) {
+      setMessage("이번 달 AI 건강이 재생성 기회를 이미 사용했어요. 다음 달에 다시 이용해주세요.");
+      return;
+    }
+    if (generationCost > pointBalance) {
+      setMessage(`AI 건강이 재생성에는 ${AVATAR_REGENERATION_COST.toLocaleString()}P가 필요해요. 현재 ${pointBalance.toLocaleString()}P를 보유하고 있어요.`);
+      return;
+    }
+
     setGenerating(true);
-    setMessage("얼굴 특징을 살린 입체적인 건강이를 만들고 있어요. 약 20~60초 정도 걸릴 수 있어요.");
+    setMessage(isFirstGeneration ? "첫 AI 건강이를 무료로 만들고 있어요. 약 20~60초 정도 걸릴 수 있어요." : "헬스포인트는 생성 성공 후에만 차감돼요. AI 건강이를 만들고 있어요.");
     try {
       const response = await fetch("/api/avatar/generate", {
         method: "POST",
@@ -76,8 +100,33 @@ export default function AvatarPage() {
       });
       const result = (await response.json()) as { imageData?: string; error?: string };
       if (!response.ok || !result.imageData) throw new Error(result.error || "AI 아바타를 생성하지 못했습니다.");
-      setAvatarImage(await compressGeneratedAvatar(result.imageData));
-      setMessage("입체적인 AI 건강이가 완성됐어요. 마음에 들면 저장해주세요.");
+      const generatedImage = await compressGeneratedAvatar(result.imageData);
+      let nextBalance = pointBalance;
+
+      if (generationCost > 0) {
+        const transactions = getFromStorage<PointTransaction[]>(STORAGE_KEYS.POINT_TRANSACTIONS, samplePointTransactions);
+        const spendTransaction = createSpendTransaction(profile.id, generationCost, "AI 건강이 재생성");
+        const updatedTransactions = [...transactions, spendTransaction];
+        saveToStorage(STORAGE_KEYS.POINT_TRANSACTIONS, updatedTransactions);
+        nextBalance = calculatePointBalance(updatedTransactions);
+        setPointBalance(nextBalance);
+        window.dispatchEvent(new Event("pointsUpdated"));
+      }
+
+      const nextProfile: UserProfile = {
+        ...profile,
+        avatarStyle: "3d",
+        avatarImage: generatedImage,
+        avatarEffect: "illustrated",
+        avatarGenerationCount: generationCount + 1,
+        lastAvatarGeneratedAt: new Date().toISOString(),
+        avatarRegenerationMonth: isFirstGeneration ? profile.avatarRegenerationMonth : currentMonth,
+        avatarRegenerationCount: isFirstGeneration ? profile.avatarRegenerationCount || 0 : monthlyRegenerationCount + 1,
+      };
+      saveToStorage(STORAGE_KEYS.USER_PROFILE, nextProfile);
+      setProfile(nextProfile);
+      setAvatarImage(generatedImage);
+      setMessage(generationCost > 0 ? `AI 건강이가 완성됐어요. ${generationCost.toLocaleString()}P가 차감되어 ${nextBalance.toLocaleString()}P가 남았어요.` : "첫 AI 건강이가 무료로 완성됐어요. 마음에 들면 저장해주세요.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "AI 아바타를 생성하지 못했습니다.");
     } finally {
@@ -106,6 +155,13 @@ export default function AvatarPage() {
 
   const displayImage = avatarImage || sourceImage;
   const saveDisabled = processing || generating || (selected === "3d" && Boolean(sourceImage) && !avatarImage);
+  const generationCount = profile.avatarGenerationCount || 0;
+  const isFirstGeneration = generationCount === 0;
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const monthlyRegenerationCount = profile.avatarRegenerationMonth === currentMonth ? profile.avatarRegenerationCount || 0 : 0;
+  const monthlyLimitReached = !isFirstGeneration && monthlyRegenerationCount >= MONTHLY_REGENERATION_LIMIT;
+  const generationCost = isFirstGeneration || profile.isPremium ? 0 : AVATAR_REGENERATION_COST;
+  const insufficientPoints = generationCost > pointBalance;
 
   return (
     <MobileShell>
@@ -145,11 +201,16 @@ export default function AvatarPage() {
 
               {sourceImage && (
                 <div className="mt-4 rounded-2xl border border-green-100 bg-[#F7FBF8] p-4">
+                  <div className="mb-4 rounded-xl bg-white p-3 shadow-sm">
+                    <div className="flex items-center justify-between gap-3"><span className="text-sm font-bold text-[#1F2937]">{isFirstGeneration ? "첫 AI 건강이" : "AI 건강이 재생성"}</span><span className={`rounded-full px-3 py-1 text-sm font-extrabold ${isFirstGeneration ? "bg-[#EAF7EF] text-[#1F5A3A]" : "bg-amber-50 text-amber-700"}`}>{isFirstGeneration ? "최초 1회 무료" : `${AVATAR_REGENERATION_COST.toLocaleString()}P`}</span></div>
+                    <p className="mt-2 text-xs leading-relaxed text-gray-500">{isFirstGeneration ? "회원당 첫 생성은 무료로 제공됩니다." : `재생성은 월 ${MONTHLY_REGENERATION_LIMIT}회 가능하며, 생성 성공 후에만 포인트가 차감됩니다.`}</p>
+                    <p className="mt-1 text-xs font-semibold text-[#4CAF6A]">현재 보유: {pointBalance.toLocaleString()}P</p>
+                  </div>
                   <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-gray-600">
                     <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1 h-5 w-5 accent-[#4CAF6A]" />
                     <span>본인 사진이 AI 아바타 생성을 위해 OpenAI 이미지 API로 전송되는 것에 동의합니다. 내일의건강 앱 서버에는 별도 저장하지 않습니다.</span>
                   </label>
-                  <button onClick={handleGenerateAvatar} disabled={!consent || generating} className="mt-4 flex min-h-13 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#1F5A3A] to-[#4CAF6A] text-lg font-extrabold text-white shadow-lg disabled:opacity-45"><Sparkles size={21} />{generating ? "AI 건강이 생성 중..." : avatarImage ? "AI 건강이 다시 생성하기" : "AI 건강이 생성하기"}</button>
+                  <button onClick={handleGenerateAvatar} disabled={!consent || generating || monthlyLimitReached || insufficientPoints} className="mt-4 flex min-h-13 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#1F5A3A] to-[#4CAF6A] text-lg font-extrabold text-white shadow-lg disabled:opacity-45"><Sparkles size={21} />{generating ? "AI 건강이 생성 중..." : monthlyLimitReached ? "이번 달 재생성 완료" : insufficientPoints ? `${AVATAR_REGENERATION_COST.toLocaleString()}P 필요` : isFirstGeneration ? "첫 AI 건강이 무료 생성" : `${AVATAR_REGENERATION_COST.toLocaleString()}P로 재생성`}</button>
                 </div>
               )}
 

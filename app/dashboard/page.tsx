@@ -2,55 +2,40 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Camera, Droplets, FileText, Flame, Footprints, HeartPulse, Moon, Shirt, Utensils } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
 import CoachMessageCard from "@/components/dashboard/CoachMessageCard";
-import QuickActionGrid from "@/components/dashboard/QuickActionGrid";
-import HealthAvatar from "@/components/common/HealthAvatar";
 import AvatarPortraitCard from "@/components/avatar/AvatarPortraitCard";
-import SeedPointBadge from "@/components/common/SeedPointBadge";
 import { getFromStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculateHealthScore } from "@/lib/healthRules";
-import { calculatePointBalance } from "@/lib/rewards";
-import { sampleUser, sampleCheckup, sampleDailyLog, samplePointTransactions } from "@/lib/sampleData";
+import { sampleUser, sampleCheckup, sampleDailyLog } from "@/lib/sampleData";
 import type { UserProfile } from "@/types/user";
 import type { HealthCheckup, DailyLog } from "@/types/health";
-import type { PointTransaction, AvatarItem } from "@/types/reward";
-import { Camera, Shirt } from "lucide-react";
-import { Droplets, Footprints, Moon, ShieldCheck } from "lucide-react";
+
+const quickMenus = [
+  { href: "/avatar", icon: Camera, label: "내 사진·아바타\n변경" },
+  { href: "/avatar-shop", icon: Shirt, label: "아바타\n꾸미기" },
+  { href: "/habits", icon: Utensils, label: "식단·습관\n기록" },
+  { href: "/report", icon: FileText, label: "건강\n리포트" },
+];
 
 export default function DashboardPage() {
   const [user, setUser] = useState<UserProfile>(sampleUser);
   const [checkup, setCheckup] = useState<HealthCheckup>(sampleCheckup);
   const [dailyLog, setDailyLog] = useState<DailyLog>(sampleDailyLog);
-  const [points, setPoints] = useState(90);
-  const [equippedItems, setEquippedItems] = useState<string[]>([]);
   const [score, setScore] = useState(0);
 
   useEffect(() => {
-    const savedUser = getFromStorage<UserProfile | null>(STORAGE_KEYS.USER_PROFILE, null);
-    if (savedUser) setUser(savedUser);
-
-    const savedCheckup = getFromStorage<HealthCheckup | null>(STORAGE_KEYS.HEALTH_CHECKUP, null);
-    if (savedCheckup) setCheckup(savedCheckup);
-
+    const savedUser = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
+    const savedCheckup = getFromStorage<HealthCheckup>(STORAGE_KEYS.HEALTH_CHECKUP, sampleCheckup);
     const logs = getFromStorage<DailyLog[]>(STORAGE_KEYS.DAILY_LOGS, []);
-    const todayLog = logs[logs.length - 1];
-    if (todayLog) setDailyLog(todayLog);
-
-    const txs = getFromStorage<PointTransaction[]>(
-      STORAGE_KEYS.POINT_TRANSACTIONS,
-      samplePointTransactions
-    );
-    setPoints(calculatePointBalance(txs));
-
-    const items = getFromStorage<AvatarItem[]>(STORAGE_KEYS.AVATAR_ITEMS, []);
-    setEquippedItems(items.filter((i) => i.isEquipped).map((i) => i.name));
-
-    const c = savedCheckup || sampleCheckup;
-    const l = todayLog || sampleDailyLog;
-    setScore(calculateHealthScore(c, l));
+    const latestLog = logs[logs.length - 1] || sampleDailyLog;
+    setUser(savedUser);
+    setCheckup(savedCheckup);
+    setDailyLog(latestLog);
+    setScore(calculateHealthScore(savedCheckup, latestLog));
   }, []);
 
   const coachMessages = [
@@ -58,63 +43,80 @@ export default function DashboardPage() {
     "오늘 걷기 목표까지 조금만 더 힘내보세요. 건강이가 응원해요! 💪",
     "물 한 잔 마시는 것부터 시작해볼까요? 작은 실천이 큰 변화를 만들어요. 💧",
   ];
-  const coachMsg = coachMessages[new Date().getDay() % coachMessages.length];
+  const coachMessage = coachMessages[new Date().getDay() % coachMessages.length];
+  const calories = dailyLog.exerciseDone ? 356 : 210;
+
+  const summaryItems = [
+    { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]" },
+    { icon: Moon, label: "수면", value: `${dailyLog.sleepHours}시간`, color: "text-[#4E66B1]" },
+    { icon: Flame, label: "소모 칼로리", value: `${calories}kcal`, color: "text-[#F59E0B]" },
+    { icon: Droplets, label: "수분", value: `${dailyLog.waterCups}잔`, color: "text-[#27A9D6]" },
+    { icon: HeartPulse, label: "혈압", value: `${checkup.systolicBp}/${checkup.diastolicBp}`, color: "text-[#E34D59]" },
+  ];
 
   return (
     <MobileShell>
       <AppHeader />
-      <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-20">
-        <section className="relative overflow-hidden bg-[radial-gradient(circle_at_50%_18%,#ffffff_0%,#EAF7EF_42%,#B9E4C7_100%)] px-3 pb-6 pt-5">
-          <div className="pointer-events-none absolute -left-14 top-24 h-44 w-44 rounded-full bg-[#9EDB82]/35 blur-3xl" />
-          <div className="pointer-events-none absolute -right-16 top-52 h-52 w-52 rounded-full bg-[#F7C948]/20 blur-3xl" />
-          <div className="relative z-10 text-center">
-            <p className="text-sm font-semibold text-[#4CAF6A]">안녕하세요 👋</p>
-            <h2 className="text-2xl font-extrabold text-[#1F2937]">{user.name}님의 건강 히어로</h2>
-            <p className="mt-1 text-sm text-gray-600">오늘의 작은 실천이 더 건강한 내일을 만들어요.</p>
-            <div className="mt-2"><SeedPointBadge amount={points} /></div>
+      <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
+        <section className="relative overflow-hidden bg-[radial-gradient(circle_at_48%_16%,#FFFFFF_0%,#EFF9F1_32%,#B9E6C5_100%)] px-4 pb-5 pt-6">
+          <div className="pointer-events-none absolute -left-20 top-32 h-64 w-64 rounded-full bg-lime-300/25 blur-3xl" />
+          <div className="pointer-events-none absolute -right-24 top-24 h-72 w-72 rounded-full bg-emerald-300/25 blur-3xl" />
+
+          <div className="relative z-20 max-w-[220px]">
+            <p className="text-lg text-[#1F2937]">안녕하세요, <strong className="text-[#24944E]">{user.name}님!</strong></p>
+            <p className="mt-2 text-base leading-relaxed text-gray-700">오늘도 건강한 하루를<br />시작해볼까요?</p>
           </div>
 
-          <div className="relative mx-auto mt-4 min-h-[455px] max-w-[390px]">
+          <div className="relative mx-auto mt-2 min-h-[485px] max-w-[390px]">
             <div className="absolute inset-x-8 top-0 z-10">
               <AvatarPortraitCard imageUrl={user.avatarImage} name={`${user.name}님의 건강이`} />
             </div>
 
-            <div className="absolute left-0 top-10 z-20 w-[108px] -rotate-3 rounded-2xl border border-white/80 bg-white/78 p-3 text-left shadow-[0_14px_28px_rgba(31,90,58,0.2)] backdrop-blur-md">
-              <Footprints size={19} className="mb-2 text-[#4CAF6A]" /><p className="text-[11px] font-semibold text-gray-500">오늘의 걸음</p><p className="text-lg font-extrabold text-[#1F5A3A]">{dailyLog.steps.toLocaleString()}</p><p className="text-[10px] text-gray-400">걸음</p>
+            <div className="absolute left-0 top-[120px] z-20 space-y-3">
+              {[
+                { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]" },
+                { icon: Flame, label: "소모 칼로리", value: `${calories} kcal`, color: "text-[#F59E0B]" },
+                { icon: Moon, label: "수면", value: `${dailyLog.sleepHours}시간`, color: "text-[#4E66B1]" },
+                { icon: Droplets, label: "수분", value: `${dailyLog.waterCups}잔`, color: "text-[#27A9D6]" },
+              ].map(({ icon: Icon, label, value, color }, index) => (
+                <div key={label} className={`w-[126px] rounded-[22px] border border-white/90 bg-white/82 px-3 py-2.5 shadow-[0_12px_30px_rgba(31,90,58,0.16)] backdrop-blur-md ${index % 2 === 0 ? "-rotate-1" : "rotate-1"}`}>
+                  <div className="flex items-center gap-2"><Icon size={20} className={color} /><div><p className="text-[11px] text-gray-500">{label}</p><p className="text-base font-extrabold text-[#1F2937]">{value}</p></div></div>
+                </div>
+              ))}
             </div>
-            <div className="absolute right-0 top-16 z-20 w-[105px] rotate-3 rounded-2xl border border-white/80 bg-white/78 p-3 text-left shadow-[0_14px_28px_rgba(31,90,58,0.2)] backdrop-blur-md">
-              <ShieldCheck size={19} className="mb-2 text-[#F6B93B]" /><p className="text-[11px] font-semibold text-gray-500">건강 점수</p><p className="text-lg font-extrabold text-[#1F5A3A]">{score}<span className="text-xs">점</span></p><p className="text-[10px] text-gray-400">참고 점수</p>
-            </div>
-            <div className="absolute left-1 top-[215px] z-20 w-[102px] rotate-2 rounded-2xl border border-white/80 bg-[#243B73]/88 p-3 text-left text-white shadow-[0_14px_28px_rgba(36,59,115,0.28)] backdrop-blur-md">
-              <Moon size={19} className="mb-2 text-blue-200" /><p className="text-[11px] font-semibold text-blue-100">수면 시간</p><p className="text-lg font-extrabold">{dailyLog.sleepHours}<span className="text-xs">시간</span></p>
-            </div>
-            <div className="absolute right-1 top-[238px] z-20 w-[102px] -rotate-2 rounded-2xl border border-white/80 bg-[#48A9C5]/88 p-3 text-left text-white shadow-[0_14px_28px_rgba(72,169,197,0.28)] backdrop-blur-md">
-              <Droplets size={19} className="mb-2 text-cyan-100" /><p className="text-[11px] font-semibold text-cyan-50">물 마시기</p><p className="text-lg font-extrabold">{dailyLog.waterCups}<span className="text-xs">잔</span></p>
-            </div>
-            <div className="absolute bottom-3 right-2 z-20 max-w-[185px] rounded-2xl rounded-br-sm border border-white bg-white/90 px-4 py-3 text-left shadow-xl backdrop-blur">
-              <p className="text-xs font-bold text-[#1F5A3A]">🌱 건강이의 한마디</p><p className="mt-1 text-xs leading-relaxed text-gray-600">목표까지 조금만 더! 오늘도 건강이가 함께할게요.</p>
-            </div>
-          </div>
 
-          <div className="relative z-20 mt-3 grid grid-cols-2 gap-2">
-            <Link href="/avatar" className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-3 text-sm font-bold text-[#1F5A3A] shadow-sm ring-1 ring-green-100">
-              <Camera size={17} /> 내 사진·아바타 변경
-            </Link>
-            <Link href="/avatar-shop" className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#1F5A3A] px-3 text-sm font-bold text-white shadow-sm">
-              <Shirt size={17} /> 아바타 꾸미기
-            </Link>
+            <div className="absolute right-0 top-8 z-20 max-w-[170px] rounded-2xl rounded-bl-sm border border-white bg-white/88 px-4 py-3 shadow-[0_14px_32px_rgba(31,90,58,0.18)] backdrop-blur-md">
+              <p className="text-xs font-bold text-[#24944E]">🌿 건강한 습관이</p><p className="mt-1 text-sm font-semibold leading-relaxed text-[#1F5A3A]">내일의 나를 만듭니다!</p>
+            </div>
+
+            <div className="absolute bottom-7 right-0 z-20 flex h-32 w-32 flex-col items-center justify-center rounded-full border-[8px] border-white/85 bg-white/88 text-center shadow-[0_16px_36px_rgba(31,90,58,0.24)] ring-4 ring-[#4CAF6A]/55 backdrop-blur-md">
+              <p className="text-[10px] font-semibold text-gray-500">오늘의 건강관리</p><p className="text-[10px] text-gray-500">참고 점수</p><p className="mt-1 text-4xl font-black text-[#24944E]">{score}</p><p className="text-xs text-[#4CAF6A]">/ 100</p>
+            </div>
           </div>
         </section>
 
-        <div className="px-4 py-4 flex flex-col gap-4">
-          <CoachMessageCard message={coachMsg} />
-
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <p className="text-base font-extrabold text-[#1F2937] mb-1">건강관리 메뉴</p>
-            <p className="mb-3 text-sm text-gray-500">건강이와 함께 오늘의 메뉴를 선택하세요.</p>
-            <QuickActionGrid />
+        <section className="relative z-30 -mt-5 px-4">
+          <div className="grid grid-cols-4 gap-2 rounded-3xl border border-gray-100 bg-white p-3 shadow-[0_14px_35px_rgba(31,41,55,0.12)]">
+            {quickMenus.map(({ href, icon: Icon, label }) => (
+              <Link key={href} href={href} className="flex min-h-[112px] flex-col items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-[#F2FAF4] to-[#E8F5EC] px-1 text-center active:scale-95">
+                <Icon size={28} className="text-[#24944E]" /><span className="whitespace-pre-line text-xs font-bold leading-relaxed text-[#1F2937]">{label}</span>
+              </Link>
+            ))}
           </div>
-        </div>
+        </section>
+
+        <section className="px-4 py-6">
+          <h3 className="mb-4 text-xl font-extrabold text-[#1F2937]">오늘의 건강 요약</h3>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {summaryItems.map(({ icon: Icon, label, value, color }) => (
+              <div key={label} className="min-w-[112px] rounded-2xl bg-white p-3 text-center shadow-sm ring-1 ring-gray-100">
+                <Icon size={23} className={`mx-auto mb-2 ${color}`} /><p className="text-xs text-gray-500">{label}</p><p className="mt-1 text-sm font-extrabold text-[#1F2937]">{value}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="px-4 pb-6"><CoachMessageCard message={coachMessage} /></section>
       </main>
       <BottomNav />
     </MobileShell>
