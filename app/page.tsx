@@ -70,13 +70,16 @@ export default function HomePage() {
 
         <div className="px-6 pb-10 mt-auto pt-4">
           <Link
-            href="/avatar"
+            href="/login"
             className="block w-full bg-[#4CAF6A] hover:bg-[#3d9e5d] active:scale-95 transition-all text-white text-center text-lg font-bold py-4 rounded-2xl shadow-lg"
           >
-            건강 관리 시작하기 🌱
+            로그인하고 시작하기 🌱
+          </Link>
+          <Link href="/signup" className="mt-3 block w-full rounded-2xl border-2 border-[#4CAF6A] py-3 text-center font-bold text-[#1F5A3A]">
+            처음이라면 회원가입
           </Link>
           <p className="text-center text-xs text-gray-400 mt-3">
-            무료로 시작 · 로그인 불필요 · 데이터는 내 기기에만 저장
+            무료로 시작 · MVP 데이터는 현재 브라우저에 저장
           </p>
         </div>
       </div>

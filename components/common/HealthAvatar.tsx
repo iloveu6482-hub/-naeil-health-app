@@ -7,6 +7,7 @@ interface HealthAvatarProps {
   style: AvatarStyle;
   size?: "sm" | "md" | "lg";
   equippedItems?: string[];
+  imageUrl?: string;
 }
 
 const avatarImages: Record<AvatarStyle, string> = {
@@ -31,6 +32,7 @@ export default function HealthAvatar({
   style,
   size = "md",
   equippedItems = [],
+  imageUrl,
 }: HealthAvatarProps) {
   const { wrapper, text } = sizeMap[size];
 
@@ -40,10 +42,11 @@ export default function HealthAvatar({
         className={`${wrapper} rounded-full bg-gradient-to-br ${avatarColors[style]} flex items-center justify-center shadow-lg overflow-hidden`}
       >
         <Image
-          src={avatarImages[style]}
+          src={imageUrl || avatarImages[style]}
           alt="건강이 아바타"
           fill
-          className="object-cover"
+          unoptimized={Boolean(imageUrl)}
+          className={`object-cover ${imageUrl ? "scale-[1.03] contrast-[1.04] saturate-[1.08]" : ""}`}
           onError={(e) => {
             (e.target as HTMLImageElement).style.display = "none";
           }}

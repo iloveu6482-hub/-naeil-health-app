@@ -32,4 +32,6 @@ export const STORAGE_KEYS = {
   REWARD_BADGES: "naeil_reward_badges",
   AI_REPORT: "naeil_ai_report",
   CLAIMED_REWARDS: "naeil_claimed_rewards",
+  ACCOUNTS: "naeil_accounts",
+  AUTH_SESSION: "naeil_auth_session",
 };

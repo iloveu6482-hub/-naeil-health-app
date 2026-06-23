@@ -11,6 +11,7 @@ import { sampleUser } from "@/lib/sampleData";
 import type { UserProfile } from "@/types/user";
 import type { AvatarItem } from "@/types/reward";
 import { User, RefreshCw, AlertTriangle } from "lucide-react";
+import { signOutLocal } from "@/lib/auth";
 
 const avatarStyleLabels = {
   "3d": "밝은 3D 캐릭터형",
@@ -43,7 +44,7 @@ export default function SettingsPage() {
         {/* Profile Card */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4">
           <div className="flex items-center gap-4 mb-4">
-            <HealthAvatar style={user.avatarStyle} size="md" />
+            <HealthAvatar style={user.avatarStyle} size="md" imageUrl={user.avatarImage} />
             <div>
               <h2 className="text-xl font-extrabold text-[#1F2937]">{user.name}</h2>
               <p className="text-sm text-gray-500">{user.birthYear}년생</p>
@@ -95,6 +96,16 @@ export default function SettingsPage() {
             className="w-full flex items-center justify-between px-4 py-4 hover:bg-gray-50 active:bg-gray-100 transition-colors"
           >
             <span className="font-medium text-[#1F2937]">아바타 상점</span>
+            <span className="text-gray-400">→</span>
+          </button>
+          <button
+            onClick={() => {
+              signOutLocal();
+              router.push("/login");
+            }}
+            className="w-full flex items-center justify-between px-4 py-4 border-t border-gray-50 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+          >
+            <span className="font-medium text-[#1F2937]">로그아웃</span>
             <span className="text-gray-400">→</span>
           </button>
         </div>

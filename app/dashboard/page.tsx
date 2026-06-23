@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
@@ -17,6 +18,7 @@ import { sampleUser, sampleCheckup, sampleDailyLog, samplePointTransactions } fr
 import type { UserProfile } from "@/types/user";
 import type { HealthCheckup, DailyLog } from "@/types/health";
 import type { PointTransaction, AvatarItem } from "@/types/reward";
+import { Camera, Shirt } from "lucide-react";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<UserProfile>(sampleUser);
@@ -65,7 +67,7 @@ export default function DashboardPage() {
         {/* 인사말 + 아바타 */}
         <div className="bg-gradient-to-br from-[#EAF7EF] to-white px-4 py-6">
           <div className="flex items-center gap-4">
-            <HealthAvatar style={user.avatarStyle} size="lg" equippedItems={equippedItems} />
+            <HealthAvatar style={user.avatarStyle} size="lg" equippedItems={equippedItems} imageUrl={user.avatarImage} />
             <div className="flex-1">
               <p className="text-sm text-gray-500">안녕하세요 👋</p>
               <h2 className="text-xl font-extrabold text-[#1F2937]">
@@ -76,6 +78,14 @@ export default function DashboardPage() {
                 <SeedPointBadge amount={points} />
               </div>
             </div>
+          </div>
+          <div className="mt-5 grid grid-cols-2 gap-2">
+            <Link href="/avatar" className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-3 text-sm font-bold text-[#1F5A3A] shadow-sm ring-1 ring-green-100">
+              <Camera size={17} /> 내 사진·아바타 변경
+            </Link>
+            <Link href="/avatar-shop" className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#1F5A3A] px-3 text-sm font-bold text-white shadow-sm">
+              <Shirt size={17} /> 아바타 꾸미기
+            </Link>
           </div>
         </div>
 
