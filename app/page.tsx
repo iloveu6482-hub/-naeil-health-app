@@ -1,89 +1,101 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import MobileShell from "@/components/layout/MobileShell";
-import { Sprout, FileSearch, Brain, Heart, Gift } from "lucide-react";
+import {
+  BrainCircuit,
+  Check,
+  ChevronRight,
+  ClipboardCheck,
+  Coins,
+  Footprints,
+  HeartPulse,
+  Leaf,
+  LockKeyhole,
+  Shield,
+  Sprout,
+  UserRound,
+} from "lucide-react";
+
+const avatars = [
+  { image: "/avatars/default-female-3d.png", label: "3D형", selected: true },
+  { image: "/avatars/default-female-emotional.png", label: "감성형" },
+  { image: "/avatars/default-male-webtoon.png", label: "웹툰형" },
+  { image: "/avatars/default-male-senior.png", label: "시니어형" },
+];
 
 const features = [
-  { icon: FileSearch, label: "건강검진 결과 분석", desc: "검진 수치를 쉽게 이해해요", color: "bg-blue-50 text-blue-600" },
-  { icon: Brain, label: "AI 맞춤 리포트", desc: "개인화된 건강 인사이트", color: "bg-purple-50 text-purple-600" },
-  { icon: Heart, label: "생활습관 코칭", desc: "매일 건강한 습관 형성", color: "bg-red-50 text-red-500" },
-  { icon: Gift, label: "헬스포인트 보상", desc: "건강 행동으로 쌓는 앱 포인트", color: "bg-[#EAF7EF] text-[#4CAF6A]" },
+  { icon: ClipboardCheck, label: "건강검진 결과 분석", desc: "검진 수치를\n쉽게 이해해요", tone: "from-[#E7F7E9] to-[#F8FFF9]", iconColor: "text-[#238D4A]" },
+  { icon: BrainCircuit, label: "AI 맞춤 리포트", desc: "개인화된\n건강 인사이트", tone: "from-[#E8F8EE] to-[#F9FFFB]", iconColor: "text-[#24945A]" },
+  { icon: Footprints, label: "생활습관 코칭", desc: "매일 건강한\n습관 형성", tone: "from-[#EAF8E9] to-[#FBFFFA]", iconColor: "text-[#2A8B4D]" },
+  { icon: Coins, label: "헬스포인트 보상", desc: "건강 행동으로\n쌓는 앱 포인트", tone: "from-[#FFF5CE] to-[#FFFDF4]", iconColor: "text-[#E8A317]" },
 ];
 
 export default function HomePage() {
   return (
     <MobileShell>
-      <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#EAF7EF] to-[#FAFCFA]">
-        <div className="bg-gradient-to-br from-[#1F5A3A] to-[#4CAF6A] px-6 pt-16 pb-10 text-white text-center">
-          <div className="flex justify-center mb-6">
-            <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center shadow-xl">
-              <span className="text-5xl">🌱</span>
+      <div className="min-h-screen overflow-hidden bg-[linear-gradient(180deg,#EAF8EF_0%,#F8FCF9_46%,#FFFFFF_100%)]">
+        <section className="relative overflow-hidden rounded-b-[48px] bg-[radial-gradient(circle_at_50%_18%,#21864D_0%,#075D38_46%,#064A30_100%)] px-5 pb-24 pt-11 text-center text-white">
+          <div className="pointer-events-none absolute -left-14 top-28 h-40 w-40 rounded-full bg-emerald-300/10 blur-3xl" />
+          <div className="pointer-events-none absolute -right-20 -top-10 h-56 w-56 rounded-full bg-lime-300/10 blur-3xl" />
+          <Leaf className="pointer-events-none absolute left-9 top-32 rotate-[-28deg] text-lime-300/25" size={42} />
+          <Leaf className="pointer-events-none absolute right-12 top-56 rotate-[26deg] text-lime-300/20" size={35} />
+
+          <div className="relative mx-auto mb-5 h-28 w-32">
+            <div className="absolute inset-2 rounded-full border border-lime-300/25" />
+            <div className="absolute left-0 top-14 rotate-[-30deg] text-lime-300 drop-shadow-lg"><Leaf size={55} fill="currentColor" /></div>
+            <div className="absolute right-0 top-14 rotate-[30deg] scale-x-[-1] text-lime-300 drop-shadow-lg"><Leaf size={55} fill="currentColor" /></div>
+            <div className="absolute left-1/2 top-0 flex h-28 w-24 -translate-x-1/2 items-center justify-center">
+              <Shield size={100} className="text-white drop-shadow-[0_8px_16px_rgba(0,0,0,0.28)]" fill="#43B95F" strokeWidth={2.3} />
+              <div className="absolute flex h-14 w-14 items-center justify-center rounded-[22px] bg-gradient-to-br from-lime-200 to-lime-400 shadow-inner">
+                <HeartPulse size={37} className="text-white drop-shadow" strokeWidth={2.6} />
+              </div>
             </div>
           </div>
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Sprout size={22} className="text-green-300" />
-            <h1 className="text-3xl font-extrabold tracking-tight">내일의건강</h1>
-          </div>
-          <p className="text-green-100 text-sm leading-relaxed mt-2">
-            오늘의 건강을 이해하고, 더 나은 내일을 준비하는
-          </p>
-          <p className="text-green-100 text-sm font-semibold">
-            AI 건강관리 파트너
-          </p>
-          <div className="mt-4 bg-white/10 rounded-xl px-4 py-2 text-xs text-green-100">
-            건강 데이터를 행동으로, 행동을 보상으로 이어주는 AI 건강관리 플랫폼
-          </div>
-        </div>
 
-        <div className="flex justify-center -mt-6 mb-0 z-10 relative">
-          <div className="flex gap-3">
-            {[
-              { image: "/avatars/default-female-3d.png", label: "3D형" },
-              { image: "/avatars/default-female-emotional.png", label: "감성형" },
-              { image: "/avatars/default-female-webtoon.png", label: "웹툰형" },
-              { image: "/avatars/default-female-senior.png", label: "시니어형" },
-            ].map((avatar) => (
-              <div key={avatar.label} className="flex flex-col items-center gap-1">
-                <div className="relative h-14 w-14 overflow-hidden rounded-full border-2 border-[#4CAF6A] bg-white shadow-lg">
-                  <Image src={avatar.image} alt={`${avatar.label} 기본 건강이`} fill className="object-cover" />
+          <h1 className="text-[42px] font-black tracking-[-0.055em] drop-shadow-sm">내일의건강</h1>
+          <p className="mt-3 text-base font-medium leading-relaxed text-green-50">오늘의 건강을 이해하고,<br />더 나은 내일을 준비하는</p>
+          <span className="mt-4 inline-flex rounded-full bg-gradient-to-r from-[#D8F7DF] to-[#B9EDC6] px-6 py-2 text-base font-extrabold text-[#17663A] shadow-[0_8px_22px_rgba(0,0,0,0.15)]">AI 건강관리 파트너</span>
+        </section>
+
+        <main className="relative z-10 -mt-16 space-y-4 px-4 pb-10">
+          <section className="rounded-[28px] border border-white bg-white/95 p-4 shadow-[0_16px_36px_rgba(29,82,51,0.14)] backdrop-blur">
+            <h2 className="mb-4 flex items-center justify-center gap-2 text-base font-extrabold text-[#1E293B]"><Sprout size={20} className="text-[#24944E]" />나에게 맞는 아바타를 선택해주세요</h2>
+            <div className="grid grid-cols-4 gap-2">
+              {avatars.map((avatar) => (
+                <div key={avatar.label} className={`relative rounded-2xl border-2 p-2 pb-3 text-center transition ${avatar.selected ? "border-[#24944E] bg-[#F4FCF6] shadow-[0_8px_18px_rgba(36,148,78,0.18)]" : "border-gray-100 bg-white shadow-sm"}`}>
+                  {avatar.selected && <span className="absolute -right-1.5 -top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-[#2DAE5B] text-white shadow"><Check size={16} strokeWidth={3} /></span>}
+                  <div className="relative mx-auto aspect-square w-full overflow-hidden rounded-full bg-[#EAF7EF]">
+                    <Image src={avatar.image} alt={`${avatar.label} 기본 건강이`} fill className="object-cover" />
+                  </div>
+                  <p className={`mt-2 text-[13px] font-extrabold ${avatar.selected ? "text-[#208347]" : "text-[#334155]"}`}>{avatar.label}</p>
                 </div>
-                <span className="text-xs text-gray-500">{avatar.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+              ))}
+            </div>
+            <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-gray-400"><Shield size={14} fill="currentColor" />아바타는 로그인 후 언제든 변경할 수 있어요</p>
+          </section>
 
-        <div className="px-6 pt-6 pb-4">
-          <h2 className="text-base font-bold text-[#1F2937] mb-4 text-center">핵심 서비스</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {features.map(({ icon: Icon, label, desc, color }) => (
-              <div key={label} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 ${color}`}>
-                  <Icon size={20} />
+          <section className="rounded-[28px] border border-white bg-white/95 p-4 shadow-[0_16px_36px_rgba(29,82,51,0.12)]">
+            <h2 className="mb-4 text-center text-xl font-black tracking-tight text-[#1E293B]">내일의건강이 특별한 이유 <span className="text-[#2EAD5A]">♥</span></h2>
+            <div className="grid grid-cols-2 gap-3">
+              {features.map(({ icon: Icon, label, desc, tone, iconColor }) => (
+                <div key={label} className="flex min-h-[126px] items-center gap-3 rounded-2xl border border-gray-100 bg-white p-3 shadow-[0_7px_18px_rgba(31,41,55,0.08)]">
+                  <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${tone} shadow-inner`}><Icon size={30} className={iconColor} strokeWidth={2.1} /></div>
+                  <div><p className="text-sm font-extrabold leading-snug text-[#1E293B]">{label}</p><p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-gray-500">{desc}</p></div>
                 </div>
-                <p className="text-sm font-bold text-[#1F2937]">{label}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+              ))}
+            </div>
 
-        <div className="px-6 pb-10 mt-auto pt-4">
-          <Link
-            href="/login"
-            className="block w-full bg-[#4CAF6A] hover:bg-[#3d9e5d] active:scale-95 transition-all text-white text-center text-lg font-bold py-4 rounded-2xl shadow-lg"
-          >
-            로그인하고 시작하기 🌱
-          </Link>
-          <Link href="/signup" className="mt-3 block w-full rounded-2xl border-2 border-[#4CAF6A] py-3 text-center font-bold text-[#1F5A3A]">
-            처음이라면 회원가입
-          </Link>
-          <p className="text-center text-xs text-gray-400 mt-3">
-            무료로 시작 · MVP 데이터는 현재 브라우저에 저장
-          </p>
-        </div>
+            <Link href="/login" className="mt-5 flex min-h-16 w-full items-center justify-between rounded-2xl bg-gradient-to-r from-[#37B95D] to-[#168443] px-5 text-lg font-extrabold text-white shadow-[0_10px_24px_rgba(22,132,67,0.28)] active:scale-[0.98]">
+              <span className="flex items-center gap-2"><Leaf size={22} fill="currentColor" className="text-lime-200" />로그인하고 시작하기</span><ChevronRight size={25} />
+            </Link>
+            <Link href="/signup" className="mt-3 flex min-h-14 w-full items-center justify-between rounded-2xl border-2 border-[#24944E] bg-white px-5 font-extrabold text-[#208347] active:scale-[0.98]">
+              <span className="flex items-center gap-2"><UserRound size={22} />처음이라면 회원가입</span><ChevronRight size={23} />
+            </Link>
+            <p className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-gray-400"><LockKeyhole size={13} />무료로 시작 · MVP 데이터는 현재 브라우저에 저장</p>
+          </section>
+        </main>
       </div>
     </MobileShell>
   );
