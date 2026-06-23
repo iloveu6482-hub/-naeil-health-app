@@ -1,0 +1,60 @@
+"use client";
+
+import Image from "next/image";
+import type { AvatarStyle } from "@/types/user";
+
+interface HealthAvatarProps {
+  style: AvatarStyle;
+  size?: "sm" | "md" | "lg";
+  equippedItems?: string[];
+}
+
+const avatarImages: Record<AvatarStyle, string> = {
+  "3d": "/avatars/avatar-3d.png",
+  emotional: "/avatars/avatar-emotional.png",
+  senior: "/avatars/avatar-senior.png",
+};
+
+const avatarColors: Record<AvatarStyle, string> = {
+  "3d": "from-[#4CAF6A] to-[#1F5A3A]",
+  emotional: "from-[#F7C948] to-[#F59E0B]",
+  senior: "from-[#60A5FA] to-[#3B82F6]",
+};
+
+const sizeMap = {
+  sm: { wrapper: "w-16 h-16", text: "text-xl" },
+  md: { wrapper: "w-24 h-24", text: "text-3xl" },
+  lg: { wrapper: "w-32 h-32", text: "text-5xl" },
+};
+
+export default function HealthAvatar({
+  style,
+  size = "md",
+  equippedItems = [],
+}: HealthAvatarProps) {
+  const { wrapper, text } = sizeMap[size];
+
+  return (
+    <div className={`relative ${wrapper}`}>
+      <div
+        className={`${wrapper} rounded-full bg-gradient-to-br ${avatarColors[style]} flex items-center justify-center shadow-lg overflow-hidden`}
+      >
+        <Image
+          src={avatarImages[style]}
+          alt="건강이 아바타"
+          fill
+          className="object-cover"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
+        <span className={`${text} select-none`}>🌱</span>
+      </div>
+      {equippedItems.length > 0 && (
+        <div className="absolute -bottom-1 -right-1 bg-[#F7C948] rounded-full w-5 h-5 flex items-center justify-center text-xs">
+          ✨
+        </div>
+      )}
+    </div>
+  );
+}
