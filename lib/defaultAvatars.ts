@@ -1,4 +1,5 @@
 import type { AvatarGender, AvatarStyle } from "@/types/user";
+import { getFallbackAvatarImagePath } from "@/lib/avatarAssets";
 
 export type DefaultAvatar = {
   id: string;
@@ -33,7 +34,7 @@ const makeAvatar = (gender: AvatarGender, style: AvatarStyle): DefaultAvatar => 
   gender,
   style,
   ...styleDetails[style],
-  imageUrl: `/avatars/default-${gender}-${style}.png`,
+  imageUrl: getFallbackAvatarImagePath({ style, gender }),
 });
 
 export const defaultAvatars: DefaultAvatar[] = (["male", "female"] as const).flatMap((gender) =>

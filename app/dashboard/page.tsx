@@ -7,7 +7,7 @@ import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
 import CoachMessageCard from "@/components/dashboard/CoachMessageCard";
-import AnimatedAvatar from "@/components/avatar/AnimatedAvatar";
+import AvatarViewer from "@/components/avatar/AvatarViewer";
 import { getFromStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculateHealthScore } from "@/lib/healthRules";
 import { getDefaultAvatarImage } from "@/lib/defaultAvatars";
@@ -49,8 +49,10 @@ export default function DashboardPage() {
   ];
   const coachMessage = coachMessages[new Date().getDay() % coachMessages.length];
   const calories = dailyLog.exerciseDone ? 356 : 210;
+  const displayName = user.name?.trim() || "사용자";
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
   const heroImage = user.avatarImage || getDefaultAvatarImage(avatarGender, user.avatarStyle) || "/avatars/default-female-3d.png";
+  const customAvatarImage = user.avatarEffect === "illustrated" && user.avatarImage?.startsWith("data:") ? user.avatarImage : undefined;
   const today = new Date().toISOString().slice(0, 10);
   const todayMeals = meals.filter((meal) => meal.mealDate === today);
   const mealCalories = todayMeals.reduce((sum, meal) => sum + meal.estimatedCalories, 0);
@@ -69,17 +71,17 @@ export default function DashboardPage() {
       <AppHeader />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
         <section className="relative min-h-[650px] overflow-hidden bg-[#1F5A3A]">
-          <AnimatedAvatar style={user.avatarStyle} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} imageUrl={heroImage} fill priority glow alt={`${user.name}님의 건강이 아바타`} />
+          <AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode="portrait" mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill priority showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/28 via-transparent to-[#0B3A24]/45" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
-          <div className="relative z-20 px-5 pt-6 drop-shadow-sm">
-            <p className="text-lg text-[#1F2937]">안녕하세요, <strong className="text-[#16743B]">{user.name}님!</strong></p>
-            <p className="mt-2 text-base font-medium leading-relaxed text-[#1F2937]">오늘도 건강한 하루를<br />시작해볼까요?</p>
+          <div className="relative z-20 mx-4 mt-4 max-w-[218px] rounded-[20px] border border-white/55 bg-white/55 px-4 py-3 shadow-sm backdrop-blur-md">
+            <p className="text-base text-[#1F2937]">안녕하세요, <strong className="text-[#16743B]">{displayName}님!</strong></p>
+            <p className="mt-1 text-sm font-medium leading-relaxed text-[#1F2937]">오늘도 건강한 하루를<br />시작해볼까요?</p>
           </div>
 
           <div className="absolute inset-0 z-20">
-            <div className="absolute left-3 top-[205px] space-y-3">
+            <div className="absolute left-3 top-[285px] space-y-2.5 [@media(max-height:700px)]:top-[255px]">
               {[
                 { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]" },
                 { icon: Flame, label: "소모 칼로리", value: `${calories} kcal`, color: "text-[#F59E0B]" },
@@ -92,11 +94,11 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            <div className="absolute right-3 top-[120px] max-w-[168px] rounded-2xl rounded-bl-sm border border-white/65 bg-white/28 px-4 py-3 shadow-[0_14px_32px_rgba(31,90,58,0.18)] backdrop-blur-[10px]">
+            <div className="absolute right-3 top-[118px] max-w-[158px] rounded-2xl rounded-bl-sm border border-white/65 bg-white/45 px-3 py-2.5 shadow-[0_12px_26px_rgba(31,90,58,0.16)] backdrop-blur-[10px]">
               <p className="text-xs font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-1 text-sm font-extrabold leading-relaxed text-[#163D29]">내일의 나를 만듭니다!</p>
             </div>
 
-            <div className="absolute bottom-6 right-3 flex h-32 w-32 flex-col items-center justify-center rounded-full border-[6px] border-white/65 bg-white/28 text-center shadow-[0_16px_36px_rgba(31,90,58,0.28)] ring-2 ring-[#4CAF6A]/65 backdrop-blur-[10px]">
+            <div className="absolute bottom-[145px] right-4 flex h-28 w-28 flex-col items-center justify-center rounded-full border-[5px] border-white/70 bg-white/45 text-center shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-2 ring-[#4CAF6A]/55 backdrop-blur-[10px] [@media(max-height:700px)]:bottom-[120px]">
               <p className="text-[10px] font-semibold text-gray-500">오늘의 건강관리</p><p className="text-[10px] text-gray-500">참고 점수</p><p className="mt-1 text-4xl font-black text-[#24944E]">{score}</p><p className="text-xs text-[#4CAF6A]">/ 100</p>
             </div>
           </div>
@@ -133,7 +135,7 @@ export default function DashboardPage() {
           <p className="mt-2 text-sm font-bold text-[#1F5A3A]">예상 섭취 칼로리: {mealCalories.toLocaleString()} kcal</p>
         </section>
 
-        <section className="px-4 pb-3"><CoachMessageCard message={coachMessage} style={user.avatarStyle} imageUrl={heroImage} /></section>
+        <section className="px-4 pb-3"><CoachMessageCard message={coachMessage} style={user.avatarStyle} gender={avatarGender} imageUrl={customAvatarImage || heroImage} /></section>
         <section className="px-4 pb-6"><Link href="/notifications" className="block rounded-2xl border border-green-100 bg-[#EAF7EF] p-4"><p className="flex items-center gap-2 font-extrabold text-[#1F5A3A]"><Bell size={18} />점심시간이에요</p><p className="mt-1 text-sm text-gray-600">식사 전 사진 한 장으로 오늘의 식단을 기록해보세요.</p></Link></section>
       </main>
       <BottomNav />

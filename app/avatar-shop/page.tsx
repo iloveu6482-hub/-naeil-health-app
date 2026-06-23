@@ -1,205 +1,66 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Check, ChevronLeft, ChevronRight, LockKeyhole, Sprout } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
-import RewardToast from "@/components/common/RewardToast";
+import AvatarViewer from "@/components/avatar/AvatarViewer";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
-import {
-  calculatePointBalance,
-  canPurchaseItem,
-  purchaseAvatarItem,
-  equipAvatarItem,
-  createSpendTransaction,
-  addPointTransaction,
-} from "@/lib/rewards";
-import { sampleAvatarItems, samplePointTransactions } from "@/lib/sampleData";
+import { calculatePointBalance, canPurchaseItem, purchaseAvatarItem, equipAvatarItem, createSpendTransaction, addPointTransaction } from "@/lib/rewards";
+import { sampleAvatarItems, samplePointTransactions, sampleUser } from "@/lib/sampleData";
 import type { AvatarItem, PointTransaction } from "@/types/reward";
-import { Sprout, ShoppingBag, Check } from "lucide-react";
+import type { AvatarRotationView, AvatarViewMode } from "@/types/avatar";
+import type { UserProfile } from "@/types/user";
 
-const categoryLabels: Record<AvatarItem["category"], string> = {
-  accessory: "액세서리",
-  background: "배경",
-  outfit: "의상",
-  style: "스타일",
-};
-
-const categoryEmojis: Record<AvatarItem["category"], string> = {
-  accessory: "👟",
-  background: "🌿",
-  outfit: "👕",
-  style: "✨",
-};
+const categoryLabels: Record<AvatarItem["category"], string> = { outfit: "의상", shoes: "운동화", accessory: "액세서리", background: "배경", theme: "테마" };
+const categoryEmojis: Record<AvatarItem["category"], string> = { outfit: "👕", shoes: "👟", accessory: "⌚", background: "🌿", theme: "✨" };
+const rotationViews: AvatarRotationView[] = ["front", "left45", "side", "back", "right45"];
 
 export default function AvatarShopPage() {
+  const [user, setUser] = useState<UserProfile>(sampleUser);
   const [items, setItems] = useState<AvatarItem[]>([]);
   const [balance, setBalance] = useState(0);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMsg, setToastMsg] = useState("");
-  const [toastPts, setToastPts] = useState(0);
   const [filterCat, setFilterCat] = useState<AvatarItem["category"] | "all">("all");
+  const [viewMode, setViewMode] = useState<AvatarViewMode>("fullbody");
+  const [rotationView, setRotationView] = useState<AvatarRotationView>("front");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const savedItems = getFromStorage<AvatarItem[]>(STORAGE_KEYS.AVATAR_ITEMS, sampleAvatarItems);
-    setItems(savedItems);
+    const profile = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
+    setUser(profile);
+    setViewMode(getFromStorage<AvatarViewMode>(STORAGE_KEYS.AVATAR_VIEW_MODE, "fullbody"));
+    const saved = getFromStorage<AvatarItem[]>(STORAGE_KEYS.AVATAR_ITEMS, []);
+    const merged = [...sampleAvatarItems.map((sample) => saved.find((item) => item.id === sample.id) || sample), ...saved.filter((item) => !sampleAvatarItems.some((sample) => sample.id === item.id))];
+    setItems(merged);
     const txs = getFromStorage<PointTransaction[]>(STORAGE_KEYS.POINT_TRANSACTIONS, samplePointTransactions);
     setBalance(calculatePointBalance(txs));
-
-    const handler = () => {
-      const updated = getFromStorage<PointTransaction[]>(STORAGE_KEYS.POINT_TRANSACTIONS, samplePointTransactions);
-      setBalance(calculatePointBalance(updated));
-    };
-    window.addEventListener("pointsUpdated", handler);
-    return () => window.removeEventListener("pointsUpdated", handler);
   }, []);
 
+  const persistItems = (next: AvatarItem[]) => {
+    setItems(next); saveToStorage(STORAGE_KEYS.AVATAR_ITEMS, next);
+    saveToStorage(STORAGE_KEYS.OWNED_AVATAR_ITEMS, next.filter((item) => item.isOwned).map((item) => item.id));
+    saveToStorage(STORAGE_KEYS.EQUIPPED_AVATAR_ITEMS, next.filter((item) => item.isEquipped).map((item) => item.id));
+  };
   const handlePurchase = (item: AvatarItem) => {
-    if (!canPurchaseItem(item, balance)) return;
-    const tx = createSpendTransaction("user-001", item.price, `아이템 구매: ${item.name}`);
-    addPointTransaction(tx);
-    const updated = purchaseAvatarItem(items, item.id);
-    setItems(updated);
-    saveToStorage(STORAGE_KEYS.AVATAR_ITEMS, updated);
-    setBalance((b) => b - item.price);
-    window.dispatchEvent(new Event("pointsUpdated"));
-    setToastMsg(`${item.name} 구매 완료!`);
-    setToastPts(-item.price);
-    setShowToast(true);
+    if (!canPurchaseItem(item, balance)) { setMessage("헬스포인트가 부족해요. 건강 미션을 완료하고 포인트를 모아보세요."); return; }
+    addPointTransaction(createSpendTransaction(user.id, item.price, `아이템 구매: ${item.name}`));
+    persistItems(purchaseAvatarItem(items, item.id)); setBalance((value) => value - item.price);
+    window.dispatchEvent(new Event("pointsUpdated")); setMessage("아이템을 구매했어요. 마이 아바타에 장착해보세요.");
   };
+  const handleEquip = (item: AvatarItem) => { persistItems(equipAvatarItem(items, item.id)); setMessage(`${item.name}을(를) 장착했어요.`); };
+  const rotate = (direction: -1 | 1) => { const current = rotationViews.indexOf(rotationView); setRotationView(rotationViews[(current + direction + rotationViews.length) % rotationViews.length]); };
+  const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
+  const displayName = user.name?.trim() || "사용자";
+  const customImage = user.avatarEffect === "illustrated" && user.avatarImage?.startsWith("data:") ? user.avatarImage : undefined;
+  const filtered = filterCat === "all" ? items : items.filter((item) => item.category === filterCat);
+  const categories: (AvatarItem["category"] | "all")[] = ["all", "outfit", "shoes", "accessory", "background", "theme"];
 
-  const handleEquip = (item: AvatarItem) => {
-    const updated = equipAvatarItem(items, item.id);
-    setItems(updated);
-    saveToStorage(STORAGE_KEYS.AVATAR_ITEMS, updated);
-  };
-
-  const filtered = filterCat === "all" ? items : items.filter((i) => i.category === filterCat);
-  const categories: (AvatarItem["category"] | "all")[] = ["all", "accessory", "outfit", "background", "style"];
-
-  return (
-    <MobileShell>
-      <AppHeader title="아바타 상점" showBack backHref="/dashboard" />
-      <RewardToast
-        message={toastMsg}
-        points={Math.abs(toastPts)}
-        visible={showToast}
-        onHide={() => setShowToast(false)}
-      />
-      <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
-        {/* Balance Bar */}
-        <div className="bg-gradient-to-r from-[#1F5A3A] to-[#4CAF6A] px-4 py-4 flex items-center justify-between">
-          <div>
-            <p className="text-green-100 text-xs">보유 헬스포인트</p>
-            <div className="flex items-center gap-1 mt-0.5">
-              <Sprout size={18} className="text-green-200" />
-              <span className="text-2xl font-extrabold text-white">{balance.toLocaleString()}</span>
-              <span className="text-green-200 text-sm">P</span>
-            </div>
-          </div>
-          <div className="bg-white/10 rounded-xl px-3 py-2 text-center">
-            <ShoppingBag size={20} className="text-white mx-auto" />
-            <p className="text-white text-xs mt-1">상점</p>
-          </div>
-        </div>
-
-        {/* Equipped items */}
-        {items.some((i) => i.isEquipped) && (
-          <div className="mx-4 mt-4 bg-[#EAF7EF] rounded-2xl p-3">
-            <p className="text-xs font-semibold text-[#4CAF6A] mb-2">현재 장착 중인 아이템</p>
-            <div className="flex flex-wrap gap-2">
-              {items.filter((i) => i.isEquipped).map((i) => (
-                <span key={i.id} className="text-xs bg-white border border-[#4CAF6A] text-[#1F5A3A] rounded-full px-2 py-0.5 font-medium">
-                  {categoryEmojis[i.category]} {i.name}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Category Filter */}
-        <div className="px-4 pt-4 pb-2 flex gap-2 overflow-x-auto scrollbar-hide">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setFilterCat(cat)}
-              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
-                filterCat === cat
-                  ? "bg-[#4CAF6A] text-white"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              {cat === "all" ? "전체" : categoryLabels[cat]}
-            </button>
-          ))}
-        </div>
-
-        {/* Items Grid */}
-        <div className="px-4 pb-4 grid grid-cols-2 gap-3">
-          {filtered.map((item) => {
-            const affordable = balance >= item.price;
-            return (
-              <div
-                key={item.id}
-                className={`bg-white rounded-2xl p-3 shadow-sm border ${
-                  item.isEquipped ? "border-[#4CAF6A]" : item.isOwned ? "border-blue-200" : "border-gray-100"
-                }`}
-              >
-                {/* Item Visual */}
-                <div className={`w-full aspect-square rounded-xl mb-3 flex items-center justify-center text-4xl ${
-                  item.isEquipped ? "bg-[#EAF7EF]" : item.isOwned ? "bg-blue-50" : "bg-gray-50"
-                }`}>
-                  {categoryEmojis[item.category]}
-                </div>
-
-                <div className="mb-1 flex items-start justify-between">
-                  <p className="text-sm font-bold text-[#1F2937] leading-tight">{item.name}</p>
-                  {item.isEquipped && (
-                    <span className="flex-shrink-0 ml-1">
-                      <Check size={14} className="text-[#4CAF6A]" />
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-gray-500 mb-2 leading-relaxed">{item.description}</p>
-
-                <div className="flex items-center gap-1 mb-2">
-                  <Sprout size={12} className="text-[#4CAF6A]" />
-                  <span className="text-sm font-bold text-[#1F5A3A]">{item.price.toLocaleString()}</span>
-                  <span className="text-xs text-gray-400">P</span>
-                </div>
-
-                {item.isOwned ? (
-                  item.isEquipped ? (
-                    <button className="w-full py-2 bg-[#4CAF6A] text-white text-xs font-bold rounded-lg">
-                      장착 중
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleEquip(item)}
-                      className="w-full py-2 bg-blue-500 text-white text-xs font-bold rounded-lg active:scale-95 transition-all"
-                    >
-                      장착하기
-                    </button>
-                  )
-                ) : (
-                  <button
-                    onClick={() => handlePurchase(item)}
-                    disabled={!affordable}
-                    className={`w-full py-2 text-xs font-bold rounded-lg transition-all ${
-                      affordable
-                        ? "bg-[#1F5A3A] text-white active:scale-95"
-                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    {affordable ? "구매하기" : "포인트 부족"}
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </main>
-      <BottomNav />
-    </MobileShell>
-  );
+  return <MobileShell><AppHeader title="마이 아바타" showBack backHref="/dashboard" /><main className="flex-1 bg-[#F7FBF8] pb-24">
+    <section className="px-4 pt-4"><div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-[#1F5A3A] to-[#4CAF6A] p-4 text-white"><div><p className="text-sm text-green-100">{displayName}님의 마이 아바타</p><p className="mt-1 text-lg font-black">Lv. 3 건강 루틴러</p></div><div className="text-right"><p className="text-xs text-green-100">보유 헬스포인트</p><p className="text-2xl font-black">{balance.toLocaleString()}P</p></div></div></section>
+    <section className="mx-4 mt-4 overflow-hidden rounded-3xl border border-green-100 bg-gradient-to-b from-[#EAF7EF] to-white shadow-sm"><div className="relative h-[460px]"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={viewMode} mood="cheer" rotationView={viewMode === "fullbody" ? rotationView : undefined} customImageUrl={customImage} size="xl" showControls showWindEffect showLeaves showLightTrails onViewModeChange={setViewMode} alt={`${displayName}님의 마이 아바타`} /></div><div className="border-t border-green-100 bg-white/85 px-4 py-3"><div className="flex items-center justify-center gap-3"><button onClick={() => rotate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#EAF7EF] text-[#1F5A3A]"><ChevronLeft /></button><span className="min-w-20 text-center text-sm font-bold text-[#1F2937]">{rotationView === "front" ? "전면" : "회전 미리보기"}</span><button onClick={() => rotate(1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#EAF7EF] text-[#1F5A3A]"><ChevronRight /></button></div><p className="mt-2 flex items-center justify-center gap-1 text-[11px] text-gray-400"><LockKeyhole size={12} />전신 아바타 회전 미리보기는 추후 업데이트 예정입니다.</p></div></section>
+    {message && <p className="mx-4 mt-3 rounded-xl bg-white p-3 text-center text-sm font-bold text-[#1F5A3A] shadow-sm">{message}</p>}
+    <div className="scrollbar-hide flex gap-2 overflow-x-auto px-4 pb-3 pt-5">{categories.map((category) => <button key={category} onClick={() => setFilterCat(category)} className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold ${filterCat === category ? "bg-[#4CAF6A] text-white" : "bg-white text-gray-600"}`}>{category === "all" ? "전체" : categoryLabels[category]}</button>)}</div>
+    <div className="grid grid-cols-2 gap-3 px-4 pb-5">{filtered.map((item) => { const affordable = balance >= item.price; return <article key={item.id} className={`rounded-2xl border bg-white p-3 shadow-sm ${item.isEquipped ? "border-[#4CAF6A]" : "border-gray-100"}`}><div className="flex aspect-square items-center justify-center rounded-xl bg-[#F3F9F5] text-5xl">{categoryEmojis[item.category]}</div><div className="mt-3 flex items-start justify-between"><p className="text-sm font-extrabold text-[#1F2937]">{item.name}</p>{item.isEquipped && <Check size={16} className="shrink-0 text-[#4CAF6A]" />}</div><p className="mt-1 min-h-10 text-xs leading-relaxed text-gray-500">{item.description}</p><p className="mt-2 flex items-center gap-1 font-black text-[#1F5A3A]"><Sprout size={14} />{item.price.toLocaleString()}P</p>{item.isOwned ? <button onClick={() => !item.isEquipped && handleEquip(item)} className={`mt-2 w-full rounded-xl py-2 text-xs font-bold text-white ${item.isEquipped ? "bg-[#4CAF6A]" : "bg-blue-500"}`}>{item.isEquipped ? "장착 중" : "장착하기"}</button> : <button onClick={() => handlePurchase(item)} className={`mt-2 w-full rounded-xl py-2 text-xs font-bold ${affordable ? "bg-[#1F5A3A] text-white" : "bg-gray-100 text-gray-400"}`}>{affordable ? "구매하기" : "포인트 부족"}</button>}</article>; })}</div>
+  </main><BottomNav /></MobileShell>;
 }

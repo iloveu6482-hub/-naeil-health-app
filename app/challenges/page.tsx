@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
 import RewardToast from "@/components/common/RewardToast";
+import AvatarViewer from "@/components/avatar/AvatarViewer";
+import AvatarRewardEffect from "@/components/avatar/AvatarRewardEffect";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { createEarnTransaction, addPointTransaction } from "@/lib/rewards";
-import { sampleChallenges } from "@/lib/sampleData";
+import { sampleChallenges, sampleUser } from "@/lib/sampleData";
 import type { Challenge } from "@/types/challenge";
+import type { UserProfile } from "@/types/user";
 import { Sprout, Trophy, Droplets, Footprints, Moon, UtensilsCrossed, Dumbbell } from "lucide-react";
 
 const typeIcons: Record<Challenge["targetType"], React.ReactNode> = {
@@ -23,10 +27,12 @@ export default function ChallengesPage() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [showToast, setShowToast] = useState(false);
   const [toastPoints, setToastPoints] = useState(0);
+  const [user, setUser] = useState<UserProfile>(sampleUser);
 
   useEffect(() => {
     const saved = getFromStorage<Challenge[]>(STORAGE_KEYS.CHALLENGES, sampleChallenges);
     setChallenges(saved);
+    setUser(getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser));
   }, []);
 
   const handleCheck = (id: string) => {
@@ -48,7 +54,7 @@ export default function ChallengesPage() {
     const challenge = challenges.find((c) => c.id === id);
     if (!challenge) return;
 
-    const tx = createEarnTransaction("user-001", challenge.rewardPoints, `챌린지 완료: ${challenge.title}`);
+    const tx = createEarnTransaction(user.id, challenge.rewardPoints, `챌린지 완료: ${challenge.title}`);
     addPointTransaction(tx);
     window.dispatchEvent(new Event("pointsUpdated"));
 
@@ -70,6 +76,8 @@ export default function ChallengesPage() {
     const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     return Math.max(0, diff);
   };
+  const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
+  const customImage = user.avatarEffect === "illustrated" && user.avatarImage?.startsWith("data:") ? user.avatarImage : undefined;
 
   return (
     <MobileShell>
@@ -80,6 +88,7 @@ export default function ChallengesPage() {
         visible={showToast}
         onHide={() => setShowToast(false)}
       />
+      {showToast && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#0B3A24]/55 p-5 backdrop-blur-sm"><div className="w-full max-w-sm overflow-hidden rounded-3xl bg-white text-center shadow-2xl"><div className="relative h-72 bg-gradient-to-b from-[#EAF7EF] to-white"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode="fullbody" mood="reward" customImageUrl={customImage} size="lg" showWindEffect showLeaves showLightTrails /><AvatarRewardEffect points={toastPoints} visible /></div><div className="p-5"><h2 className="text-2xl font-black text-[#1F2937]">챌린지 완료!</h2><p className="mt-2 text-sm text-gray-600">헬스포인트 {toastPoints}P를 획득했어요.<br />마이 아바타가 새로운 보상을 받을 수 있어요.</p><Link href="/avatar-shop" className="mt-4 flex min-h-12 items-center justify-center rounded-2xl bg-[#4CAF6A] font-extrabold text-white">아바타 꾸미러 가기</Link><button onClick={() => setShowToast(false)} className="mt-2 min-h-10 w-full text-sm font-bold text-gray-400">계속 챌린지 보기</button></div></div></div>}
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
         <div className="bg-gradient-to-br from-[#EAF7EF] to-white px-4 py-5 border-b border-gray-100">
           <h2 className="text-xl font-extrabold text-[#1F2937]">나의 챌린지</h2>

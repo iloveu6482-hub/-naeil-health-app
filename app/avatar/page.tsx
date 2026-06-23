@@ -35,6 +35,7 @@ export default function AvatarPage() {
   const [message, setMessage] = useState("");
   const [showCamera, setShowCamera] = useState(false);
   const [pointBalance, setPointBalance] = useState(0);
+  const displayName = profile.name?.trim() || "사용자";
 
   useEffect(() => {
     const saved = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
@@ -167,6 +168,7 @@ export default function AvatarPage() {
     };
     saveToStorage(STORAGE_KEYS.USER_PROFILE, nextProfile);
     saveToStorage(STORAGE_KEYS.AVATAR_STYLE, selected);
+    saveToStorage(STORAGE_KEYS.AVATAR_GENDER, avatarGender);
     router.push("/dashboard");
   };
 
@@ -185,7 +187,7 @@ export default function AvatarPage() {
       <div className="flex min-h-screen flex-col bg-[#FAFCFA]">
         <header className="bg-gradient-to-br from-[#1F5A3A] to-[#4CAF6A] px-6 pb-8 pt-14 text-center text-white">
           <h1 className="mb-1 text-2xl font-extrabold">나만의 건강이 선택</h1>
-          <p className="text-sm text-green-100">{profile.name}님을 닮은 입체적인 건강이를 만들어보세요</p>
+          <p className="text-sm text-green-100">{displayName}님을 닮은 입체적인 건강이를 만들어보세요</p>
         </header>
 
         <main className="flex-1 space-y-4 px-4 py-6">
@@ -209,7 +211,7 @@ export default function AvatarPage() {
                 return (
                   <button key={avatar.id} onClick={() => selectDefaultAvatar(avatar)} className={`overflow-hidden rounded-2xl border-2 bg-white text-left transition-all ${isSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
                     <div className="relative aspect-[4/5] overflow-hidden bg-[#EAF7EF]">
-                      <AnimatedAvatar style={avatar.style} mood={isSelected ? "happy" : "idle"} imageUrl={avatar.imageUrl} fill glow={isSelected} alt={`${avatar.name} ${avatarGender === "female" ? "여성" : "남성"} 기본 아바타`} />
+                      <AnimatedAvatar style={avatar.style} gender={avatar.gender} viewMode="portrait" mood={isSelected ? "happy" : "idle"} imageUrl={avatar.imageUrl} fill glow={isSelected} alt={`${avatar.name} ${avatarGender === "female" ? "여성" : "남성"} 기본 아바타`} />
                       {isSelected && <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#4CAF6A] shadow"><Check size={16} className="text-white" /></span>}
                     </div>
                     <div className="p-3"><p className="font-extrabold text-[#1F2937]">{avatar.name}</p><p className="mt-1 text-xs leading-relaxed text-gray-500">{avatar.description}</p></div>

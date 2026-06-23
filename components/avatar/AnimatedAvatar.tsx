@@ -1,14 +1,13 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import type { AvatarStyle } from "@/types/user";
-
-export type AvatarMood = "idle" | "happy" | "cheer" | "reward";
+import AvatarViewer from "@/components/avatar/AvatarViewer";
+import type { AvatarGender, AvatarMood, AvatarStyle, AvatarViewMode } from "@/types/avatar";
 
 type Props = {
   style: AvatarStyle;
+  gender?: AvatarGender;
   mood?: AvatarMood;
+  viewMode?: AvatarViewMode;
   size?: "sm" | "md" | "lg";
   imageUrl?: string;
   fill?: boolean;
@@ -17,15 +16,8 @@ type Props = {
   alt?: string;
 };
 
-const sizes = { sm: "h-16 w-16", md: "h-28 w-28", lg: "h-44 w-44" };
-const fallback: Record<AvatarStyle, string> = { "3d": "/avatars/default-female-3d.png", emotional: "/avatars/default-female-emotional.png", webtoon: "/avatars/default-female-webtoon.png", senior: "/avatars/default-female-senior.png" };
+export type { AvatarMood } from "@/types/avatar";
 
-export default function AnimatedAvatar({ style, mood = "idle", size = "md", imageUrl, fill = false, glow = true, priority = false, alt = "건강이 아바타" }: Props) {
-  const fallbackSource = imageUrl || fallback[style];
-  const [source, setSource] = useState(imageUrl || `/avatars/avatar-${style}-${mood}.png`);
-  useEffect(() => setSource(imageUrl || `/avatars/avatar-${style}-${mood}.png`), [imageUrl, mood, style]);
-  return <div data-avatar-mood={mood} className={`group ${fill ? "absolute inset-0" : `relative ${sizes[size]}`}`}>
-    {glow && <span aria-hidden className="avatar-glow absolute left-1/2 top-1/2 h-[72%] w-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-300/35 blur-2xl" />}
-    <div className="avatar-float absolute inset-0 transition-transform duration-500 group-hover:scale-[1.015] group-active:scale-[0.99]"><div className="avatar-breathe relative h-full w-full"><Image src={source} alt={alt} fill priority={priority} unoptimized={source.startsWith("data:")} className="object-cover object-top" onError={() => { if (source !== fallbackSource) setSource(fallbackSource); }} /></div></div>
-  </div>;
+export default function AnimatedAvatar({ style, gender = "female", mood = "idle", viewMode = "portrait", size = "md", imageUrl, fill = false, glow = true, priority = false, alt = "건강이 아바타" }: Props) {
+  return <AvatarViewer style={style} gender={gender} viewMode={viewMode} mood={mood} customImageUrl={imageUrl} size={size} fill={fill} priority={priority} showWindEffect={glow} showLeaves={glow} showLightTrails={glow} alt={alt} />;
 }

@@ -7,10 +7,12 @@ export type PointTransaction = {
   createdAt: string;
 };
 
+export type AvatarItemCategory = "outfit" | "shoes" | "accessory" | "background" | "theme";
+
 export type AvatarItem = {
   id: string;
   name: string;
-  category: "outfit" | "background" | "accessory" | "style";
+  category: AvatarItemCategory;
   price: number;
   description: string;
   imageUrl?: string;

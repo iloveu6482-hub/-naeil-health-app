@@ -6,11 +6,15 @@ import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
 import HealthAvatar from "@/components/common/HealthAvatar";
+import AvatarViewer from "@/components/avatar/AvatarViewer";
 import { getFromStorage, saveToStorage, removeFromStorage, STORAGE_KEYS } from "@/lib/storage";
 import { sampleUser } from "@/lib/sampleData";
 import type { UserProfile } from "@/types/user";
 import type { AvatarItem } from "@/types/reward";
-import { User, RefreshCw, AlertTriangle, Bell } from "lucide-react";
+import type { PointTransaction } from "@/types/reward";
+import type { Challenge } from "@/types/challenge";
+import { calculatePointBalance } from "@/lib/rewards";
+import { User, RefreshCw, AlertTriangle, Bell, Shirt } from "lucide-react";
 import { signOutLocal } from "@/lib/auth";
 
 const avatarStyleLabels = {
@@ -25,18 +29,25 @@ export default function SettingsPage() {
   const [user, setUser] = useState<UserProfile>(sampleUser);
   const [equippedItems, setEquippedItems] = useState<AvatarItem[]>([]);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [balance, setBalance] = useState(0);
+  const [completedChallenges, setCompletedChallenges] = useState(0);
 
   useEffect(() => {
     const saved = getFromStorage<UserProfile | null>(STORAGE_KEYS.USER_PROFILE, null);
     if (saved) setUser(saved);
     const items = getFromStorage<AvatarItem[]>(STORAGE_KEYS.AVATAR_ITEMS, []);
     setEquippedItems(items.filter((i) => i.isEquipped));
+    setBalance(calculatePointBalance(getFromStorage<PointTransaction[]>(STORAGE_KEYS.POINT_TRANSACTIONS, [])));
+    setCompletedChallenges(getFromStorage<Challenge[]>(STORAGE_KEYS.CHALLENGES, []).filter((challenge) => challenge.status === "completed").length);
   }, []);
 
   const handleReset = () => {
     Object.values(STORAGE_KEYS).forEach((key) => removeFromStorage(key));
     router.push("/");
   };
+  const displayName = user.name?.trim() || "사용자";
+  const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
+  const customImage = user.avatarEffect === "illustrated" && user.avatarImage?.startsWith("data:") ? user.avatarImage : undefined;
 
   return (
     <MobileShell>
@@ -47,7 +58,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-4 mb-4">
             <HealthAvatar style={user.avatarStyle} size="md" imageUrl={user.avatarImage} />
             <div>
-              <h2 className="text-xl font-extrabold text-[#1F2937]">{user.name}</h2>
+              <h2 className="text-xl font-extrabold text-[#1F2937]">{displayName}</h2>
               <p className="text-sm text-gray-500">{user.birthYear}년생</p>
             </div>
           </div>
@@ -62,6 +73,12 @@ export default function SettingsPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="mb-4 overflow-hidden rounded-3xl border border-green-100 bg-gradient-to-b from-[#EAF7EF] to-white shadow-sm">
+          <div className="px-4 pt-4"><p className="text-lg font-black text-[#1F2937]">{displayName}님의 마이 아바타</p><div className="mt-2 flex gap-2 text-xs font-bold text-[#1F5A3A]"><span className="rounded-full bg-white px-3 py-1">Lv. 3 건강 루틴러</span><span className="rounded-full bg-white px-3 py-1">{balance.toLocaleString()}P</span><span className="rounded-full bg-white px-3 py-1">완료 {completedChallenges}개</span></div></div>
+          <div className="relative h-80"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode="fullbody" mood="happy" customImageUrl={customImage} size="lg" showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} /></div>
+          <button onClick={() => router.push("/avatar-shop")} className="mx-4 mb-4 flex min-h-12 w-[calc(100%_-_2rem)] items-center justify-center gap-2 rounded-2xl bg-[#4CAF6A] font-extrabold text-white"><Shirt size={19} />아바타 꾸미기</button>
         </div>
 
         {/* Equipped Items */}
