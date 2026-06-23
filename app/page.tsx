@@ -36,13 +36,13 @@ export default function HomePage() {
   return (
     <MobileShell>
       <div className="min-h-screen overflow-hidden bg-[linear-gradient(180deg,#EAF8EF_0%,#F8FCF9_46%,#FFFFFF_100%)]">
-        <section className="relative overflow-hidden rounded-b-[48px] bg-[radial-gradient(circle_at_50%_18%,#21864D_0%,#075D38_46%,#064A30_100%)] px-5 pb-24 pt-11 text-center text-white">
+        <section className="relative overflow-hidden rounded-b-[38px] bg-[radial-gradient(circle_at_50%_18%,#21864D_0%,#075D38_46%,#064A30_100%)] px-5 pb-16 pt-5 text-center text-white">
           <div className="pointer-events-none absolute -left-14 top-28 h-40 w-40 rounded-full bg-emerald-300/10 blur-3xl" />
           <div className="pointer-events-none absolute -right-20 -top-10 h-56 w-56 rounded-full bg-lime-300/10 blur-3xl" />
           <Leaf className="pointer-events-none absolute left-9 top-32 rotate-[-28deg] text-lime-300/25" size={42} />
           <Leaf className="pointer-events-none absolute right-12 top-56 rotate-[26deg] text-lime-300/20" size={35} />
 
-          <div className="relative mx-auto mb-5 h-28 w-32">
+          <div className="relative mx-auto -mb-1 h-20 w-24 scale-[0.68]">
             <div className="absolute inset-2 rounded-full border border-lime-300/25" />
             <div className="absolute left-0 top-14 rotate-[-30deg] text-lime-300 drop-shadow-lg"><Leaf size={55} fill="currentColor" /></div>
             <div className="absolute right-0 top-14 rotate-[30deg] scale-x-[-1] text-lime-300 drop-shadow-lg"><Leaf size={55} fill="currentColor" /></div>
@@ -54,46 +54,46 @@ export default function HomePage() {
             </div>
           </div>
 
-          <h1 className="text-[42px] font-black tracking-[-0.055em] drop-shadow-sm">내일의건강</h1>
-          <p className="mt-3 text-base font-medium leading-relaxed text-green-50">오늘의 건강을 이해하고,<br />더 나은 내일을 준비하는</p>
-          <span className="mt-4 inline-flex rounded-full bg-gradient-to-r from-[#D8F7DF] to-[#B9EDC6] px-6 py-2 text-base font-extrabold text-[#17663A] shadow-[0_8px_22px_rgba(0,0,0,0.15)]">AI 건강관리 파트너</span>
+          <h1 className="text-[34px] font-black tracking-[-0.055em] drop-shadow-sm">내일의건강</h1>
+          <p className="mt-1 text-sm font-medium leading-snug text-green-50">오늘의 건강을 이해하고,<br />더 나은 내일을 준비하는</p>
+          <span className="mt-2 inline-flex rounded-full bg-gradient-to-r from-[#D8F7DF] to-[#B9EDC6] px-5 py-1.5 text-sm font-extrabold text-[#17663A] shadow-[0_8px_22px_rgba(0,0,0,0.15)]">AI 건강관리 파트너</span>
         </section>
 
-        <main className="relative z-10 -mt-16 space-y-4 px-4 pb-10">
-          <section className="rounded-[28px] border border-white bg-white/95 p-4 shadow-[0_16px_36px_rgba(29,82,51,0.14)] backdrop-blur">
-            <h2 className="mb-4 flex items-center justify-center gap-2 text-base font-extrabold text-[#1E293B]"><Sprout size={20} className="text-[#24944E]" />나에게 맞는 아바타를 선택해주세요</h2>
-            <div className="grid grid-cols-4 gap-2">
+        <main className="relative z-10 -mt-10 space-y-2.5 px-3 pb-4">
+          <section className="rounded-[24px] border border-white bg-white/95 p-3 shadow-[0_12px_28px_rgba(29,82,51,0.13)] backdrop-blur">
+            <h2 className="mb-2 flex items-center justify-center gap-1.5 text-sm font-extrabold text-[#1E293B]"><Sprout size={17} className="text-[#24944E]" />나에게 맞는 아바타를 선택해주세요</h2>
+            <div className="grid grid-cols-4 gap-1.5">
               {avatars.map((avatar) => (
-                <div key={avatar.label} className={`relative rounded-2xl border-2 p-2 pb-3 text-center transition ${avatar.selected ? "border-[#24944E] bg-[#F4FCF6] shadow-[0_8px_18px_rgba(36,148,78,0.18)]" : "border-gray-100 bg-white shadow-sm"}`}>
-                  {avatar.selected && <span className="absolute -right-1.5 -top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-[#2DAE5B] text-white shadow"><Check size={16} strokeWidth={3} /></span>}
-                  <div className="relative mx-auto aspect-square w-full overflow-hidden rounded-full bg-[#EAF7EF]">
+                <div key={avatar.label} className={`relative rounded-xl border-2 p-1.5 pb-2 text-center transition ${avatar.selected ? "border-[#24944E] bg-[#F4FCF6] shadow-[0_6px_14px_rgba(36,148,78,0.16)]" : "border-gray-100 bg-white shadow-sm"}`}>
+                  {avatar.selected && <span className="absolute -right-1 -top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-[#2DAE5B] text-white shadow"><Check size={14} strokeWidth={3} /></span>}
+                  <div className="relative mx-auto h-16 w-16 max-w-full overflow-hidden rounded-full bg-[#EAF7EF]">
                     <Image src={avatar.image} alt={`${avatar.label} 기본 건강이`} fill className="object-cover" />
                   </div>
-                  <p className={`mt-2 text-[13px] font-extrabold ${avatar.selected ? "text-[#208347]" : "text-[#334155]"}`}>{avatar.label}</p>
+                  <p className={`mt-1 text-xs font-extrabold ${avatar.selected ? "text-[#208347]" : "text-[#334155]"}`}>{avatar.label}</p>
                 </div>
               ))}
             </div>
-            <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-gray-400"><Shield size={14} fill="currentColor" />아바타는 로그인 후 언제든 변경할 수 있어요</p>
+            <p className="mt-2 flex items-center justify-center gap-1 text-[10px] text-gray-400"><Shield size={12} fill="currentColor" />아바타는 로그인 후 언제든 변경할 수 있어요</p>
           </section>
 
-          <section className="rounded-[28px] border border-white bg-white/95 p-4 shadow-[0_16px_36px_rgba(29,82,51,0.12)]">
-            <h2 className="mb-4 text-center text-xl font-black tracking-tight text-[#1E293B]">내일의건강이 특별한 이유 <span className="text-[#2EAD5A]">♥</span></h2>
-            <div className="grid grid-cols-2 gap-3">
+          <section className="rounded-[24px] border border-white bg-white/95 p-3 shadow-[0_12px_28px_rgba(29,82,51,0.11)]">
+            <h2 className="mb-2 text-center text-base font-black tracking-tight text-[#1E293B]">내일의건강이 특별한 이유 <span className="text-[#2EAD5A]">♥</span></h2>
+            <div className="grid grid-cols-2 gap-2">
               {features.map(({ icon: Icon, label, desc, tone, iconColor }) => (
-                <div key={label} className="flex min-h-[126px] items-center gap-3 rounded-2xl border border-gray-100 bg-white p-3 shadow-[0_7px_18px_rgba(31,41,55,0.08)]">
-                  <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${tone} shadow-inner`}><Icon size={30} className={iconColor} strokeWidth={2.1} /></div>
-                  <div><p className="text-sm font-extrabold leading-snug text-[#1E293B]">{label}</p><p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-gray-500">{desc}</p></div>
+                <div key={label} className="flex min-h-[82px] items-center gap-2 rounded-xl border border-gray-100 bg-white p-2 shadow-[0_5px_14px_rgba(31,41,55,0.07)]">
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${tone} shadow-inner`}><Icon size={23} className={iconColor} strokeWidth={2.1} /></div>
+                  <div><p className="text-xs font-extrabold leading-snug text-[#1E293B]">{label}</p><p className="mt-0.5 whitespace-pre-line text-[10px] leading-snug text-gray-500">{desc}</p></div>
                 </div>
               ))}
             </div>
 
-            <Link href="/login" className="mt-5 flex min-h-16 w-full items-center justify-between rounded-2xl bg-gradient-to-r from-[#37B95D] to-[#168443] px-5 text-lg font-extrabold text-white shadow-[0_10px_24px_rgba(22,132,67,0.28)] active:scale-[0.98]">
-              <span className="flex items-center gap-2"><Leaf size={22} fill="currentColor" className="text-lime-200" />로그인하고 시작하기</span><ChevronRight size={25} />
+            <Link href="/login" className="mt-3 flex min-h-12 w-full items-center justify-between rounded-xl bg-gradient-to-r from-[#37B95D] to-[#168443] px-4 text-base font-extrabold text-white shadow-[0_8px_18px_rgba(22,132,67,0.24)] active:scale-[0.98]">
+              <span className="flex items-center gap-2"><Leaf size={19} fill="currentColor" className="text-lime-200" />로그인하고 시작하기</span><ChevronRight size={22} />
             </Link>
-            <Link href="/signup" className="mt-3 flex min-h-14 w-full items-center justify-between rounded-2xl border-2 border-[#24944E] bg-white px-5 font-extrabold text-[#208347] active:scale-[0.98]">
-              <span className="flex items-center gap-2"><UserRound size={22} />처음이라면 회원가입</span><ChevronRight size={23} />
+            <Link href="/signup" className="mt-2 flex min-h-11 w-full items-center justify-between rounded-xl border-2 border-[#24944E] bg-white px-4 text-sm font-extrabold text-[#208347] active:scale-[0.98]">
+              <span className="flex items-center gap-2"><UserRound size={19} />처음이라면 회원가입</span><ChevronRight size={21} />
             </Link>
-            <p className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-gray-400"><LockKeyhole size={13} />무료로 시작 · MVP 데이터는 현재 브라우저에 저장</p>
+            <p className="mt-2 flex items-center justify-center gap-1 text-[9px] text-gray-400"><LockKeyhole size={11} />무료로 시작 · MVP 데이터는 현재 브라우저에 저장</p>
           </section>
         </main>
       </div>
