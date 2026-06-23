@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import MobileShell from "@/components/layout/MobileShell";
 import { Sprout, FileSearch, Brain, Heart, Gift } from "lucide-react";
 
@@ -39,15 +40,16 @@ export default function HomePage() {
         <div className="flex justify-center -mt-6 mb-0 z-10 relative">
           <div className="flex gap-3">
             {[
-              { emoji: "🧑", label: "3D형" },
-              { emoji: "👩", label: "감성형" },
-              { emoji: "🧓", label: "시니어형" },
-            ].map((a, i) => (
-              <div key={i} className="flex flex-col items-center gap-1">
-                <div className="w-14 h-14 rounded-full bg-white shadow-lg flex items-center justify-center text-2xl border-2 border-[#4CAF6A]">
-                  {a.emoji}
+              { image: "/avatars/default-female-3d.png", label: "3D형" },
+              { image: "/avatars/default-female-emotional.png", label: "감성형" },
+              { image: "/avatars/default-female-webtoon.png", label: "웹툰형" },
+              { image: "/avatars/default-female-senior.png", label: "시니어형" },
+            ].map((avatar) => (
+              <div key={avatar.label} className="flex flex-col items-center gap-1">
+                <div className="relative h-14 w-14 overflow-hidden rounded-full border-2 border-[#4CAF6A] bg-white shadow-lg">
+                  <Image src={avatar.image} alt={`${avatar.label} 기본 건강이`} fill className="object-cover" />
                 </div>
-                <span className="text-xs text-gray-500">{a.label}</span>
+                <span className="text-xs text-gray-500">{avatar.label}</span>
               </div>
             ))}
           </div>
