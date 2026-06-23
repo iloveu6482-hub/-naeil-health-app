@@ -164,7 +164,7 @@ export default function CheckupPage() {
             onClick={handleSave}
             className="w-full mt-4 bg-[#4CAF6A] text-white text-lg font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all"
           >
-            직접 입력 저장하기 (+50 씨앗)
+            직접 입력 저장하기 (+50P)
           </button>
         </div>
       </main>

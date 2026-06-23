@@ -8,7 +8,7 @@ const features = [
   { icon: FileSearch, label: "건강검진 결과 분석", desc: "검진 수치를 쉽게 이해해요", color: "bg-blue-50 text-blue-600" },
   { icon: Brain, label: "AI 맞춤 리포트", desc: "개인화된 건강 인사이트", color: "bg-purple-50 text-purple-600" },
   { icon: Heart, label: "생활습관 코칭", desc: "매일 건강한 습관 형성", color: "bg-red-50 text-red-500" },
-  { icon: Gift, label: "건강씨앗 보상", desc: "실천할수록 쌓이는 포인트", color: "bg-[#EAF7EF] text-[#4CAF6A]" },
+  { icon: Gift, label: "헬스포인트 보상", desc: "건강 행동으로 쌓는 앱 포인트", color: "bg-[#EAF7EF] text-[#4CAF6A]" },
 ];
 
 export default function HomePage() {

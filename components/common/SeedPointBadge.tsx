@@ -20,7 +20,7 @@ export default function SeedPointBadge({ amount, size = "md" }: SeedPointBadgePr
     >
       <Sprout size={iconSizes[size]} className="text-[#4CAF6A]" />
       {amount.toLocaleString()}
-      <span className="font-normal text-[#4CAF6A]">씨앗</span>
+      <span className="font-normal text-[#4CAF6A]">헬스P</span>
     </span>
   );
 }

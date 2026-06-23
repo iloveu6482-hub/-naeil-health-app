@@ -133,7 +133,7 @@ export default function HabitsPage() {
                 className="w-20 text-right font-bold text-[#1F2937] border border-gray-200 rounded-lg px-2 py-1 text-sm"
               />
             </div>
-            {form.steps >= 7000 && <p className="text-xs text-[#4CAF6A] mt-1 font-medium">✓ 목표 달성! +20씨앗</p>}
+            {form.steps >= 7000 && <p className="text-xs text-[#4CAF6A] mt-1 font-medium">✓ 목표 달성! +20P</p>}
           </div>
 
           {/* Sleep */}
@@ -155,7 +155,7 @@ export default function HabitsPage() {
               />
               <span className="w-20 text-right font-bold text-[#1F2937] text-sm">{form.sleepHours}시간</span>
             </div>
-            {form.sleepHours >= 7 && <p className="text-xs text-blue-500 mt-1 font-medium">✓ 목표 달성! +15씨앗</p>}
+            {form.sleepHours >= 7 && <p className="text-xs text-blue-500 mt-1 font-medium">✓ 목표 달성! +15P</p>}
           </div>
 
           {/* Water */}
@@ -180,7 +180,7 @@ export default function HabitsPage() {
                 </button>
               ))}
             </div>
-            {form.waterCups >= 6 && <p className="text-xs text-cyan-600 mt-2 font-medium">✓ 목표 달성! +10씨앗</p>}
+            {form.waterCups >= 6 && <p className="text-xs text-cyan-600 mt-2 font-medium">✓ 목표 달성! +10P</p>}
           </div>
 
           {/* Meals */}
@@ -284,7 +284,7 @@ export default function HabitsPage() {
 
           {/* Reward info */}
           <div className="bg-white rounded-2xl p-3 border border-[#4CAF6A]/30">
-            <p className="text-xs text-gray-500 mb-1 font-semibold">오늘 획득 가능한 건강씨앗</p>
+            <p className="text-xs text-gray-500 mb-1 font-semibold">오늘 획득 가능한 헬스포인트</p>
             <div className="flex gap-2 flex-wrap">
               {[
                 { label: "기록 완료", pts: 10, done: false },
@@ -293,7 +293,7 @@ export default function HabitsPage() {
                 { label: "수면 7h+", pts: 15, done: form.sleepHours >= 7 },
               ].map(({ label, pts, done }) => (
                 <span key={label} className={`text-xs px-2 py-1 rounded-full font-medium ${done ? "bg-[#4CAF6A] text-white" : "bg-gray-100 text-gray-500"}`}>
-                  {label} +{pts}씨앗
+                  {label} +{pts}P
                 </span>
               ))}
             </div>

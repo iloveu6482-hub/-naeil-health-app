@@ -50,16 +50,16 @@ export default function PointsPage() {
 
   return (
     <MobileShell>
-      <AppHeader title="건강씨앗 지갑" showBack backHref="/dashboard" />
+      <AppHeader title="헬스포인트 지갑" showBack backHref="/dashboard" />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
         {/* Wallet Hero */}
         <div className="bg-gradient-to-br from-[#1F5A3A] to-[#4CAF6A] px-6 py-8 text-white text-center">
-          <p className="text-green-100 text-sm mb-2">현재 보유 건강씨앗</p>
+          <p className="text-green-100 text-sm mb-2">현재 보유 헬스포인트</p>
           <div className="flex items-center justify-center gap-2 mb-1">
             <Sprout size={32} className="text-green-200" />
             <span className="text-5xl font-extrabold">{balance.toLocaleString()}</span>
           </div>
-          <p className="text-green-100 text-sm font-medium">건강씨앗</p>
+          <p className="text-green-100 text-sm font-medium">헬스포인트</p>
         </div>
 
         {/* Stats */}
@@ -85,14 +85,14 @@ export default function PointsPage() {
               <TrendingUp size={18} className="text-[#4CAF6A]" />
               <div>
                 <p className="text-xs text-gray-500">전체 획득</p>
-                <p className="font-bold text-[#1F5A3A]">{totalEarned.toLocaleString()} 씨앗</p>
+                <p className="font-bold text-[#1F5A3A]">{totalEarned.toLocaleString()}P</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <TrendingDown size={18} className="text-orange-400" />
               <div>
                 <p className="text-xs text-gray-500">전체 사용</p>
-                <p className="font-bold text-orange-600">{totalSpent.toLocaleString()} 씨앗</p>
+                <p className="font-bold text-orange-600">{totalSpent.toLocaleString()}P</p>
               </div>
             </div>
           </div>

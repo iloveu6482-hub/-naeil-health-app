@@ -98,7 +98,7 @@ export default function RewardsPage() {
           <div>
             <h3 className="font-bold text-[#1F2937] mb-3 flex items-center gap-2">
               <Sprout size={16} className="text-[#4CAF6A]" />
-              건강씨앗 획득 기록
+              헬스포인트 획득 기록
             </h3>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               {transactions.filter((t) => t.type === "earn").length === 0 ? (
@@ -135,8 +135,8 @@ export default function RewardsPage() {
             <p className="font-bold text-[#1F5A3A] mb-2">🎯 다음에 도전해볼 미션</p>
             <div className="flex flex-col gap-1.5">
               {[
-                "챌린지 1개 완료하기 (+100씨앗)",
-                "7일 연속 생활습관 기록 (+100씨앗)",
+                "챌린지 1개 완료하기 (+100P)",
+                "7일 연속 생활습관 기록 (+100P)",
                 "아바타 상점에서 아이템 구매",
               ].map((m, i) => (
                 <p key={i} className="text-sm text-[#1F2937] flex items-center gap-1.5">

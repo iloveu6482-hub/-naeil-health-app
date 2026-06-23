@@ -61,7 +61,7 @@ export default function AppHeader({ title, showBack, backHref }: AppHeaderProps)
         <Link href="/points" className="flex items-center gap-1 bg-[#EAF7EF] px-3 py-1 rounded-full">
           <Sprout size={14} className="text-[#4CAF6A]" />
           <span className="text-sm font-bold text-[#1F5A3A]">{points.toLocaleString()}</span>
-          <span className="text-xs text-[#4CAF6A]">씨앗</span>
+          <span className="text-xs text-[#4CAF6A]">P</span>
         </Link>
         <Link href="/settings" className="text-gray-400 hover:text-gray-600">
           <Settings size={20} />

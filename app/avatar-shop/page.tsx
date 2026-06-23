@@ -90,11 +90,11 @@ export default function AvatarShopPage() {
         {/* Balance Bar */}
         <div className="bg-gradient-to-r from-[#1F5A3A] to-[#4CAF6A] px-4 py-4 flex items-center justify-between">
           <div>
-            <p className="text-green-100 text-xs">보유 건강씨앗</p>
+            <p className="text-green-100 text-xs">보유 헬스포인트</p>
             <div className="flex items-center gap-1 mt-0.5">
               <Sprout size={18} className="text-green-200" />
               <span className="text-2xl font-extrabold text-white">{balance.toLocaleString()}</span>
-              <span className="text-green-200 text-sm">씨앗</span>
+              <span className="text-green-200 text-sm">P</span>
             </div>
           </div>
           <div className="bg-white/10 rounded-xl px-3 py-2 text-center">
@@ -165,7 +165,7 @@ export default function AvatarShopPage() {
                 <div className="flex items-center gap-1 mb-2">
                   <Sprout size={12} className="text-[#4CAF6A]" />
                   <span className="text-sm font-bold text-[#1F5A3A]">{item.price.toLocaleString()}</span>
-                  <span className="text-xs text-gray-400">씨앗</span>
+                  <span className="text-xs text-gray-400">P</span>
                 </div>
 
                 {item.isOwned ? (
@@ -191,7 +191,7 @@ export default function AvatarShopPage() {
                         : "bg-gray-100 text-gray-400 cursor-not-allowed"
                     }`}
                   >
-                    {affordable ? "구매하기" : "씨앗 부족"}
+                    {affordable ? "구매하기" : "포인트 부족"}
                   </button>
                 )}
               </div>

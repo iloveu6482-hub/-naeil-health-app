@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Camera, Check, ImagePlus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import HealthAvatar from "@/components/common/HealthAvatar";
+import CameraCapture from "@/components/avatar/CameraCapture";
 import { createIllustratedAvatar } from "@/lib/avatarImage";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { sampleUser } from "@/lib/sampleData";
@@ -24,6 +25,7 @@ export default function AvatarPage() {
   const [avatarImage, setAvatarImage] = useState<string>();
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState("");
+  const [showCamera, setShowCamera] = useState(false);
 
   useEffect(() => {
     const saved = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
@@ -32,9 +34,7 @@ export default function AvatarPage() {
     setAvatarImage(saved.avatarImage);
   }, []);
 
-  const handleImage = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const processImage = async (file: File) => {
     setProcessing(true);
     setMessage("");
     try {
@@ -44,8 +44,19 @@ export default function AvatarPage() {
       setMessage(error instanceof Error ? error.message : "사진을 변환하지 못했습니다.");
     } finally {
       setProcessing(false);
-      event.target.value = "";
     }
+  };
+
+  const handleImage = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await processImage(file);
+    event.target.value = "";
+  };
+
+  const handleCameraCapture = (file: File) => {
+    setShowCamera(false);
+    void processImage(file);
   };
 
   const handleStart = () => {
@@ -91,9 +102,10 @@ export default function AvatarPage() {
               </div>
               <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleImage} />
               <div className="mt-4 grid grid-cols-2 gap-2">
-                <button onClick={() => fileInputRef.current?.click()} disabled={processing} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#4CAF6A] px-3 font-bold text-white disabled:opacity-60">{avatarImage ? <RefreshCw size={18} /> : <ImagePlus size={18} />}{processing ? "변환 중..." : avatarImage ? "사진 다시 선택" : "내 사진 선택"}</button>
-                <button onClick={() => setAvatarImage(undefined)} disabled={!avatarImage} className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-gray-200 px-3 font-bold text-gray-600 disabled:opacity-40"><Trash2 size={18} />사진 지우기</button>
+                <button onClick={() => fileInputRef.current?.click()} disabled={processing} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#4CAF6A] px-3 font-bold text-white disabled:opacity-60">{avatarImage ? <RefreshCw size={18} /> : <ImagePlus size={18} />}{processing ? "변환 중..." : "사진 업로드"}</button>
+                <button onClick={() => setShowCamera(true)} disabled={processing} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#1F5A3A] px-3 font-bold text-white disabled:opacity-60"><Camera size={18} />바로 촬영</button>
               </div>
+              {avatarImage && <button onClick={() => setAvatarImage(undefined)} className="mt-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 font-bold text-gray-600"><Trash2 size={17} />현재 사진 지우기</button>}
               {message && <p className="mt-3 rounded-xl bg-green-50 p-3 text-center text-sm text-[#1F5A3A]">{message}</p>}
               <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-gray-400"><Camera size={15} className="mt-0.5 shrink-0" />사진은 외부 서버로 전송되지 않으며 현재 브라우저에서 그림형으로 변환됩니다.</p>
             </section>
@@ -101,6 +113,7 @@ export default function AvatarPage() {
         </main>
 
         <div className="px-4 pb-8"><button onClick={handleStart} disabled={processing} className="w-full rounded-2xl bg-[#4CAF6A] py-4 text-lg font-bold text-white shadow-lg active:scale-95 disabled:opacity-60">이 아바타 저장하고 시작하기 🌱</button></div>
+        {showCamera && <CameraCapture onCapture={handleCameraCapture} onClose={() => setShowCamera(false)} />}
       </div>
     </MobileShell>
   );

@@ -87,7 +87,7 @@ export default function WeeklyReportPage() {
           </p>
           <div className="mt-3 bg-white/10 rounded-xl px-4 py-2 flex items-center justify-center gap-2">
             <Sprout size={16} className="text-green-200" />
-            <span className="text-sm font-bold">이번 주 획득: {weeklyPoints} 건강씨앗</span>
+            <span className="text-sm font-bold">이번 주 획득: {weeklyPoints} 헬스포인트</span>
           </div>
         </div>
 

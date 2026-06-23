@@ -84,7 +84,7 @@ export default function ChallengesPage() {
         <div className="bg-gradient-to-br from-[#EAF7EF] to-white px-4 py-5 border-b border-gray-100">
           <h2 className="text-xl font-extrabold text-[#1F2937]">나의 챌린지</h2>
           <p className="text-sm text-gray-500 mt-1">
-            달성할수록 건강씨앗이 쌓여요 🌱
+            건강 행동을 달성할수록 헬스포인트가 쌓여요 🌱
           </p>
         </div>
 
@@ -108,7 +108,7 @@ export default function ChallengesPage() {
                   </div>
                   <div className="flex items-center gap-1 bg-[#EAF7EF] px-2 py-0.5 rounded-full">
                     <Sprout size={12} className="text-[#4CAF6A]" />
-                    <span className="text-xs font-bold text-[#1F5A3A]">{c.rewardPoints}씨앗</span>
+                    <span className="text-xs font-bold text-[#1F5A3A]">{c.rewardPoints}P</span>
                   </div>
                 </div>
 
@@ -155,7 +155,7 @@ export default function ChallengesPage() {
                       className="flex-1 py-2.5 bg-[#F7C948] text-[#1F5A3A] font-bold rounded-xl text-sm active:scale-95 transition-all flex items-center justify-center gap-1 shadow"
                     >
                       <Trophy size={16} />
-                      보상 받기! +{c.rewardPoints}씨앗
+                      보상 받기! +{c.rewardPoints}P
                     </button>
                   )}
                   {isComplete && c.isRewardClaimed && (

@@ -27,7 +27,7 @@ export default function RewardToast({ message, points, visible, onHide }: Reward
       </div>
       <div>
         <p className="text-sm font-bold text-[#1F2937]">{message}</p>
-        <p className="text-base font-extrabold text-[#4CAF6A]">+{points} 건강씨앗 획득!</p>
+        <p className="text-base font-extrabold text-[#4CAF6A]">+{points} 헬스포인트 획득!</p>
       </div>
     </div>
   );
