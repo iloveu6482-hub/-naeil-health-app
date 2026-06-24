@@ -43,12 +43,18 @@ export default function AvatarViewer({ style, gender, viewMode, mood = "idle", r
   };
   const intensity = mood === "reward" ? "active" : mood === "cheer" || mood === "happy" ? "normal" : "soft";
 
+  const isPortraitFallback = viewMode === "fullbody" && fallbackStep >= 2;
+  const imageFitClass = viewMode === "portrait"
+    ? "object-contain object-top"
+    : "object-contain object-bottom";
+
   return <div data-avatar-mood={mood} data-avatar-view={viewMode} className={`${fill ? "absolute inset-0" : `relative ${sizeClasses[size]}`} ${className}`}>
-    <div className="relative h-full w-full overflow-hidden rounded-[inherit]">
+    <div className="relative h-full w-full cursor-none overflow-hidden rounded-[inherit]">
       {showWindEffect && <AvatarWindEffect intensity={intensity} showLeaves={showLeaves} showLightTrails={showLightTrails} />}
-      <div className="avatar-sway absolute inset-0 z-10 transition-transform duration-500 hover:scale-[1.008] active:scale-[.995]">
-        <Image src={source} alt={alt} fill priority={priority} unoptimized={source.startsWith("data:")} onError={handleError} className={viewMode === "fullbody" ? "object-contain object-bottom" : "object-cover object-top"} />
+      <div className="avatar-sway pointer-events-none absolute inset-0 z-10 transition-transform duration-500">
+        <Image src={source} alt={alt} fill priority={priority} unoptimized={source.startsWith("data:")} onError={handleError} className={imageFitClass} />
       </div>
+      {isPortraitFallback && <div className="absolute bottom-16 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/70 bg-black/45 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm backdrop-blur-sm">전신 이미지 준비 중 · 상반신으로 표시</div>}
     </div>
     {showControls && <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 rounded-full border border-white/70 bg-white/85 p-1 shadow-md backdrop-blur"><button onClick={() => changeMode("portrait")} className={`rounded-full px-4 py-2 text-xs font-bold ${viewMode === "portrait" ? "bg-[#4CAF6A] text-white" : "text-gray-500"}`}>상반신 보기</button><button onClick={() => changeMode("fullbody")} className={`rounded-full px-4 py-2 text-xs font-bold ${viewMode === "fullbody" ? "bg-[#4CAF6A] text-white" : "text-gray-500"}`}>전신 보기</button></div>}
   </div>;
