@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Sprout, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getFromStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculatePointBalance } from "@/lib/rewards";
 import type { PointTransaction } from "@/types/reward";
 import type { UserProfile } from "@/types/user";
-import HealthAvatar from "@/components/common/HealthAvatar";
 import { sampleUser } from "@/lib/sampleData";
+import { getDefaultAvatarImage } from "@/lib/defaultAvatars";
 
 interface AppHeaderProps {
   title?: string;
@@ -43,6 +44,9 @@ export default function AppHeader({ title, showBack, backHref }: AppHeaderProps)
     };
   }, []);
 
+  const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
+  const headerAvatar = user.avatarImage || getDefaultAvatarImage(avatarGender, user.avatarStyle) || "/avatars/default-female-3d.png";
+
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -54,8 +58,8 @@ export default function AppHeader({ title, showBack, backHref }: AppHeaderProps)
           </Link>
         ) : null}
         <Link href="/dashboard" className="flex items-center gap-1">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#BDE8CA] bg-[#EAF7EF] shadow-sm ring-1 ring-white">
-            <HealthAvatar style={user.avatarStyle} size="xs" imageUrl={user.avatarImage} />
+          <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-[#BDE8CA] bg-[#EAF7EF] shadow-sm ring-1 ring-white">
+            <Image src={headerAvatar} alt="내 아바타" fill priority unoptimized={headerAvatar.startsWith("data:")} className="scale-[1.18] rounded-full object-cover object-[center_18%]" />
           </span>
           <span className="font-bold text-[#1F5A3A] text-base">
             {title || "내일의건강"}
