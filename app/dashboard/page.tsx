@@ -79,12 +79,12 @@ export default function DashboardPage() {
       <AppHeader />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
         <section className="relative min-h-[760px] overflow-hidden bg-[#1F5A3A] [@media(max-height:700px)]:min-h-[700px]">
-          <div className="absolute inset-x-0 bottom-0 top-[82px]"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill priority showControls showWindEffect showLeaves showLightTrails onViewModeChange={changeAvatarViewMode} alt={`${displayName}님의 마이 아바타`} /></div>
+          <div className="absolute inset-x-0 bottom-0 top-[42px]"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill priority showControls showWindEffect showLeaves showLightTrails onViewModeChange={changeAvatarViewMode} alt={`${displayName}님의 마이 아바타`} /></div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/28 via-transparent to-[#0B3A24]/45" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
-          <div className="relative z-20 mx-4 mt-3 rounded-2xl border border-white/55 bg-white/58 px-3.5 py-2.5 shadow-sm backdrop-blur-md">
-            <p className="text-sm font-medium leading-relaxed text-[#1F2937]">안녕하세요, <strong className="text-[#16743B]">{displayName}님!</strong> 오늘도 건강한 하루를 시작해볼까요?</p>
+          <div className="absolute left-3 right-3 top-2 z-30 rounded-2xl border border-white/65 bg-white/32 px-3 py-2 shadow-[0_10px_24px_rgba(12,62,38,0.14)] backdrop-blur-[9px]">
+            <p className="text-[13px] font-medium leading-relaxed text-[#173425]">안녕하세요, <strong className="text-[#16743B]">{displayName}님!</strong> 오늘도 건강한 하루를 시작해볼까요?</p>
           </div>
 
           <div className="absolute inset-0 z-20">
