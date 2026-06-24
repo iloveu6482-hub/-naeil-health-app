@@ -101,7 +101,7 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            <div className="absolute bottom-[62px] right-3 max-w-[158px] rounded-2xl rounded-bl-sm border border-white/65 bg-white/55 px-3 py-2.5 shadow-[0_12px_26px_rgba(31,90,58,0.16)] backdrop-blur-[10px]">
+            <div className="absolute left-3 top-[42px] max-w-[168px] rounded-2xl rounded-tl-sm border border-white/65 bg-white/45 px-3 py-2 shadow-[0_10px_24px_rgba(31,90,58,0.14)] backdrop-blur-[10px]">
               <p className="text-xs font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-1 text-sm font-extrabold leading-relaxed text-[#163D29]">내일의 나를 만듭니다!</p>
             </div>
 
