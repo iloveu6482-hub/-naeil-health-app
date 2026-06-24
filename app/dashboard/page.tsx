@@ -8,13 +8,14 @@ import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
 import CoachMessageCard from "@/components/dashboard/CoachMessageCard";
 import AvatarViewer from "@/components/avatar/AvatarViewer";
-import { getFromStorage, STORAGE_KEYS } from "@/lib/storage";
+import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculateHealthScore } from "@/lib/healthRules";
 import { getDefaultAvatarImage } from "@/lib/defaultAvatars";
 import { sampleUser, sampleCheckup, sampleDailyLog } from "@/lib/sampleData";
 import type { UserProfile } from "@/types/user";
 import type { HealthCheckup, DailyLog } from "@/types/health";
 import type { MealAnalysis } from "@/types/meal";
+import type { AvatarViewMode } from "@/types/avatar";
 
 const quickMenus = [
   { href: "/avatar", icon: Camera, label: "내 사진·아바타\n변경" },
@@ -29,6 +30,7 @@ export default function DashboardPage() {
   const [dailyLog, setDailyLog] = useState<DailyLog>(sampleDailyLog);
   const [score, setScore] = useState(0);
   const [meals, setMeals] = useState<MealAnalysis[]>([]);
+  const [avatarViewMode, setAvatarViewMode] = useState<AvatarViewMode>("portrait");
 
   useEffect(() => {
     const savedUser = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
@@ -40,7 +42,13 @@ export default function DashboardPage() {
     setDailyLog(latestLog);
     setScore(calculateHealthScore(savedCheckup, latestLog));
     setMeals(getFromStorage<MealAnalysis[]>(STORAGE_KEYS.MEAL_RECORDS, []));
+    setAvatarViewMode(getFromStorage<AvatarViewMode>(STORAGE_KEYS.AVATAR_VIEW_MODE, "portrait"));
   }, []);
+
+  const changeAvatarViewMode = (mode: AvatarViewMode) => {
+    setAvatarViewMode(mode);
+    saveToStorage(STORAGE_KEYS.AVATAR_VIEW_MODE, mode);
+  };
 
   const coachMessages = [
     "작은 습관이 쌓이면 건강한 내일을 만들 수 있어요. 오늘도 함께 실천해봐요! 🌱",
@@ -71,7 +79,7 @@ export default function DashboardPage() {
       <AppHeader />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
         <section className="relative min-h-[760px] overflow-hidden bg-[#1F5A3A] [@media(max-height:700px)]:min-h-[700px]">
-          <div className="absolute inset-x-0 bottom-0 top-[125px]"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode="portrait" mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill priority showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} /></div>
+          <div className="absolute inset-x-0 bottom-0 top-[125px]"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill priority showControls showWindEffect showLeaves showLightTrails onViewModeChange={changeAvatarViewMode} alt={`${displayName}님의 마이 아바타`} /></div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/28 via-transparent to-[#0B3A24]/45" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 

@@ -51,7 +51,7 @@ export default function AvatarViewer({ style, gender, viewMode, mood = "idle", r
   return <div data-avatar-mood={mood} data-avatar-view={viewMode} className={`${fill ? "absolute inset-0" : `relative ${sizeClasses[size]}`} ${className}`}>
     <div className="relative h-full w-full cursor-none overflow-hidden rounded-[inherit]">
       {showWindEffect && <AvatarWindEffect intensity={intensity} showLeaves={showLeaves} showLightTrails={showLightTrails} />}
-      <div className="avatar-sway pointer-events-none absolute inset-0 z-10 transition-transform duration-500">
+      <div className="pointer-events-none absolute inset-0 z-10">
         <Image src={source} alt={alt} fill priority={priority} unoptimized={source.startsWith("data:")} onError={handleError} className={imageFitClass} />
       </div>
       {isPortraitFallback && <div className="absolute bottom-16 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/70 bg-black/45 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm backdrop-blur-sm">전신 이미지 준비 중 · 상반신으로 표시</div>}
