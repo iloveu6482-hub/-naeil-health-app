@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
-import HealthAvatar from "@/components/common/HealthAvatar";
 import AvatarViewer from "@/components/avatar/AvatarViewer";
+import { getDefaultAvatarImage } from "@/lib/defaultAvatars";
 import { getFromStorage, saveToStorage, removeFromStorage, STORAGE_KEYS } from "@/lib/storage";
 import { sampleUser } from "@/lib/sampleData";
 import type { UserProfile } from "@/types/user";
@@ -48,6 +49,7 @@ export default function SettingsPage() {
   const displayName = user.name?.trim() || "사용자";
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
   const customImage = user.avatarEffect === "illustrated" && user.avatarImage?.startsWith("data:") ? user.avatarImage : undefined;
+  const profileAvatar = user.avatarImage || getDefaultAvatarImage(avatarGender, user.avatarStyle) || "/avatars/default-female-3d.png";
 
   return (
     <MobileShell>
@@ -56,7 +58,9 @@ export default function SettingsPage() {
         {/* Profile Card */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4">
           <div className="flex items-center gap-4 mb-4">
-            <HealthAvatar style={user.avatarStyle} size="md" imageUrl={user.avatarImage} />
+            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-2 border-white bg-[#EAF7EF] shadow-md ring-2 ring-[#BDE8CA]">
+              <Image src={profileAvatar} alt={`${displayName}님의 프로필 아바타`} fill unoptimized={profileAvatar.startsWith("data:")} className="scale-[1.16] rounded-full object-cover object-[center_18%]" />
+            </div>
             <div>
               <h2 className="text-xl font-extrabold text-[#1F2937]">{displayName}</h2>
               <p className="text-sm text-gray-500">{user.birthYear}년생</p>
