@@ -79,13 +79,12 @@ export default function DashboardPage() {
       <AppHeader />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
         <section className="relative min-h-[760px] overflow-hidden bg-[#1F5A3A] [@media(max-height:700px)]:min-h-[700px]">
-          <div className="absolute inset-x-0 bottom-0 top-[125px]"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill priority showControls showWindEffect showLeaves showLightTrails onViewModeChange={changeAvatarViewMode} alt={`${displayName}님의 마이 아바타`} /></div>
+          <div className="absolute inset-x-0 bottom-0 top-[82px]"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill priority showControls showWindEffect showLeaves showLightTrails onViewModeChange={changeAvatarViewMode} alt={`${displayName}님의 마이 아바타`} /></div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/28 via-transparent to-[#0B3A24]/45" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
-          <div className="relative z-20 mx-4 mt-4 max-w-[218px] rounded-[20px] border border-white/55 bg-white/55 px-4 py-3 shadow-sm backdrop-blur-md">
-            <p className="text-base text-[#1F2937]">안녕하세요, <strong className="text-[#16743B]">{displayName}님!</strong></p>
-            <p className="mt-1 text-sm font-medium leading-relaxed text-[#1F2937]">오늘도 건강한 하루를<br />시작해볼까요?</p>
+          <div className="relative z-20 mx-4 mt-3 rounded-2xl border border-white/55 bg-white/58 px-3.5 py-2.5 shadow-sm backdrop-blur-md">
+            <p className="text-sm font-medium leading-relaxed text-[#1F2937]">안녕하세요, <strong className="text-[#16743B]">{displayName}님!</strong> 오늘도 건강한 하루를 시작해볼까요?</p>
           </div>
 
           <div className="absolute inset-0 z-20">
@@ -102,7 +101,7 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            <div className="absolute right-3 top-[120px] max-w-[158px] rounded-2xl rounded-bl-sm border border-white/65 bg-white/55 px-3 py-2.5 shadow-[0_12px_26px_rgba(31,90,58,0.16)] backdrop-blur-[10px]">
+            <div className="absolute bottom-[62px] right-3 max-w-[158px] rounded-2xl rounded-bl-sm border border-white/65 bg-white/55 px-3 py-2.5 shadow-[0_12px_26px_rgba(31,90,58,0.16)] backdrop-blur-[10px]">
               <p className="text-xs font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-1 text-sm font-extrabold leading-relaxed text-[#163D29]">내일의 나를 만듭니다!</p>
             </div>
 
