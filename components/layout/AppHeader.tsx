@@ -54,7 +54,9 @@ export default function AppHeader({ title, showBack, backHref }: AppHeaderProps)
           </Link>
         ) : null}
         <Link href="/dashboard" className="flex items-center gap-1">
-          <HealthAvatar style={user.avatarStyle} size="xs" imageUrl={user.avatarImage} />
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#BDE8CA] bg-[#EAF7EF] shadow-sm ring-1 ring-white">
+            <HealthAvatar style={user.avatarStyle} size="xs" imageUrl={user.avatarImage} />
+          </span>
           <span className="font-bold text-[#1F5A3A] text-base">
             {title || "내일의건강"}
           </span>
