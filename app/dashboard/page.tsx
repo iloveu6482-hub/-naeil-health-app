@@ -83,8 +83,8 @@ export default function DashboardPage() {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/18 via-transparent to-transparent" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
-          <div className="absolute left-3 right-3 top-2 z-30 rounded-2xl border border-white/65 bg-white/32 px-3 py-2 shadow-[0_10px_24px_rgba(12,62,38,0.14)] backdrop-blur-[9px]">
-            <p className="text-[13px] font-medium leading-relaxed text-[#173425]">안녕하세요, <strong className="text-[#16743B]">{displayName}님!</strong> 오늘도 건강한 하루를 시작해볼까요?</p>
+          <div className="absolute left-2 right-2 top-1 z-30 rounded-xl border border-white/65 bg-white/32 px-3 py-1.5 shadow-[0_8px_20px_rgba(12,62,38,0.12)] backdrop-blur-[9px]">
+            <p className="text-xs font-medium leading-[18px] text-[#173425]">안녕하세요, <strong className="text-[#16743B]">{displayName}님!</strong> 오늘도 건강한 하루를 시작해볼까요?</p>
           </div>
 
           <div className="absolute inset-0 z-20">
