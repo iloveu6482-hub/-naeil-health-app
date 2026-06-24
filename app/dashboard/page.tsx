@@ -79,7 +79,7 @@ export default function DashboardPage() {
       <AppHeader />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
         <section className="relative min-h-[760px] overflow-hidden bg-[#1F5A3A] [@media(max-height:700px)]:min-h-[700px]">
-          <div className="absolute inset-x-0 bottom-0 top-[42px]"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill priority showControls showWindEffect showLeaves showLightTrails onViewModeChange={changeAvatarViewMode} alt={`${displayName}님의 마이 아바타`} /></div>
+          <div className="absolute inset-0"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill cover priority showControls showWindEffect showLeaves showLightTrails onViewModeChange={changeAvatarViewMode} alt={`${displayName}님의 마이 아바타`} /></div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/28 via-transparent to-[#0B3A24]/45" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 

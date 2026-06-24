@@ -20,6 +20,7 @@ type AvatarViewerProps = {
   showLightTrails?: boolean;
   size?: "sm" | "md" | "lg" | "xl";
   fill?: boolean;
+  cover?: boolean;
   priority?: boolean;
   className?: string;
   alt?: string;
@@ -28,7 +29,7 @@ type AvatarViewerProps = {
 
 const sizeClasses = { sm: "h-16 w-16", md: "h-32 w-28", lg: "h-72 w-full", xl: "h-[430px] w-full" };
 
-export default function AvatarViewer({ style, gender, viewMode, mood = "idle", rotationView, customImageUrl, showControls = false, showWindEffect = true, showLeaves = true, showLightTrails = true, size = "lg", fill = false, priority = false, className = "", alt = "마이 아바타", onViewModeChange }: AvatarViewerProps) {
+export default function AvatarViewer({ style, gender, viewMode, mood = "idle", rotationView, customImageUrl, showControls = false, showWindEffect = true, showLeaves = true, showLightTrails = true, size = "lg", fill = false, cover = false, priority = false, className = "", alt = "마이 아바타", onViewModeChange }: AvatarViewerProps) {
   const requested = customImageUrl || (rotationView ? getAvatarRotationImagePath({ style, gender, rotationView }) : getAvatarImagePath({ style, gender, viewMode, mood }));
   const fullbodyFallback = getAvatarImagePath({ style, gender, viewMode: "fullbody", mood });
   const portraitFallback = customImageUrl || getFallbackAvatarImagePath({ style, gender });
@@ -44,7 +45,9 @@ export default function AvatarViewer({ style, gender, viewMode, mood = "idle", r
   const intensity = mood === "reward" ? "active" : mood === "cheer" || mood === "happy" ? "normal" : "soft";
 
   const isPortraitFallback = viewMode === "fullbody" && fallbackStep >= 2;
-  const imageFitClass = viewMode === "portrait"
+  const imageFitClass = cover
+    ? "object-cover object-center"
+    : viewMode === "portrait"
     ? "object-contain object-top"
     : "object-contain object-bottom";
 
