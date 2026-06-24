@@ -226,6 +226,24 @@ export const sampleAvatarItems: AvatarItem[] = [
     isOwned: false,
     isEquipped: false,
   },
+  {
+    id: "item-009",
+    name: "편안한 캐주얼룩",
+    category: "outfit",
+    price: 450,
+    description: "일상에서 편안하게 입을 수 있는 깔끔한 캐주얼 의상입니다.",
+    isOwned: false,
+    isEquipped: false,
+  },
+  {
+    id: "item-010",
+    name: "건강 코치 정장",
+    category: "outfit",
+    price: 650,
+    description: "신뢰감 있는 건강 코치 분위기를 표현하는 단정한 정장입니다.",
+    isOwned: false,
+    isEquipped: false,
+  },
 ];
 
 export const sampleRewardBadges: RewardBadge[] = [

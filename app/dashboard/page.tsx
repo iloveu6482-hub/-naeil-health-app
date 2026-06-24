@@ -79,7 +79,7 @@ export default function DashboardPage() {
       <AppHeader />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
         <section className="relative min-h-[760px] overflow-hidden bg-[#1F5A3A] [@media(max-height:700px)]:min-h-[700px]">
-          <div className="absolute inset-0"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill cover priority showControls showWindEffect showLeaves showLightTrails onViewModeChange={changeAvatarViewMode} alt={`${displayName}님의 마이 아바타`} /></div>
+          <div className="absolute inset-0"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill cover priority showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} /></div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/18 via-transparent to-transparent" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
@@ -111,8 +111,12 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="relative z-30 -mt-5 px-4">
-          <div className="grid grid-cols-4 gap-2 rounded-3xl border border-gray-100 bg-white p-3 shadow-[0_14px_35px_rgba(31,41,55,0.12)]">
+        <section className="relative z-30 px-4 pt-3">
+          <div className="mx-auto flex w-fit rounded-full border border-gray-100 bg-white p-1 shadow-sm">
+            <button onClick={() => changeAvatarViewMode("portrait")} className={`rounded-full px-5 py-2 text-xs font-bold ${avatarViewMode === "portrait" ? "bg-[#4CAF6A] text-white" : "text-gray-500"}`}>상반신 보기</button>
+            <button onClick={() => changeAvatarViewMode("fullbody")} className={`rounded-full px-5 py-2 text-xs font-bold ${avatarViewMode === "fullbody" ? "bg-[#4CAF6A] text-white" : "text-gray-500"}`}>전신 보기</button>
+          </div>
+          <div className="mt-3 grid grid-cols-4 gap-2 rounded-3xl border border-gray-100 bg-white p-3 shadow-[0_14px_35px_rgba(31,41,55,0.12)]">
             {quickMenus.map(({ href, icon: Icon, label }) => (
               <Link key={href} href={href} className="flex min-h-[112px] flex-col items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-[#F2FAF4] to-[#E8F5EC] px-1 text-center active:scale-95">
                 <Icon size={28} className="text-[#24944E]" /><span className="whitespace-pre-line text-xs font-bold leading-relaxed text-[#1F2937]">{label}</span>
