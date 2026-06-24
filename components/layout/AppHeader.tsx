@@ -48,7 +48,7 @@ export default function AppHeader({ title, showBack, backHref }: AppHeaderProps)
   const headerAvatar = user.avatarImage || getDefaultAvatarImage(avatarGender, user.avatarStyle) || "/avatars/default-female-3d.png";
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+    <header className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-3">
       <div className="flex items-center gap-2">
         {showBack && backHref ? (
           <Link href={backHref} className="mr-1 text-gray-500 hover:text-gray-800">
