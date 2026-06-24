@@ -209,16 +209,6 @@ export const sampleAvatarItems: AvatarItem[] = [
     isEquipped: false,
   },
   {
-    id: "outfit-workout",
-    name: "기본 운동복",
-    category: "outfit",
-    outfitKey: "workout",
-    price: 0,
-    description: "건강한 일상을 시작하는 내일의건강 기본 운동복입니다.",
-    isOwned: true,
-    isEquipped: true,
-  },
-  {
     id: "outfit-casual1",
     name: "캐주얼 1",
     category: "outfit",

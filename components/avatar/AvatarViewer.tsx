@@ -31,16 +31,19 @@ type AvatarViewerProps = {
 const sizeClasses = { sm: "h-16 w-16", md: "h-32 w-28", lg: "h-72 w-full", xl: "h-[430px] w-full" };
 
 export default function AvatarViewer({ style, gender, viewMode, mood = "idle", rotationView, outfit, customImageUrl, showControls = false, showWindEffect = true, showLeaves = true, showLightTrails = true, size = "lg", fill = false, cover = false, priority = false, className = "", alt = "마이 아바타", onViewModeChange }: AvatarViewerProps) {
-  const [storedOutfit, setStoredOutfit] = useState<AvatarOutfit>(outfit || "workout");
+  const [storedOutfit, setStoredOutfit] = useState<AvatarOutfit | null>(outfit || null);
   useEffect(() => {
     if (outfit) { setStoredOutfit(outfit); return; }
-    const updateOutfit = () => setStoredOutfit(getFromStorage<AvatarOutfit>(STORAGE_KEYS.AVATAR_OUTFIT, "workout"));
+    const updateOutfit = () => {
+      const savedOutfit = getFromStorage<AvatarOutfit | null>(STORAGE_KEYS.AVATAR_OUTFIT, null);
+      setStoredOutfit(savedOutfit === "workout" ? null : savedOutfit);
+    };
     updateOutfit();
     window.addEventListener("avatarOutfitUpdated", updateOutfit);
     return () => window.removeEventListener("avatarOutfitUpdated", updateOutfit);
   }, [outfit]);
   const activeOutfit = outfit || storedOutfit;
-  const outfitImage = getAvatarOutfitImagePath({ style, gender, viewMode, outfit: activeOutfit });
+  const outfitImage = activeOutfit ? getAvatarOutfitImagePath({ style, gender, viewMode, outfit: activeOutfit }) : undefined;
   const requested = customImageUrl || outfitImage || (rotationView ? getAvatarRotationImagePath({ style, gender, rotationView }) : getAvatarImagePath({ style, gender, viewMode, mood }));
   const fullbodyFallback = getAvatarImagePath({ style, gender, viewMode: "fullbody", mood });
   const portraitFallback = customImageUrl || getFallbackAvatarImagePath({ style, gender });
