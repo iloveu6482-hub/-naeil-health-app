@@ -17,6 +17,7 @@ import type { Challenge } from "@/types/challenge";
 import { calculatePointBalance } from "@/lib/rewards";
 import { User, RefreshCw, AlertTriangle, Bell, Shirt } from "lucide-react";
 import { signOutLocal } from "@/lib/auth";
+import type { AvatarGrowthMode } from "@/types/v3";
 
 const avatarStyleLabels = {
   "3d": "밝은 3D 캐릭터형",
@@ -32,6 +33,7 @@ export default function SettingsPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [balance, setBalance] = useState(0);
   const [completedChallenges, setCompletedChallenges] = useState(0);
+  const [growthMode, setGrowthMode] = useState<AvatarGrowthMode>("routineGrowth");
 
   useEffect(() => {
     const saved = getFromStorage<UserProfile | null>(STORAGE_KEYS.USER_PROFILE, null);
@@ -40,6 +42,7 @@ export default function SettingsPage() {
     setEquippedItems(items.filter((i) => i.isEquipped));
     setBalance(calculatePointBalance(getFromStorage<PointTransaction[]>(STORAGE_KEYS.POINT_TRANSACTIONS, [])));
     setCompletedChallenges(getFromStorage<Challenge[]>(STORAGE_KEYS.CHALLENGES, []).filter((challenge) => challenge.status === "completed").length);
+    setGrowthMode(getFromStorage<AvatarGrowthMode>(STORAGE_KEYS.AVATAR_GROWTH_MODE, "routineGrowth"));
   }, []);
 
   const handleReset = () => {
@@ -102,6 +105,16 @@ export default function SettingsPage() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Actions */}
+        <div className="mb-4 rounded-2xl border border-green-100 bg-white p-4 shadow-sm">
+          <h3 className="font-bold text-[#1F2937]">아바타 성장 방식</h3><p className="mt-1 text-xs leading-relaxed text-gray-500">체형을 바꾸지 않고 배경·표정·배지·건강 효과로 성장을 표현해요.</p>
+          <div className="mt-3 space-y-2">{[
+            { value: "basic", label: "기본형", desc: "아바타 스타일만 유지해요." },
+            { value: "routineGrowth", label: "건강 루틴 성장형", desc: "기록과 챌린지에 따라 효과가 성장해요." },
+            { value: "goalVisualization", label: "목표 시각화형", desc: "목표를 향한 변화를 강조해요." },
+          ].map((option) => <button key={option.value} onClick={() => { const value = option.value as AvatarGrowthMode; setGrowthMode(value); saveToStorage(STORAGE_KEYS.AVATAR_GROWTH_MODE, value); }} className={`w-full rounded-xl border p-3 text-left ${growthMode === option.value ? "border-[#4CAF6A] bg-[#EAF7EF]" : "border-gray-100"}`}><p className="text-sm font-extrabold text-[#1F2937]">{option.label}</p><p className="mt-0.5 text-xs text-gray-500">{option.desc}</p></button>)}</div>
         </div>
 
         {/* Actions */}

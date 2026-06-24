@@ -159,6 +159,12 @@ export default function WeeklyReportPage() {
           </div>
 
           {/* Coach Message */}
+          <div className="rounded-2xl border border-green-100 bg-white p-4 shadow-sm">
+            <p className="text-xs font-bold text-[#4CAF6A]">검진 기반 관리 항목</p><h3 className="mt-1 font-extrabold text-[#1F2937]">혈압 · 혈당 · LDL 콜레스테롤을 함께 살펴보세요</h3><p className="mt-2 text-sm leading-relaxed text-gray-500">이번 주에는 식후 10분 걷기와 물 충분히 마시기를 꾸준히 실천해보세요.</p>
+            <div className="mt-3 grid grid-cols-2 gap-2"><Link href="/checkup/insights" className="rounded-xl bg-[#EAF7EF] px-3 py-3 text-center text-xs font-bold text-[#1F5A3A]">검진 관리 항목</Link><Link href="/health-change" className="rounded-xl border border-green-200 px-3 py-3 text-center text-xs font-bold text-[#1F5A3A]">Before / After</Link></div>
+          </div>
+
+          {/* Coach Message */}
           <div className="bg-[#EAF7EF] rounded-2xl p-4 flex items-start gap-3">
             <span className="text-2xl">🌱</span>
             <div>

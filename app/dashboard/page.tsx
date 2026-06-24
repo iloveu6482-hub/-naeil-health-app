@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bell, Camera, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Moon, Shirt, Target, Utensils } from "lucide-react";
+import { Bell, Camera, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Moon, Shirt, Target, Utensils, Users, TrendingUp } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
@@ -123,6 +123,16 @@ export default function DashboardPage() {
               </Link>
             ))}
           </div>
+        </section>
+
+        <section className="px-4 pt-5">
+          <div className="rounded-3xl border border-green-100 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between"><div><p className="text-xs font-bold text-[#4CAF6A]">최근 건강검진 요약</p><h3 className="mt-1 text-lg font-black text-[#1F2937]">관리 방향을 생활습관으로 연결해요</h3></div><HeartPulse className="text-[#4CAF6A]" /></div>
+            <div className="mt-3 flex flex-wrap gap-2"><span className="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">혈압 좋음</span><span className="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">혈당 좋음</span><span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700">LDL 관리 참고</span></div>
+            <p className="mt-3 text-sm leading-relaxed text-gray-600">건강이가 추천하는 오늘의 루틴: 식후 10분 걷기 · 물 충분히 마시기 · 가공식품 줄이기</p>
+            <div className="mt-4 grid grid-cols-2 gap-2"><Link href="/checkup/insights" className="flex items-center justify-between rounded-xl bg-[#EAF7EF] px-3 py-3 text-sm font-bold text-[#1F5A3A]">관리 항목 보기<ChevronRight size={17}/></Link><Link href="/checkup" className="flex items-center justify-between rounded-xl border border-green-200 px-3 py-3 text-sm font-bold text-[#1F5A3A]">검진 입력<ChevronRight size={17}/></Link></div>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-3"><Link href="/health-change" className="rounded-2xl bg-white p-4 shadow-sm"><TrendingUp className="text-[#4CAF6A]"/><p className="mt-2 font-extrabold">나의 건강 변화</p><p className="mt-1 text-xs text-gray-500">시작과 현재 비교</p></Link><Link href="/family" className="rounded-2xl bg-white p-4 shadow-sm"><Users className="text-[#4CAF6A]"/><p className="mt-2 font-extrabold">가족 건강 루틴</p><p className="mt-1 text-xs text-gray-500">함께 기록하고 응원하기</p></Link></div>
         </section>
 
         <section className="px-4 pt-6">

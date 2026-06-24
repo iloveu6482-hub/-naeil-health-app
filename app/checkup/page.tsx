@@ -11,6 +11,7 @@ import { createEarnTransaction, hasEarnedTodayForReason, addPointTransaction } f
 import { sampleCheckup } from "@/lib/sampleData";
 import type { HealthCheckup } from "@/types/health";
 import { Camera, Pencil } from "lucide-react";
+import { createCheckupInsights } from "@/lib/healthInsights";
 
 type FormData = Omit<HealthCheckup, "id">;
 
@@ -26,6 +27,9 @@ export default function CheckupPage() {
   const handleSave = () => {
     const checkup: HealthCheckup = { ...form, id: `checkup-${Date.now()}` };
     saveToStorage(STORAGE_KEYS.HEALTH_CHECKUP, checkup);
+    const records = getFromStorage<HealthCheckup[]>(STORAGE_KEYS.HEALTH_CHECKUP_RECORDS, []);
+    saveToStorage(STORAGE_KEYS.HEALTH_CHECKUP_RECORDS, [...records.filter((record) => record.id !== checkup.id), checkup]);
+    saveToStorage(STORAGE_KEYS.CHECKUP_INSIGHTS, createCheckupInsights(checkup));
 
     const txs = getFromStorage(STORAGE_KEYS.POINT_TRANSACTIONS, []);
     if (!hasEarnedTodayForReason(txs, "건강검진 결과 입력")) {
@@ -54,6 +58,9 @@ export default function CheckupPage() {
     { key: "ast", label: "AST", unit: "U/L" },
     { key: "alt", label: "ALT", unit: "U/L" },
     { key: "gammaGtp", label: "감마GTP", unit: "U/L" },
+    { key: "creatinine", label: "크레아티닌", unit: "mg/dL" },
+    { key: "uricAcid", label: "요산", unit: "mg/dL" },
+    { key: "hemoglobin", label: "혈색소", unit: "g/dL" },
   ];
 
   return (

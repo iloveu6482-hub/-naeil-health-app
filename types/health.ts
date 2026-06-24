@@ -15,6 +15,9 @@ export type HealthCheckup = {
   ast: number;
   alt: number;
   gammaGtp: number;
+  creatinine?: number;
+  uricAcid?: number;
+  hemoglobin?: number;
   smokingStatus: "none" | "past" | "current";
   drinkingFrequency: "none" | "low" | "medium" | "high";
   exerciseFrequency: "low" | "medium" | "high";
