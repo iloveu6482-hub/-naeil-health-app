@@ -70,8 +70,8 @@ export default function DashboardPage() {
     <MobileShell>
       <AppHeader />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
-        <section className="relative min-h-[650px] overflow-hidden bg-[#1F5A3A]">
-          <AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode="portrait" mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill priority showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} />
+        <section className="relative min-h-[760px] overflow-hidden bg-[#1F5A3A] [@media(max-height:700px)]:min-h-[700px]">
+          <div className="absolute inset-x-0 bottom-0 top-[125px]"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode="portrait" mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill priority showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} /></div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/28 via-transparent to-[#0B3A24]/45" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
@@ -81,24 +81,24 @@ export default function DashboardPage() {
           </div>
 
           <div className="absolute inset-0 z-20">
-            <div className="absolute left-3 top-[285px] space-y-2.5 [@media(max-height:700px)]:top-[255px]">
+            <div className="absolute left-2 top-[430px] space-y-2.5 [@media(max-height:700px)]:top-[390px]">
               {[
                 { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]" },
                 { icon: Flame, label: "소모 칼로리", value: `${calories} kcal`, color: "text-[#F59E0B]" },
                 { icon: Moon, label: "수면", value: `${dailyLog.sleepHours}시간`, color: "text-[#4E66B1]" },
                 { icon: Droplets, label: "수분", value: `${dailyLog.waterCups}잔`, color: "text-[#27A9D6]" },
               ].map(({ icon: Icon, label, value, color }, index) => (
-                <div key={label} className={`w-[124px] rounded-[20px] border border-white/60 bg-white/24 px-3 py-2.5 shadow-[0_12px_30px_rgba(10,66,40,0.20)] backdrop-blur-[9px] ${index % 2 === 0 ? "-rotate-1" : "rotate-1"}`}>
+                <div key={label} className={`w-[116px] rounded-[20px] border border-white/60 bg-white/32 px-2.5 py-2 shadow-[0_12px_30px_rgba(10,66,40,0.18)] backdrop-blur-[9px] ${index % 2 === 0 ? "-rotate-1" : "rotate-1"}`}>
                   <div className="flex items-center gap-2"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/65"><Icon size={18} className={color} /></span><div><p className="text-[10px] font-semibold text-[#1F2937]/70">{label}</p><p className="text-sm font-black text-[#102D20]">{value}</p></div></div>
                 </div>
               ))}
             </div>
 
-            <div className="absolute right-3 top-[118px] max-w-[158px] rounded-2xl rounded-bl-sm border border-white/65 bg-white/45 px-3 py-2.5 shadow-[0_12px_26px_rgba(31,90,58,0.16)] backdrop-blur-[10px]">
+            <div className="absolute right-3 top-[120px] max-w-[158px] rounded-2xl rounded-bl-sm border border-white/65 bg-white/55 px-3 py-2.5 shadow-[0_12px_26px_rgba(31,90,58,0.16)] backdrop-blur-[10px]">
               <p className="text-xs font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-1 text-sm font-extrabold leading-relaxed text-[#163D29]">내일의 나를 만듭니다!</p>
             </div>
 
-            <div className="absolute bottom-[145px] right-4 flex h-28 w-28 flex-col items-center justify-center rounded-full border-[5px] border-white/70 bg-white/45 text-center shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-2 ring-[#4CAF6A]/55 backdrop-blur-[10px] [@media(max-height:700px)]:bottom-[120px]">
+            <div className="absolute bottom-[145px] right-4 flex h-28 w-28 flex-col items-center justify-center rounded-full border-[5px] border-white/70 bg-white/55 text-center shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-2 ring-[#4CAF6A]/55 backdrop-blur-[10px] [@media(max-height:700px)]:bottom-[120px]">
               <p className="text-[10px] font-semibold text-gray-500">오늘의 건강관리</p><p className="text-[10px] text-gray-500">참고 점수</p><p className="mt-1 text-4xl font-black text-[#24944E]">{score}</p><p className="text-xs text-[#4CAF6A]">/ 100</p>
             </div>
           </div>
