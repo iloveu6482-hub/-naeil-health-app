@@ -48,7 +48,7 @@ export default function AppHeader({ title, showBack, backHref }: AppHeaderProps)
   const headerAvatar = user.avatarImage || getDefaultAvatarImage(avatarGender, user.avatarStyle) || "/avatars/default-female-3d.png";
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-3">
+    <header className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-2">
       <div className="flex items-center gap-2">
         {showBack && backHref ? (
           <Link href={backHref} className="mr-1 text-gray-500 hover:text-gray-800">
@@ -58,7 +58,7 @@ export default function AppHeader({ title, showBack, backHref }: AppHeaderProps)
           </Link>
         ) : null}
         <Link href="/dashboard" className="flex items-center gap-1">
-          <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-[#BDE8CA] bg-[#EAF7EF] shadow-sm ring-1 ring-white">
+          <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full border-2 border-[#BDE8CA] bg-[#EAF7EF] shadow-sm ring-1 ring-white">
             <Image src={headerAvatar} alt="내 아바타" fill priority unoptimized={headerAvatar.startsWith("data:")} className="scale-[1.18] rounded-full object-cover object-[center_18%]" />
           </span>
           <span className="font-bold text-[#1F5A3A] text-base">
