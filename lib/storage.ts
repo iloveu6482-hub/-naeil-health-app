@@ -42,6 +42,7 @@ export const STORAGE_KEYS = {
   NOTIFICATION_SETTINGS: "notificationSettings",
   AVATAR_GENDER: "selectedAvatarGender",
   AVATAR_VIEW_MODE: "avatarViewMode",
+  AVATAR_OUTFIT: "avatarOutfit",
   OWNED_AVATAR_ITEMS: "ownedAvatarItems",
   EQUIPPED_AVATAR_ITEMS: "equippedAvatarItems",
   AVATAR_ITEMS: "naeil_avatar_items",

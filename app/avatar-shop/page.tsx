@@ -30,7 +30,7 @@ export default function AvatarShopPage() {
     const profile = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
     setUser(profile);
     setViewMode(getFromStorage<AvatarViewMode>(STORAGE_KEYS.AVATAR_VIEW_MODE, "fullbody"));
-    const saved = getFromStorage<AvatarItem[]>(STORAGE_KEYS.AVATAR_ITEMS, []);
+    const saved = getFromStorage<AvatarItem[]>(STORAGE_KEYS.AVATAR_ITEMS, []).filter((item) => !["item-004", "item-008"].includes(item.id));
     const merged = [...sampleAvatarItems.map((sample) => saved.find((item) => item.id === sample.id) || sample), ...saved.filter((item) => !sampleAvatarItems.some((sample) => sample.id === item.id))];
     setItems(merged);
     const txs = getFromStorage<PointTransaction[]>(STORAGE_KEYS.POINT_TRANSACTIONS, samplePointTransactions);
@@ -48,7 +48,14 @@ export default function AvatarShopPage() {
     persistItems(purchaseAvatarItem(items, item.id)); setBalance((value) => value - item.price);
     window.dispatchEvent(new Event("pointsUpdated")); setMessage("아이템을 구매했어요. 마이 아바타에 장착해보세요.");
   };
-  const handleEquip = (item: AvatarItem) => { persistItems(equipAvatarItem(items, item.id)); setMessage(`${item.name}을(를) 장착했어요.`); };
+  const handleEquip = (item: AvatarItem) => {
+    persistItems(equipAvatarItem(items, item.id));
+    if (item.outfitKey) {
+      saveToStorage(STORAGE_KEYS.AVATAR_OUTFIT, item.outfitKey);
+      window.dispatchEvent(new Event("avatarOutfitUpdated"));
+    }
+    setMessage(`${item.name}을(를) 장착했어요.`);
+  };
   const rotate = (direction: -1 | 1) => { const current = rotationViews.indexOf(rotationView); setRotationView(rotationViews[(current + direction + rotationViews.length) % rotationViews.length]); };
   const changeViewMode = (mode: AvatarViewMode) => { setViewMode(mode); saveToStorage(STORAGE_KEYS.AVATAR_VIEW_MODE, mode); };
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");

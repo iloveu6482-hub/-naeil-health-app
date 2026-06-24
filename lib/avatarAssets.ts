@@ -1,4 +1,4 @@
-import type { AvatarGender, AvatarMood, AvatarRotationView, AvatarStyle, AvatarViewMode } from "@/types/avatar";
+import type { AvatarGender, AvatarMood, AvatarOutfit, AvatarRotationView, AvatarStyle, AvatarViewMode } from "@/types/avatar";
 
 export function getAvatarImagePath({ style, gender, viewMode }: { style: AvatarStyle; gender: AvatarGender; viewMode: AvatarViewMode; mood?: AvatarMood }) {
   return `/avatars/${viewMode}/avatar-${style}-${gender}.png`;
@@ -10,4 +10,8 @@ export function getFallbackAvatarImagePath({ style, gender }: { style: AvatarSty
 
 export function getAvatarRotationImagePath({ style, gender, rotationView }: { style: AvatarStyle; gender: AvatarGender; rotationView: AvatarRotationView }) {
   return `/avatars/rotation/${style}-${gender}/${rotationView}.png`;
+}
+
+export function getAvatarOutfitImagePath({ style, gender, viewMode, outfit }: { style: AvatarStyle; gender: AvatarGender; viewMode: AvatarViewMode; outfit: AvatarOutfit }) {
+  return `/avatars/outfits/${viewMode}/avatar-${style}-${gender}-${outfit}.webp`;
 }

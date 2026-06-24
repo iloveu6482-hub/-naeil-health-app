@@ -16,6 +16,7 @@ export type AvatarItem = {
   price: number;
   description: string;
   imageUrl?: string;
+  outfitKey?: import("@/types/avatar").AvatarOutfit;
   isOwned: boolean;
   isEquipped: boolean;
 };
