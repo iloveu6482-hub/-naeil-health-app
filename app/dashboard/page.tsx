@@ -95,14 +95,14 @@ export default function DashboardPage() {
                 { icon: Moon, label: "수면", value: `${dailyLog.sleepHours}시간`, color: "text-[#4E66B1]" },
                 { icon: Droplets, label: "수분", value: `${dailyLog.waterCups}잔`, color: "text-[#27A9D6]" },
               ].map(({ icon: Icon, label, value, color }, index) => (
-                <div key={label} className={`w-[116px] rounded-[20px] border border-white/60 bg-white/32 px-2.5 py-2 shadow-[0_12px_30px_rgba(10,66,40,0.18)] backdrop-blur-[9px] ${index % 2 === 0 ? "-rotate-1" : "rotate-1"}`}>
-                  <div className="flex items-center gap-2"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/65"><Icon size={18} className={color} /></span><div><p className="text-[10px] font-semibold text-[#1F2937]/70">{label}</p><p className="text-sm font-black text-[#102D20]">{value}</p></div></div>
+                <div key={label} className={`h-[62px] w-[116px] rounded-[20px] border border-white/60 bg-white/32 px-2.5 shadow-[0_12px_30px_rgba(10,66,40,0.18)] backdrop-blur-[9px] ${index % 2 === 0 ? "-rotate-1" : "rotate-1"}`}>
+                  <div className="flex h-full items-center gap-2"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/65"><Icon size={18} className={color} /></span><div><p className="whitespace-nowrap text-[10px] font-semibold text-[#1F2937]/70">{label}</p><p className="whitespace-nowrap text-sm font-black text-[#102D20]">{value}</p></div></div>
                 </div>
               ))}
             </div>
 
-            <div className="absolute left-3 top-[42px] max-w-[168px] rounded-2xl rounded-tl-sm border border-white/65 bg-white/45 px-3 py-2 shadow-[0_10px_24px_rgba(31,90,58,0.14)] backdrop-blur-[10px]">
-              <p className="text-xs font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-1 text-sm font-extrabold leading-relaxed text-[#163D29]">내일의 나를 만듭니다!</p>
+            <div className="absolute left-2 top-[355px] max-w-[150px] rounded-xl rounded-bl-sm border border-white/65 bg-white/45 px-2.5 py-1.5 shadow-[0_8px_20px_rgba(31,90,58,0.13)] backdrop-blur-[9px] [@media(max-height:700px)]:top-[315px]">
+              <p className="text-[10px] font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-0.5 whitespace-nowrap text-[11px] font-extrabold text-[#163D29]">내일의 나를 만듭니다!</p>
             </div>
 
             <div className="absolute bottom-[145px] right-4 flex h-28 w-28 flex-col items-center justify-center rounded-full border-[5px] border-white/70 bg-white/55 text-center shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-2 ring-[#4CAF6A]/55 backdrop-blur-[10px] [@media(max-height:700px)]:bottom-[120px]">
