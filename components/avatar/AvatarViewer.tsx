@@ -43,8 +43,9 @@ export default function AvatarViewer({ style, gender, viewMode, mood = "idle", r
     return () => window.removeEventListener("avatarOutfitUpdated", updateOutfit);
   }, [outfit]);
   const activeOutfit = outfit || storedOutfit;
-  const outfitImage = activeOutfit ? getAvatarOutfitImagePath({ style, gender, viewMode, outfit: activeOutfit }) : undefined;
-  const requested = customImageUrl || outfitImage || (rotationView ? getAvatarRotationImagePath({ style, gender, rotationView }) : getAvatarImagePath({ style, gender, viewMode, mood }));
+  const assetViewMode = viewMode === "portrait" ? "fullbody" : viewMode;
+  const outfitImage = activeOutfit ? getAvatarOutfitImagePath({ style, gender, viewMode: assetViewMode, outfit: activeOutfit }) : undefined;
+  const requested = customImageUrl || outfitImage || (rotationView && viewMode === "fullbody" ? getAvatarRotationImagePath({ style, gender, rotationView }) : getAvatarImagePath({ style, gender, viewMode: assetViewMode, mood }));
   const fullbodyFallback = getAvatarImagePath({ style, gender, viewMode: "fullbody", mood });
   const portraitFallback = customImageUrl || getFallbackAvatarImagePath({ style, gender });
   const [source, setSource] = useState(requested);
@@ -62,7 +63,7 @@ export default function AvatarViewer({ style, gender, viewMode, mood = "idle", r
   const imageFitClass = cover
     ? "object-cover object-center"
     : viewMode === "portrait"
-    ? "object-contain object-top"
+    ? "object-contain object-[center_14%] scale-[1.9] translate-y-[25%]"
     : "object-contain object-bottom";
 
   return <div data-avatar-mood={mood} data-avatar-view={viewMode} className={`${fill ? "absolute inset-0" : `relative ${sizeClasses[size]}`} ${className}`}>
