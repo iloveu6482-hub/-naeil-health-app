@@ -77,8 +77,9 @@ export default function DashboardPage() {
     <MobileShell>
       <AppHeader />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
-        <section className="relative min-h-[760px] overflow-hidden bg-[#1F5A3A] [@media(max-height:700px)]:min-h-[700px]">
-          <div className="absolute inset-0"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill cover priority showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} /></div>
+        <section className="relative min-h-[760px] overflow-hidden bg-[#DFF4D8] [@media(max-height:700px)]:min-h-[700px]">
+          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/backgrounds/default-forest.png')" }} />
+          <div className="absolute bottom-4 right-[-34px] top-8 w-[86%] max-w-[390px] [@media(max-height:700px)]:right-[-24px] [@media(max-height:700px)]:top-4"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill priority showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} /></div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/18 via-transparent to-transparent" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
