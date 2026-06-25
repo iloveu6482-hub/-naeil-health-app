@@ -10,7 +10,6 @@ import {
   ClipboardCheck,
   Coins,
   Footprints,
-  HeartPulse,
   Leaf,
   LockKeyhole,
   Shield,
@@ -36,22 +35,14 @@ export default function HomePage() {
   return (
     <MobileShell>
       <div className="min-h-screen overflow-hidden bg-[linear-gradient(180deg,#EAF8EF_0%,#F8FCF9_46%,#FFFFFF_100%)]">
-        <section className="relative overflow-hidden rounded-b-[38px] bg-[radial-gradient(circle_at_50%_18%,#21864D_0%,#075D38_46%,#064A30_100%)] px-5 pb-16 pt-5 text-center text-white">
-          <div className="pointer-events-none absolute -left-14 top-28 h-40 w-40 rounded-full bg-emerald-300/10 blur-3xl" />
-          <div className="pointer-events-none absolute -right-20 -top-10 h-56 w-56 rounded-full bg-lime-300/10 blur-3xl" />
-          <Leaf className="pointer-events-none absolute left-9 top-32 rotate-[-28deg] text-lime-300/25" size={42} />
-          <Leaf className="pointer-events-none absolute right-12 top-56 rotate-[26deg] text-lime-300/20" size={35} />
+        <section className="relative overflow-hidden rounded-b-[38px] bg-[radial-gradient(circle_at_50%_12%,#BFF7C8_0%,#62D982_42%,#28AD61_100%)] px-5 pb-16 pt-5 text-center text-white">
+          <div className="pointer-events-none absolute -left-14 top-28 h-40 w-40 rounded-full bg-white/20 blur-3xl" />
+          <div className="pointer-events-none absolute -right-20 -top-10 h-56 w-56 rounded-full bg-lime-100/25 blur-3xl" />
+          <Leaf className="pointer-events-none absolute left-9 top-32 rotate-[-28deg] text-white/35" size={42} />
+          <Leaf className="pointer-events-none absolute right-12 top-56 rotate-[26deg] text-white/25" size={35} />
 
-          <div className="relative mx-auto -mb-1 h-20 w-24 scale-[0.68]">
-            <div className="absolute inset-2 rounded-full border border-lime-300/25" />
-            <div className="absolute left-0 top-14 rotate-[-30deg] text-lime-300 drop-shadow-lg"><Leaf size={55} fill="currentColor" /></div>
-            <div className="absolute right-0 top-14 rotate-[30deg] scale-x-[-1] text-lime-300 drop-shadow-lg"><Leaf size={55} fill="currentColor" /></div>
-            <div className="absolute left-1/2 top-0 flex h-28 w-24 -translate-x-1/2 items-center justify-center">
-              <Shield size={100} className="text-white drop-shadow-[0_8px_16px_rgba(0,0,0,0.28)]" fill="#43B95F" strokeWidth={2.3} />
-              <div className="absolute flex h-14 w-14 items-center justify-center rounded-[22px] bg-gradient-to-br from-lime-200 to-lime-400 shadow-inner">
-                <HeartPulse size={37} className="text-white drop-shadow" strokeWidth={2.6} />
-              </div>
-            </div>
+          <div className="relative mx-auto -mb-1 h-20 w-20 overflow-hidden rounded-full bg-white shadow-[0_12px_28px_rgba(19,118,65,0.24)] ring-4 ring-white/55">
+            <Image src="/logo.png" alt="내일의건강 로고" fill priority className="scale-[1.85] object-cover" />
           </div>
 
           <h1 className="text-[34px] font-black tracking-[-0.055em] drop-shadow-sm">내일의건강</h1>
