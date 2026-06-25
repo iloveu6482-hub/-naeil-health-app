@@ -11,11 +11,13 @@ import AvatarViewer from "@/components/avatar/AvatarViewer";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculateHealthScore } from "@/lib/healthRules";
 import { getDefaultAvatarImage } from "@/lib/defaultAvatars";
+import { defaultAiCoach, getAiCoachById } from "@/lib/coachData";
 import { sampleUser, sampleCheckup, sampleDailyLog } from "@/lib/sampleData";
 import type { UserProfile } from "@/types/user";
 import type { HealthCheckup, DailyLog } from "@/types/health";
 import type { MealAnalysis } from "@/types/meal";
 import type { AvatarViewMode } from "@/types/avatar";
+import type { AiCoach } from "@/types/coach";
 
 const quickMenus = [
   { href: "/avatar", icon: Camera, label: "내 사진·아바타\n변경" },
@@ -31,6 +33,7 @@ export default function DashboardPage() {
   const [score, setScore] = useState(0);
   const [meals, setMeals] = useState<MealAnalysis[]>([]);
   const [avatarViewMode, setAvatarViewMode] = useState<AvatarViewMode>("portrait");
+  const [selectedCoach, setSelectedCoach] = useState<AiCoach>(defaultAiCoach);
 
   useEffect(() => {
     const savedUser = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
@@ -43,6 +46,7 @@ export default function DashboardPage() {
     setScore(calculateHealthScore(savedCheckup, latestLog));
     setMeals(getFromStorage<MealAnalysis[]>(STORAGE_KEYS.MEAL_RECORDS, []));
     setAvatarViewMode(getFromStorage<AvatarViewMode>(STORAGE_KEYS.AVATAR_VIEW_MODE, "portrait"));
+    setSelectedCoach(getAiCoachById(getFromStorage<string>(STORAGE_KEYS.SELECTED_AI_COACH_ID, defaultAiCoach.id)));
   }, []);
 
   const changeAvatarViewMode = (mode: AvatarViewMode) => {
@@ -50,12 +54,7 @@ export default function DashboardPage() {
     saveToStorage(STORAGE_KEYS.AVATAR_VIEW_MODE, mode);
   };
 
-  const coachMessages = [
-    "작은 습관이 쌓이면 건강한 내일을 만들 수 있어요. 오늘도 함께 실천해봐요! 🌱",
-    "오늘 걷기 목표까지 조금만 더 힘내보세요. 건강이가 응원해요! 💪",
-    "물 한 잔 마시는 것부터 시작해볼까요? 작은 실천이 큰 변화를 만들어요. 💧",
-  ];
-  const coachMessage = coachMessages[new Date().getDay() % coachMessages.length];
+  const coachMessage = selectedCoach.quote;
   const calories = dailyLog.exerciseDone ? 356 : 210;
   const displayName = user.name?.trim() || "사용자";
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
@@ -84,7 +83,7 @@ export default function DashboardPage() {
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
           <div className="absolute left-2 right-2 top-1 z-30 rounded-xl border border-white/65 bg-white/32 px-3 py-1.5 shadow-[0_8px_20px_rgba(12,62,38,0.12)] backdrop-blur-[9px]">
-            <p className="text-xs font-medium leading-[18px] text-[#173425]">안녕하세요, <strong className="text-[#16743B]">{displayName}님!</strong> 오늘도 건강한 하루를 시작해볼까요?</p>
+            <p className="text-xs font-medium leading-[18px] text-[#173425]"><strong className="text-[#16743B]">{selectedCoach.name}</strong>의 오늘 한마디: {selectedCoach.quote}</p>
           </div>
 
           <div className="absolute inset-0 z-20">
@@ -156,7 +155,7 @@ export default function DashboardPage() {
           <p className="mt-2 text-sm font-bold text-[#1F5A3A]">예상 섭취 칼로리: {mealCalories.toLocaleString()} kcal</p>
         </section>
 
-        <section className="px-4 pb-3"><CoachMessageCard message={coachMessage} style={user.avatarStyle} gender={avatarGender} imageUrl={customAvatarImage || heroImage} /></section>
+        <section className="px-4 pb-3"><CoachMessageCard title={`${selectedCoach.name}의 오늘 한마디`} message={coachMessage} style={user.avatarStyle} gender={avatarGender} imageUrl={selectedCoach.imageUrl} /></section>
         <section className="px-4 pb-6"><Link href="/notifications" className="block rounded-2xl border border-green-100 bg-[#EAF7EF] p-4"><p className="flex items-center gap-2 font-extrabold text-[#1F5A3A]"><Bell size={18} />점심시간이에요</p><p className="mt-1 text-sm text-gray-600">식사 전 사진 한 장으로 오늘의 식단을 기록해보세요.</p></Link></section>
       </main>
       <BottomNav />

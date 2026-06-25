@@ -185,8 +185,8 @@ export default function AvatarPage() {
   return (
     <MobileShell>
       <div className="flex min-h-screen flex-col bg-[#FAFCFA]">
-        <header className="bg-gradient-to-br from-[#1F5A3A] to-[#4CAF6A] px-6 pb-8 pt-14 text-center text-white">
-          <h1 className="mb-1 text-2xl font-extrabold">나만의 건강이 선택</h1>
+        <header className="bg-[radial-gradient(circle_at_50%_12%,#BFF7C8_0%,#62D982_42%,#28AD61_100%)] px-6 pb-5 pt-8 text-center text-white">
+          <h1 className="mb-0.5 text-2xl font-extrabold">나만의 건강이 선택</h1>
           <p className="text-sm text-green-100">{displayName}님을 닮은 입체적인 건강이를 만들어보세요</p>
         </header>
 

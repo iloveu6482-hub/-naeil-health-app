@@ -59,4 +59,5 @@ export const STORAGE_KEYS = {
   CLAIMED_REWARDS: "naeil_claimed_rewards",
   ACCOUNTS: "naeil_accounts",
   AUTH_SESSION: "naeil_auth_session",
+  SELECTED_AI_COACH_ID: "selectedAiCoachId",
 };
