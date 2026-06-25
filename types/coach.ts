@@ -8,6 +8,7 @@ export type AiCoach = {
   tone: CoachTone;
   description: string;
   imageUrl: string;
+  faceImageUrl?: string;
   quote: string;
   features: string[];
   recommendedFor: string[];
