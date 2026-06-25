@@ -25,7 +25,7 @@ const features = [
 ];
 
 const avatars = [
-  { image: "/avatars/default-female-3d.png", label: "3D형", selected: true },
+  { image: "/avatars/default-female-3d.png", label: "3D형", selected: false },
   { image: "/avatars/default-female-emotional.png", label: "감성형" },
   { image: "/avatars/default-male-webtoon.png", label: "웹툰형" },
   { image: "/avatars/default-male-senior.png", label: "시니어형" },
