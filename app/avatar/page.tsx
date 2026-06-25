@@ -1,7 +1,6 @@
 "use client";
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Camera, Check, ImagePlus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
@@ -14,7 +13,6 @@ import { sampleUser } from "@/lib/sampleData";
 import { samplePointTransactions } from "@/lib/sampleData";
 import { calculatePointBalance, createSpendTransaction } from "@/lib/rewards";
 import { getDefaultAvatars } from "@/lib/defaultAvatars";
-import { aiCoaches, defaultAiCoach } from "@/lib/coachData";
 import type { DefaultAvatar } from "@/lib/defaultAvatars";
 import type { AvatarGender, AvatarStyle, UserProfile } from "@/types/user";
 import type { PointTransaction } from "@/types/reward";
@@ -37,7 +35,6 @@ export default function AvatarPage() {
   const [message, setMessage] = useState("");
   const [showCamera, setShowCamera] = useState(false);
   const [pointBalance, setPointBalance] = useState(0);
-  const [selectedCoachId, setSelectedCoachId] = useState(defaultAiCoach.id);
   const displayName = profile.name?.trim() || "사용자";
 
   useEffect(() => {
@@ -47,7 +44,6 @@ export default function AvatarPage() {
     setAvatarGender(saved.defaultAvatarGender || (saved.gender === "male" ? "male" : "female"));
     setSelectedDefaultId(saved.defaultAvatarId);
     setAvatarImage(saved.avatarImage);
-    setSelectedCoachId(getFromStorage<string>(STORAGE_KEYS.SELECTED_AI_COACH_ID, defaultAiCoach.id));
     const transactions = getFromStorage<PointTransaction[]>(STORAGE_KEYS.POINT_TRANSACTIONS, samplePointTransactions);
     setPointBalance(calculatePointBalance(transactions));
   }, []);
@@ -161,12 +157,6 @@ export default function AvatarPage() {
     setMessage(`${avatar.name} 기본 건강이를 선택했어요. 아래 저장 버튼을 눌러주세요.`);
   };
 
-  const selectCoach = (coachId: string) => {
-    setSelectedCoachId(coachId);
-    saveToStorage(STORAGE_KEYS.SELECTED_AI_COACH_ID, coachId);
-    setMessage("AI 코치를 변경했어요. 대시보드 한마디에 바로 반영됩니다.");
-  };
-
   const handleStart = () => {
     const nextProfile: UserProfile = {
       ...profile,
@@ -179,7 +169,7 @@ export default function AvatarPage() {
     saveToStorage(STORAGE_KEYS.USER_PROFILE, nextProfile);
     saveToStorage(STORAGE_KEYS.AVATAR_STYLE, selected);
     saveToStorage(STORAGE_KEYS.AVATAR_GENDER, avatarGender);
-    router.push("/dashboard");
+    router.push("/trainer");
   };
 
   const displayImage = avatarImage || sourceImage;
@@ -201,6 +191,17 @@ export default function AvatarPage() {
         </header>
 
         <main className="flex-1 space-y-4 px-4 py-6">
+          <section className="rounded-2xl border border-green-100 bg-white p-3 shadow-sm">
+            <div className="grid grid-cols-3 text-center text-xs font-bold">
+              <span className="text-[#1F5A3A]">① 아바타 선택</span>
+              <span className="text-gray-400">② 코치 선택</span>
+              <span className="text-gray-400">③ 시작</span>
+            </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#EAF7EF]">
+              <div className="h-full w-1/3 rounded-full bg-[#4CAF6A]" />
+            </div>
+          </section>
+
           <section className="rounded-3xl border border-green-100 bg-white p-4 shadow-sm">
             <div className="mb-4">
               <h2 className="text-lg font-extrabold text-[#1F2937]">사진 없이 기본 건강이 선택</h2>
@@ -225,31 +226,6 @@ export default function AvatarPage() {
                       {isSelected && <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#4CAF6A] shadow"><Check size={16} className="text-white" /></span>}
                     </div>
                     <div className="p-3"><p className="font-extrabold text-[#1F2937]">{avatar.name}</p><p className="mt-1 text-xs leading-relaxed text-gray-500">{avatar.description}</p></div>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          <section className="rounded-3xl border border-green-100 bg-white p-4 shadow-sm">
-            <div className="mb-4">
-              <h2 className="text-lg font-extrabold text-[#1F2937]">AI 코치진 설정</h2>
-              <p className="mt-1 text-sm leading-relaxed text-gray-500">대시보드에서 나를 안내할 코치를 선택해보세요. 언제든 다시 바꿀 수 있어요.</p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {aiCoaches.map((coach) => {
-                const isSelected = selectedCoachId === coach.id;
-                return (
-                  <button key={coach.id} onClick={() => selectCoach(coach.id)} className={`overflow-hidden rounded-2xl border-2 bg-white text-left transition-all active:scale-[0.99] ${isSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
-                    <div className="relative aspect-[4/5] overflow-hidden bg-[#EAF7EF]">
-                      <Image src={coach.imageUrl} alt={`${coach.name} AI 코치`} fill sizes="50vw" className="object-cover object-[center_20%]" />
-                      {isSelected && <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#4CAF6A] shadow"><Check size={16} className="text-white" /></span>}
-                    </div>
-                    <div className="p-3">
-                      <p className="font-extrabold text-[#1F2937]">{coach.name}</p>
-                      <p className="mt-1 text-xs font-bold text-[#4CAF6A]">{coach.type}</p>
-                      <p className="mt-2 text-xs leading-relaxed text-gray-500">{coach.quote}</p>
-                    </div>
                   </button>
                 );
               })}
@@ -293,7 +269,7 @@ export default function AvatarPage() {
           )}
         </main>
 
-        <div className="px-4 pb-8"><button onClick={handleStart} disabled={saveDisabled} className="w-full rounded-2xl bg-[#4CAF6A] py-4 text-lg font-bold text-white shadow-lg active:scale-95 disabled:opacity-45">이 아바타 저장하고 시작하기 🌱</button></div>
+        <div className="px-4 pb-8"><button onClick={handleStart} disabled={saveDisabled} className="w-full rounded-2xl bg-[#4CAF6A] py-4 text-lg font-bold text-white shadow-lg active:scale-95 disabled:opacity-45">다음</button></div>
         {showCamera && <CameraCapture onCapture={handleCameraCapture} onClose={() => setShowCamera(false)} />}
       </div>
     </MobileShell>

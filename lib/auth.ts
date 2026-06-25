@@ -31,7 +31,7 @@ export async function signUpLocal(name: string, email: string, password: string)
   return account;
 }
 
-export async function signInLocal(email: string, password: string) {
+export async function signInLocal(email: string, password: string, keepSignedIn = true) {
   const accounts = getFromStorage<LocalAccount[]>(STORAGE_KEYS.ACCOUNTS, []);
   const normalizedEmail = email.trim().toLowerCase();
   const passwordHash = await hashPassword(password);
@@ -42,14 +42,33 @@ export async function signInLocal(email: string, password: string) {
   if (!account) throw new Error("이메일 또는 비밀번호를 확인해주세요.");
 
   const session: AuthSession = { userId: account.id, email: account.email };
-  saveToStorage(STORAGE_KEYS.AUTH_SESSION, session);
+  if (typeof window !== "undefined") {
+    if (keepSignedIn) {
+      saveToStorage(STORAGE_KEYS.AUTH_SESSION, session);
+      sessionStorage.removeItem(STORAGE_KEYS.AUTH_SESSION);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.AUTH_SESSION);
+      sessionStorage.setItem(STORAGE_KEYS.AUTH_SESSION, JSON.stringify(session));
+    }
+  }
   return account;
 }
 
 export function getSession() {
+  if (typeof window !== "undefined") {
+    const session = sessionStorage.getItem(STORAGE_KEYS.AUTH_SESSION);
+    if (session) {
+      try {
+        return JSON.parse(session) as AuthSession;
+      } catch {
+        sessionStorage.removeItem(STORAGE_KEYS.AUTH_SESSION);
+      }
+    }
+  }
   return getFromStorage<AuthSession | null>(STORAGE_KEYS.AUTH_SESSION, null);
 }
 
 export function signOutLocal() {
   removeFromStorage(STORAGE_KEYS.AUTH_SESSION);
+  if (typeof window !== "undefined") sessionStorage.removeItem(STORAGE_KEYS.AUTH_SESSION);
 }

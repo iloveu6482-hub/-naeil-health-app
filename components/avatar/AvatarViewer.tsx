@@ -66,7 +66,7 @@ export default function AvatarViewer({ style, gender, viewMode, mood = "idle", r
     : "object-contain object-bottom";
 
   return <div data-avatar-mood={mood} data-avatar-view={viewMode} className={`${fill ? "absolute inset-0" : `relative ${sizeClasses[size]}`} ${className}`}>
-    <div className="relative h-full w-full cursor-none overflow-hidden rounded-[inherit]">
+    <div className="relative h-full w-full overflow-hidden rounded-[inherit]">
       {showWindEffect && <AvatarWindEffect intensity={intensity} showLeaves={showLeaves} showLightTrails={showLightTrails} />}
       <div className="pointer-events-none absolute inset-0 z-10">
         <Image src={source} alt={alt} fill priority={priority} unoptimized={source.startsWith("data:")} onError={handleError} className={imageFitClass} />
