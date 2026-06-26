@@ -185,47 +185,47 @@ export default function AvatarPage() {
   return (
     <MobileShell>
       <div className="flex min-h-screen flex-col bg-[#FAFCFA]">
-        <header className="bg-[radial-gradient(circle_at_50%_12%,#BFF7C8_0%,#62D982_42%,#28AD61_100%)] px-6 pb-5 pt-8 text-center text-white">
-          <h1 className="mb-0.5 text-2xl font-extrabold">나만의 건강이 선택</h1>
-          <p className="text-sm text-green-100">{displayName}님을 닮은 입체적인 건강이를 만들어보세요</p>
+        <header className="bg-[radial-gradient(circle_at_50%_12%,#BFF7C8_0%,#62D982_42%,#28AD61_100%)] px-5 pb-3 pt-5 text-center text-white">
+          <h1 className="mb-0.5 text-xl font-extrabold">나만의 건강이 선택</h1>
+          <p className="text-xs text-green-100">{displayName}님을 닮은 입체적인 건강이를 만들어보세요</p>
         </header>
 
-        <main className="flex-1 space-y-4 px-4 py-6">
-          <section className="rounded-2xl border border-green-100 bg-white p-3 shadow-sm">
-            <div className="grid grid-cols-3 text-center text-xs font-bold">
+        <main className="flex-1 space-y-3 px-3 py-3">
+          <section className="rounded-xl border border-green-100 bg-white p-2.5 shadow-sm">
+            <div className="grid grid-cols-3 text-center text-[11px] font-bold">
               <span className="text-[#1F5A3A]">① 아바타 선택</span>
               <span className="text-gray-400">② 코치 선택</span>
               <span className="text-gray-400">③ 시작</span>
             </div>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#EAF7EF]">
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#EAF7EF]">
               <div className="h-full w-1/3 rounded-full bg-[#4CAF6A]" />
             </div>
           </section>
 
-          <section className="rounded-3xl border border-green-100 bg-white p-4 shadow-sm">
-            <div className="mb-4">
-              <h2 className="text-lg font-extrabold text-[#1F2937]">사진 없이 기본 건강이 선택</h2>
-              <p className="mt-1 text-sm leading-relaxed text-gray-500">AI 비용 없이 바로 사용할 수 있어요. 성별과 스타일을 골라주세요.</p>
+          <section className="rounded-xl border border-green-100 bg-white p-2.5 shadow-sm">
+            <div className="mb-3">
+              <h2 className="text-base font-extrabold text-[#1F2937]">사진 없이 기본 건강이 선택</h2>
+              <p className="mt-0.5 text-xs leading-relaxed text-gray-500">AI 비용 없이 바로 사용할 수 있어요. 성별과 스타일을 골라주세요.</p>
             </div>
 
-            <div className="mb-4 grid grid-cols-2 rounded-2xl bg-[#F1F7F3] p-1">
+            <div className="mb-3 grid grid-cols-2 rounded-2xl bg-[#F1F7F3] p-1">
               {(["female", "male"] as const).map((gender) => (
-                <button key={gender} onClick={() => setAvatarGender(gender)} className={`min-h-11 rounded-xl text-sm font-bold transition ${avatarGender === gender ? "bg-white text-[#1F5A3A] shadow-sm" : "text-gray-500"}`}>
+                <button key={gender} onClick={() => setAvatarGender(gender)} className={`min-h-9 rounded-lg text-sm font-bold transition ${avatarGender === gender ? "bg-white text-[#1F5A3A] shadow-sm" : "text-gray-500"}`}>
                   {gender === "female" ? "여성 건강이" : "남성 건강이"}
                 </button>
               ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {getDefaultAvatars(avatarGender).map((avatar) => {
                 const isSelected = selectedDefaultId === avatar.id;
                 return (
-                  <button key={avatar.id} onClick={() => selectDefaultAvatar(avatar)} className={`overflow-hidden rounded-2xl border-2 bg-white text-left transition-all ${isSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
-                    <div className="relative aspect-[4/5] overflow-hidden bg-[#EAF7EF]">
+                  <button key={avatar.id} onClick={() => selectDefaultAvatar(avatar)} className={`overflow-hidden rounded-xl border-2 bg-white text-left transition-all ${isSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
+                    <div className="relative aspect-[4/3] overflow-hidden bg-[#EAF7EF]">
                       <AnimatedAvatar style={avatar.style} gender={avatar.gender} viewMode="portrait" mood={isSelected ? "happy" : "idle"} imageUrl={avatar.imageUrl} fill glow={isSelected} alt={`${avatar.name} ${avatarGender === "female" ? "여성" : "남성"} 기본 아바타`} />
-                      {isSelected && <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#4CAF6A] shadow"><Check size={16} className="text-white" /></span>}
+                      {isSelected && <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#4CAF6A] shadow"><Check size={14} className="text-white" /></span>}
                     </div>
-                    <div className="p-3"><p className="font-extrabold text-[#1F2937]">{avatar.name}</p><p className="mt-1 text-xs leading-relaxed text-gray-500">{avatar.description}</p></div>
+                    <div className="p-2"><p className="text-sm font-extrabold text-[#1F2937]">{avatar.name}</p><p className="mt-0.5 truncate text-[11px] leading-relaxed text-gray-500">{avatar.description}</p></div>
                   </button>
                 );
               })}
@@ -234,8 +234,8 @@ export default function AvatarPage() {
 
           {selected === "3d" && (
             <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
-              <div className="mb-1 flex items-center gap-2"><Sparkles size={20} className="text-[#4CAF6A]" /><h2 className="text-lg font-extrabold text-[#1F2937]">내 사진으로 AI 건강이 생성</h2></div>
-              <p className="mb-4 text-sm text-gray-500">직접 촬영하거나 사진을 올리고 싶은 경우에만 이용하세요.</p>
+              <div className="mb-1 flex items-center gap-2"><Sparkles size={20} className="text-[#4CAF6A]" /><h2 className="text-base font-extrabold text-[#1F2937]">내 사진으로 AI 건강이 생성</h2></div>
+              <p className="mb-3 text-sm text-gray-500">직접 촬영하거나 사진을 올리고 싶은 경우에만 이용하세요.</p>
               <div className="flex flex-col items-center rounded-2xl bg-gradient-to-b from-[#EAF7EF] to-white p-5">
                 <AvatarPortraitCard imageUrl={displayImage} name={avatarImage ? `${profile.name}님의 AI 건강이` : sourceImage ? "AI 생성용 원본 사진" : `${profile.name}님의 건강이`} compact />
                 <p className="mt-3 text-center text-sm text-gray-600">사진을 선택하면 AI가 얼굴 특징을 참고해 새로운 의상·포즈·입체 배경을 생성합니다.</p>
@@ -249,7 +249,7 @@ export default function AvatarPage() {
 
               {sourceImage && (
                 <div className="mt-4 rounded-2xl border border-green-100 bg-[#F7FBF8] p-4">
-                  <div className="mb-4 rounded-xl bg-white p-3 shadow-sm">
+                  <div className="mb-3 rounded-xl bg-white p-3 shadow-sm">
                     <div className="flex items-center justify-between gap-3"><span className="text-sm font-bold text-[#1F2937]">{isFirstGeneration ? "첫 AI 건강이" : "AI 건강이 재생성"}</span><span className={`rounded-full px-3 py-1 text-sm font-extrabold ${isFirstGeneration ? "bg-[#EAF7EF] text-[#1F5A3A]" : "bg-amber-50 text-amber-700"}`}>{isFirstGeneration ? "최초 1회 무료" : `${AVATAR_REGENERATION_COST.toLocaleString()}P`}</span></div>
                     <p className="mt-2 text-xs leading-relaxed text-gray-500">{isFirstGeneration ? "회원당 첫 생성은 무료로 제공됩니다." : `재생성은 월 ${MONTHLY_REGENERATION_LIMIT}회 가능하며, 생성 성공 후에만 포인트가 차감됩니다.`}</p>
                     <p className="mt-1 text-xs font-semibold text-[#4CAF6A]">현재 보유: {pointBalance.toLocaleString()}P</p>
