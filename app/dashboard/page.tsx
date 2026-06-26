@@ -111,7 +111,7 @@ export default function DashboardPage() {
               <p className="text-[10px] font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-0.5 whitespace-nowrap text-[11px] font-extrabold text-[#163D29]">내일의 나를 만듭니다!</p>
             </div>
 
-            <div className="absolute right-3 top-[382px] flex h-32 w-32 flex-col items-center justify-center rounded-full border-[5px] border-white/70 bg-white/58 text-center shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-2 ring-[#4CAF6A]/55 backdrop-blur-[10px] [@media(max-height:700px)]:top-[322px]">
+            <div className="absolute left-8 top-[210px] flex h-32 w-32 flex-col items-center justify-center rounded-full border-[5px] border-white/70 bg-white/58 text-center shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-2 ring-[#4CAF6A]/55 backdrop-blur-[10px] [@media(max-height:700px)]:top-[176px]">
               <p className="text-[10px] font-semibold text-gray-500">오늘의 건강관리</p><p className="text-[10px] text-gray-500">참고 점수</p><p className="mt-1 text-4xl font-black text-[#24944E]">{score}</p><p className="text-xs text-[#4CAF6A]">/ 100</p>
             </div>
           </div>
