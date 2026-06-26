@@ -85,12 +85,11 @@ export default function DashboardPage() {
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
           <div className="absolute left-2 right-2 top-2 z-30 flex items-start gap-2">
-            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full border-2 border-white bg-[#EAF7EF] shadow-md ring-1 ring-[#BDE8CA]">
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-white bg-[#EAF7EF] shadow-md ring-1 ring-[#BDE8CA]">
               <Image src={selectedCoach.faceImageUrl || selectedCoach.imageUrl} alt={`${selectedCoach.name} 코치`} fill className="object-cover" />
             </div>
-            <div className="relative flex-1 rounded-2xl border border-[#BDE8CA] bg-white/92 px-4 py-2.5 shadow-[0_10px_24px_rgba(31,90,58,0.16)] backdrop-blur-md before:absolute before:left-[-6px] before:top-4 before:h-3 before:w-3 before:rotate-45 before:border-b before:border-l before:border-[#BDE8CA] before:bg-white/92">
-              <p className="text-xs font-extrabold text-[#24944E]">{selectedCoach.name}의 오늘 한마디</p>
-              <p className="mt-1 text-sm font-medium leading-5 text-[#173425]">{selectedCoach.quote}</p>
+            <div className="relative flex-1 rounded-2xl border border-[#BDE8CA] bg-white/92 px-3.5 py-2 shadow-[0_10px_24px_rgba(31,90,58,0.16)] backdrop-blur-md before:absolute before:left-[-6px] before:top-3.5 before:h-3 before:w-3 before:rotate-45 before:border-b before:border-l before:border-[#BDE8CA] before:bg-white/92">
+              <p className="text-sm font-medium leading-5 text-[#173425]">{selectedCoach.quote}</p>
             </div>
           </div>
 
