@@ -10,6 +10,7 @@ import CoachMessageCard from "@/components/dashboard/CoachMessageCard";
 import AvatarViewer from "@/components/avatar/AvatarViewer";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculateHealthScore } from "@/lib/healthRules";
+import { calculateWalkingCalories } from "@/lib/activity";
 import { getDefaultAvatarImage } from "@/lib/defaultAvatars";
 import { defaultAiCoach, getAiCoachById } from "@/lib/coachData";
 import { sampleUser, sampleCheckup, sampleDailyLog } from "@/lib/sampleData";
@@ -55,7 +56,7 @@ export default function DashboardPage() {
   };
 
   const coachMessage = selectedCoach.quote;
-  const calories = dailyLog.exerciseDone ? 356 : 210;
+  const calories = calculateWalkingCalories(dailyLog.steps, checkup.weight);
   const displayName = user.name?.trim() || "사용자";
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
   const heroImage = user.avatarImage || getDefaultAvatarImage(avatarGender, user.avatarStyle) || "/avatars/default-female-3d.png";
