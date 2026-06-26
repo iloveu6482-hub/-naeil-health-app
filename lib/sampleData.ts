@@ -158,6 +158,17 @@ export const samplePointTransactions: PointTransaction[] = [
 
 export const sampleAvatarItems: AvatarItem[] = [
   {
+    id: "theme-summer",
+    name: "여름 테마",
+    category: "theme",
+    themeKey: "summer",
+    price: 0,
+    description: "햇살 가득한 여름 산책길 분위기의 기본 테마입니다.",
+    imageUrl: "/avatars/themes/summer/fullbody/avatar-3d-female.png",
+    isOwned: true,
+    isEquipped: false,
+  },
+  {
     id: "item-001",
     name: "산책 운동화",
     category: "shoes",

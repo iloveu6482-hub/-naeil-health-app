@@ -43,6 +43,7 @@ export const STORAGE_KEYS = {
   AVATAR_GENDER: "selectedAvatarGender",
   AVATAR_VIEW_MODE: "avatarViewMode",
   AVATAR_OUTFIT: "avatarOutfit",
+  AVATAR_THEME: "avatarTheme",
   AVATAR_GROWTH_MODE: "avatarGrowthMode",
   AVATAR_GROWTH_STAGE: "avatarGrowthStage",
   HEALTH_CHECKUP_RECORDS: "healthCheckupRecords",
