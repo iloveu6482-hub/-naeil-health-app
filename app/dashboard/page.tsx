@@ -63,9 +63,6 @@ export default function DashboardPage() {
   const today = new Date().toISOString().slice(0, 10);
   const todayMeals = meals.filter((meal) => meal.mealDate === today);
   const mealCalories = todayMeals.reduce((sum, meal) => sum + meal.estimatedCalories, 0);
-  const dashboardAvatarClass = avatarViewMode === "portrait"
-    ? "absolute bottom-[-8px] right-[-128px] top-[-8px] w-[132%] max-w-[590px] [@media(max-height:700px)]:right-[-104px] [@media(max-height:700px)]:top-[-18px]"
-    : "absolute bottom-[-4px] right-[-78px] top-6 w-[112%] max-w-[500px] [@media(max-height:700px)]:right-[-64px] [@media(max-height:700px)]:top-0";
 
   const summaryItems = [
     { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]" },
@@ -80,9 +77,8 @@ export default function DashboardPage() {
     <MobileShell>
       <AppHeader />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
-        <section className="relative min-h-[760px] overflow-hidden bg-[#DFF4D8] [@media(max-height:700px)]:min-h-[700px]">
-          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/backgrounds/default-forest.png')" }} />
-          <div className={dashboardAvatarClass}><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill priority showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} /></div>
+        <section className="relative min-h-[760px] overflow-hidden bg-[#1F5A3A] [@media(max-height:700px)]:min-h-[700px]">
+          <div className="absolute inset-0"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill cover priority showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} /></div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/18 via-transparent to-transparent" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
