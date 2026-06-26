@@ -12,8 +12,8 @@ export type DefaultAvatar = {
 
 const styleDetails: Record<AvatarStyle, Pick<DefaultAvatar, "name" | "description">> = {
   "3d": {
-    name: "밝은 3D형",
-    description: "친근하고 입체적인 건강 코치 스타일",
+    name: "나만의 AI 건강이",
+    description: "내 사진으로 만드는 맞춤 건강이",
   },
   emotional: {
     name: "감성형",
@@ -38,7 +38,7 @@ const makeAvatar = (gender: AvatarGender, style: AvatarStyle): DefaultAvatar => 
 });
 
 export const defaultAvatars: DefaultAvatar[] = (["male", "female"] as const).flatMap((gender) =>
-  (["3d", "emotional", "webtoon", "senior"] as const).map((style) => makeAvatar(gender, style)),
+  (["emotional", "webtoon", "senior"] as const).map((style) => makeAvatar(gender, style)),
 );
 
 export function getDefaultAvatars(gender: AvatarGender) {

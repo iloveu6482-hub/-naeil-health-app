@@ -23,7 +23,7 @@ export default function SignupPage() {
     setError("");
     try {
       const account = await signUpLocal(name, email, password);
-      const profile: UserProfile = { id: account.id, name: account.name, birthYear: 1978, gender: "other", avatarStyle: "3d" };
+      const profile: UserProfile = { id: account.id, name: account.name, birthYear: 1978, gender: "other", avatarStyle: "emotional" };
       saveToStorage(STORAGE_KEYS.USER_PROFILE, profile);
       router.push("/avatar");
     } catch (caught) {

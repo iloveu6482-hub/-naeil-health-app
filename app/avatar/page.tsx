@@ -24,7 +24,8 @@ export default function AvatarPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState<UserProfile>(sampleUser);
-  const [selected, setSelected] = useState<AvatarStyle>("3d");
+  const [selected, setSelected] = useState<AvatarStyle>("emotional");
+  const [aiAvatarSelected, setAiAvatarSelected] = useState(false);
   const [avatarGender, setAvatarGender] = useState<AvatarGender>("female");
   const [selectedDefaultId, setSelectedDefaultId] = useState<string>();
   const [avatarImage, setAvatarImage] = useState<string>();
@@ -39,8 +40,10 @@ export default function AvatarPage() {
 
   useEffect(() => {
     const saved = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
+    const initialStyle = saved.avatarStyle === "3d" ? "emotional" : saved.avatarStyle || "emotional";
     setProfile(saved);
-    setSelected(saved.avatarStyle || "3d");
+    setSelected(initialStyle);
+    setAiAvatarSelected(saved.avatarEffect === "illustrated");
     setAvatarGender(saved.defaultAvatarGender || (saved.gender === "male" ? "male" : "female"));
     setSelectedDefaultId(saved.defaultAvatarId);
     setAvatarImage(saved.avatarImage);
@@ -54,7 +57,8 @@ export default function AvatarPage() {
     try {
       setSourceImage(await prepareAvatarSource(file));
       setAvatarImage(undefined);
-      setSelected("3d");
+      setSelected("emotional");
+      setAiAvatarSelected(true);
       setSelectedDefaultId(undefined);
       setConsent(false);
       setMessage("사진 준비가 끝났어요. 아래에서 AI 건강이를 생성해주세요.");
@@ -119,7 +123,7 @@ export default function AvatarPage() {
 
       const nextProfile: UserProfile = {
         ...profile,
-        avatarStyle: "3d",
+        avatarStyle: "emotional",
         avatarImage: generatedImage,
         avatarEffect: "illustrated",
         defaultAvatarId: undefined,
@@ -150,6 +154,7 @@ export default function AvatarPage() {
   const selectDefaultAvatar = (avatar: DefaultAvatar) => {
     setAvatarGender(avatar.gender);
     setSelected(avatar.style);
+    setAiAvatarSelected(false);
     setSelectedDefaultId(avatar.id);
     setAvatarImage(avatar.imageUrl);
     setSourceImage(undefined);
@@ -162,7 +167,7 @@ export default function AvatarPage() {
       ...profile,
       avatarStyle: selected,
       avatarImage,
-      avatarEffect: selectedDefaultId ? undefined : selected === "3d" && avatarImage ? "illustrated" : undefined,
+      avatarEffect: aiAvatarSelected && avatarImage ? "illustrated" : undefined,
       defaultAvatarId: selectedDefaultId,
       defaultAvatarGender: selectedDefaultId ? avatarGender : undefined,
     };
@@ -173,7 +178,7 @@ export default function AvatarPage() {
   };
 
   const displayImage = avatarImage || sourceImage;
-  const saveDisabled = processing || generating || !avatarImage || (selected === "3d" && Boolean(sourceImage) && !avatarImage);
+  const saveDisabled = processing || generating || !avatarImage || (aiAvatarSelected && Boolean(sourceImage) && !avatarImage);
   const generationCount = profile.avatarGenerationCount || 0;
   const isFirstGeneration = generationCount === 0;
   const currentMonth = new Date().toISOString().slice(0, 7);
@@ -187,7 +192,7 @@ export default function AvatarPage() {
       <div className="flex min-h-screen flex-col bg-[#FAFCFA]">
         <header className="bg-[radial-gradient(circle_at_50%_12%,#BFF7C8_0%,#62D982_42%,#28AD61_100%)] px-5 pb-3 pt-5 text-center text-white">
           <h1 className="mb-0.5 text-xl font-extrabold">나만의 건강이 선택</h1>
-          <p className="text-xs text-green-100">{displayName}님을 닮은 입체적인 건강이를 만들어보세요</p>
+          <p className="text-xs text-green-100">{displayName}님에게 맞는 건강이를 만들어보세요</p>
         </header>
 
         <main className="flex-1 space-y-3 px-3 py-3">
@@ -218,7 +223,7 @@ export default function AvatarPage() {
 
             <div className="grid grid-cols-2 gap-2">
               {getDefaultAvatars(avatarGender).map((avatar) => {
-                const isSelected = selectedDefaultId === avatar.id;
+                const isSelected = !aiAvatarSelected && selectedDefaultId === avatar.id;
                 return (
                   <button key={avatar.id} onClick={() => selectDefaultAvatar(avatar)} className={`overflow-hidden rounded-xl border-2 bg-white text-left transition-all ${isSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
                     <div className="relative aspect-[4/3] overflow-hidden bg-[#EAF7EF]">
@@ -229,10 +234,20 @@ export default function AvatarPage() {
                   </button>
                 );
               })}
+              <button onClick={() => { setAiAvatarSelected(true); setSelectedDefaultId(undefined); setSelected("emotional"); setAvatarImage(undefined); setSourceImage(undefined); setMessage("사진을 올리거나 바로 촬영해서 나만의 AI 건강이를 만들 수 있어요."); }} className={`overflow-hidden rounded-xl border-2 bg-white text-left transition-all ${aiAvatarSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
+                <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#EAF7EF] to-[#D9F6E2]">
+                  <div className="flex h-full flex-col items-center justify-center gap-2 text-[#1F5A3A]">
+                    <Sparkles size={34} />
+                    <span className="rounded-full bg-white/85 px-3 py-1 text-xs font-extrabold shadow-sm">AI 생성</span>
+                  </div>
+                  {aiAvatarSelected && <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#4CAF6A] shadow"><Check size={14} className="text-white" /></span>}
+                </div>
+                <div className="p-2"><p className="text-sm font-extrabold text-[#1F2937]">나만의 AI 건강이</p><p className="mt-0.5 truncate text-[11px] leading-relaxed text-gray-500">내 사진으로 만드는 맞춤 건강이</p></div>
+              </button>
             </div>
           </section>
 
-          {selected === "3d" && (
+          {aiAvatarSelected && (
             <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
               <div className="mb-1 flex items-center gap-2"><Sparkles size={20} className="text-[#4CAF6A]" /><h2 className="text-base font-extrabold text-[#1F2937]">내 사진으로 AI 건강이 생성</h2></div>
               <p className="mb-3 text-sm text-gray-500">직접 촬영하거나 사진을 올리고 싶은 경우에만 이용하세요.</p>

@@ -20,7 +20,7 @@ import { signOutLocal } from "@/lib/auth";
 import type { AvatarGrowthMode } from "@/types/v3";
 
 const avatarStyleLabels = {
-  "3d": "밝은 3D 캐릭터형",
+  "3d": "나만의 AI 건강이",
   emotional: "감성 애니메이션형",
   webtoon: "웹툰 히어로형",
   senior: "시니어 친화형",

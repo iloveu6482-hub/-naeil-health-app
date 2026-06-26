@@ -8,7 +8,7 @@ export const sampleUser: UserProfile = {
   name: "사용자",
   birthYear: 1978,
   gender: "female",
-  avatarStyle: "3d",
+  avatarStyle: "emotional",
 };
 
 export const sampleCheckup: HealthCheckup = {
