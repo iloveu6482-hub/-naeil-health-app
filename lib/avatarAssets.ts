@@ -1,6 +1,9 @@
 import type { AvatarGender, AvatarMood, AvatarOutfit, AvatarRotationView, AvatarStyle, AvatarTheme, AvatarViewMode } from "@/types/avatar";
 
 export function getAvatarImagePath({ style, gender, viewMode }: { style: AvatarStyle; gender: AvatarGender; viewMode: AvatarViewMode; mood?: AvatarMood }) {
+  if (style === "emotional" && gender === "female" && viewMode === "portrait") {
+    return "/avatars/portrait/avatar-emotional-female.mp4";
+  }
   return `/avatars/${viewMode}/avatar-${style}-${gender}.png`;
 }
 

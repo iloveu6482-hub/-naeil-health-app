@@ -72,12 +72,17 @@ export default function AvatarViewer({ style, gender, viewMode, mood = "idle", r
     : viewMode === "portrait"
     ? "object-contain object-top"
     : "object-contain object-bottom";
+  const isVideoSource = source.toLowerCase().endsWith(".mp4");
 
   return <div data-avatar-mood={mood} data-avatar-view={viewMode} className={`${fill ? "absolute inset-0" : `relative ${sizeClasses[size]}`} ${className}`}>
     <div className="relative h-full w-full overflow-hidden rounded-[inherit]">
       {showWindEffect && <AvatarWindEffect intensity={intensity} showLeaves={showLeaves} showLightTrails={showLightTrails} />}
       <div className="pointer-events-none absolute inset-0 z-10">
-        <Image src={source} alt={alt} fill priority={priority} unoptimized={source.startsWith("data:")} onError={handleError} className={imageFitClass} />
+        {isVideoSource ? (
+          <video src={source} aria-label={alt} autoPlay muted loop playsInline onError={handleError} className={`h-full w-full ${imageFitClass}`} />
+        ) : (
+          <Image src={source} alt={alt} fill priority={priority} unoptimized={source.startsWith("data:")} onError={handleError} className={imageFitClass} />
+        )}
       </div>
       {isPortraitFallback && <div className="absolute bottom-16 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/70 bg-black/45 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm backdrop-blur-sm">전신 이미지 준비 중 · 상반신으로 표시</div>}
     </div>
