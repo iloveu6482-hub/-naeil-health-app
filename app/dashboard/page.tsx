@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Bell, Camera, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Moon, Shirt, Target, Utensils, Users, TrendingUp } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
@@ -83,8 +84,14 @@ export default function DashboardPage() {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/18 via-transparent to-transparent" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
-          <div className="absolute left-2 right-2 top-1 z-30 rounded-xl border border-white/65 bg-white/32 px-3 py-1.5 shadow-[0_8px_20px_rgba(12,62,38,0.12)] backdrop-blur-[9px]">
-            <p className="text-xs font-medium leading-[18px] text-[#173425]"><strong className="text-[#16743B]">{selectedCoach.name}</strong>의 오늘 한마디: {selectedCoach.quote}</p>
+          <div className="absolute left-2 right-2 top-2 z-30 flex items-start gap-2">
+            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full border-2 border-white bg-[#EAF7EF] shadow-md ring-1 ring-[#BDE8CA]">
+              <Image src={selectedCoach.faceImageUrl || selectedCoach.imageUrl} alt={`${selectedCoach.name} 코치`} fill className="object-cover" />
+            </div>
+            <div className="relative flex-1 rounded-2xl border border-[#BDE8CA] bg-white/92 px-4 py-2.5 shadow-[0_10px_24px_rgba(31,90,58,0.16)] backdrop-blur-md before:absolute before:left-[-6px] before:top-4 before:h-3 before:w-3 before:rotate-45 before:border-b before:border-l before:border-[#BDE8CA] before:bg-white/92">
+              <p className="text-xs font-extrabold text-[#24944E]">{selectedCoach.name}의 오늘 한마디</p>
+              <p className="mt-1 text-sm font-medium leading-5 text-[#173425]">{selectedCoach.quote}</p>
+            </div>
           </div>
 
           <div className="absolute inset-0 z-20">
