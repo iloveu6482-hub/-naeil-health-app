@@ -3,9 +3,9 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import AvatarWindEffect from "@/components/avatar/AvatarWindEffect";
-import { getAvatarImagePath, getAvatarOutfitImagePath, getAvatarRotationImagePath, getFallbackAvatarImagePath } from "@/lib/avatarAssets";
+import { getAvatarImagePath, getAvatarOutfitImagePath, getAvatarRotationImagePath, getAvatarThemeImagePath, getFallbackAvatarImagePath } from "@/lib/avatarAssets";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
-import type { AvatarGender, AvatarMood, AvatarOutfit, AvatarRotationView, AvatarStyle, AvatarViewMode } from "@/types/avatar";
+import type { AvatarGender, AvatarMood, AvatarOutfit, AvatarRotationView, AvatarStyle, AvatarTheme, AvatarViewMode } from "@/types/avatar";
 
 type AvatarViewerProps = {
   style: AvatarStyle;
@@ -32,6 +32,7 @@ const sizeClasses = { sm: "h-16 w-16", md: "h-32 w-28", lg: "h-72 w-full", xl: "
 
 export default function AvatarViewer({ style, gender, viewMode, mood = "idle", rotationView, outfit, customImageUrl, showControls = false, showWindEffect = true, showLeaves = true, showLightTrails = true, size = "lg", fill = false, cover = false, priority = false, className = "", alt = "마이 아바타", onViewModeChange }: AvatarViewerProps) {
   const [storedOutfit, setStoredOutfit] = useState<AvatarOutfit | null>(outfit || null);
+  const [storedTheme, setStoredTheme] = useState<AvatarTheme | null>(null);
   useEffect(() => {
     if (outfit) { setStoredOutfit(outfit); return; }
     const updateOutfit = () => {
@@ -42,9 +43,16 @@ export default function AvatarViewer({ style, gender, viewMode, mood = "idle", r
     window.addEventListener("avatarOutfitUpdated", updateOutfit);
     return () => window.removeEventListener("avatarOutfitUpdated", updateOutfit);
   }, [outfit]);
+  useEffect(() => {
+    const updateTheme = () => setStoredTheme(getFromStorage<AvatarTheme | null>(STORAGE_KEYS.AVATAR_THEME, null));
+    updateTheme();
+    window.addEventListener("avatarThemeUpdated", updateTheme);
+    return () => window.removeEventListener("avatarThemeUpdated", updateTheme);
+  }, []);
   const activeOutfit = outfit || storedOutfit;
+  const themeImage = storedTheme ? getAvatarThemeImagePath({ style, gender, viewMode, theme: storedTheme }) : undefined;
   const outfitImage = activeOutfit ? getAvatarOutfitImagePath({ style, gender, viewMode, outfit: activeOutfit }) : undefined;
-  const requested = customImageUrl || outfitImage || (rotationView ? getAvatarRotationImagePath({ style, gender, rotationView }) : getAvatarImagePath({ style, gender, viewMode, mood }));
+  const requested = customImageUrl || themeImage || outfitImage || (rotationView ? getAvatarRotationImagePath({ style, gender, rotationView }) : getAvatarImagePath({ style, gender, viewMode, mood }));
   const fullbodyFallback = getAvatarImagePath({ style, gender, viewMode: "fullbody", mood });
   const portraitFallback = customImageUrl || getFallbackAvatarImagePath({ style, gender });
   const [source, setSource] = useState(requested);
