@@ -94,25 +94,25 @@ export default function DashboardPage() {
           </div>
 
           <div className="absolute inset-0 z-20">
-            <div className="absolute left-3 top-[446px] space-y-2 [@media(max-height:700px)]:top-[386px]">
+            <div className="absolute left-3 top-[454px] space-y-2 [@media(max-height:700px)]:top-[394px]">
               {[
                 { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]" },
                 { icon: Flame, label: "소모 칼로리", value: `${calories} kcal`, color: "text-[#F59E0B]" },
                 { icon: Moon, label: "수면", value: `${dailyLog.sleepHours}시간`, color: "text-[#4E66B1]" },
                 { icon: Droplets, label: "수분", value: `${dailyLog.waterCups}잔`, color: "text-[#27A9D6]" },
               ].map(({ icon: Icon, label, value, color }) => (
-                <div key={label} className="h-[58px] w-[128px] rounded-[18px] border border-white/65 bg-white/38 px-3 shadow-[0_12px_30px_rgba(10,66,40,0.18)] backdrop-blur-[9px]">
-                  <div className="flex h-full items-center gap-2.5"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/70"><Icon size={19} className={color} /></span><div><p className="whitespace-nowrap text-[10px] font-semibold text-[#1F2937]/70">{label}</p><p className="whitespace-nowrap text-[15px] font-black leading-5 text-[#102D20]">{value}</p></div></div>
+                <div key={label} className="h-16 w-[142px] rounded-[19px] border border-white/65 bg-white/38 px-3 shadow-[0_12px_30px_rgba(10,66,40,0.18)] backdrop-blur-[9px]">
+                  <div className="flex h-full items-center gap-2.5"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/70"><Icon size={21} className={color} /></span><div><p className="whitespace-nowrap text-xs font-semibold text-[#1F2937]/70">{label}</p><p className="whitespace-nowrap text-[17px] font-black leading-5 text-[#102D20]">{value}</p></div></div>
                 </div>
               ))}
             </div>
 
-            <div className="absolute left-3 top-[382px] flex h-[58px] w-[128px] flex-col justify-center rounded-xl rounded-bl-sm border border-white/65 bg-white/48 px-3 shadow-[0_8px_20px_rgba(31,90,58,0.13)] backdrop-blur-[9px] [@media(max-height:700px)]:top-[322px]">
-              <p className="text-[10px] font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-0.5 whitespace-nowrap text-[11px] font-extrabold text-[#163D29]">내일의 나를 만듭니다!</p>
+            <div className="absolute left-3 top-[382px] flex h-16 w-[142px] flex-col justify-center rounded-xl rounded-bl-sm border border-white/65 bg-white/48 px-3 shadow-[0_8px_20px_rgba(31,90,58,0.13)] backdrop-blur-[9px] [@media(max-height:700px)]:top-[322px]">
+              <p className="text-xs font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-0.5 whitespace-nowrap text-[13px] font-extrabold text-[#163D29]">내일의 나를 만듭니다!</p>
             </div>
 
-            <div className="absolute left-8 top-[210px] flex h-32 w-32 flex-col items-center justify-center rounded-full border-[5px] border-white/70 bg-white/58 text-center shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-2 ring-[#4CAF6A]/55 backdrop-blur-[10px] [@media(max-height:700px)]:top-[176px]">
-              <p className="text-[10px] font-semibold text-gray-500">오늘의 건강관리</p><p className="text-[10px] text-gray-500">참고 점수</p><p className="mt-1 text-4xl font-black text-[#24944E]">{score}</p><p className="text-xs text-[#4CAF6A]">/ 100</p>
+            <div className="absolute left-3 top-[210px] flex h-36 w-36 flex-col items-center justify-center rounded-full border-[5px] border-white/70 bg-white/58 text-center shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-2 ring-[#4CAF6A]/55 backdrop-blur-[10px] [@media(max-height:700px)]:top-[176px]">
+              <p className="text-xs font-semibold text-gray-500">오늘의 건강관리</p><p className="text-xs text-gray-500">참고 점수</p><p className="mt-1 text-5xl font-black leading-none text-[#24944E]">{score}</p><p className="text-sm text-[#4CAF6A]">/ 100</p>
             </div>
           </div>
         </section>
