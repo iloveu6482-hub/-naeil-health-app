@@ -56,9 +56,9 @@ export default function TrainerPage() {
               {aiCoaches.map((coach) => {
                 const isSelected = selectedCoachId === coach.id;
                 return (
-                  <button key={coach.id} onClick={() => selectCoach(coach.id)} className={`rounded-2xl border-2 bg-white p-2 text-left transition-all active:scale-[0.99] ${isSelected ? "border-[#4CAF6A] shadow-[0_8px_18px_rgba(76,175,106,0.20)]" : "border-gray-100"}`}>
-                    <div className="relative mx-auto h-24 w-24 overflow-hidden rounded-xl bg-[#EAF7EF]">
-                      <Image src={coach.imageUrl} alt={`${coach.name} AI 코치`} fill sizes="96px" className="object-cover object-center" />
+                  <button key={coach.id} onClick={() => selectCoach(coach.id)} className={`rounded-2xl border-2 bg-white p-2.5 text-left transition-all active:scale-[0.99] ${isSelected ? "border-[#4CAF6A] shadow-[0_8px_18px_rgba(76,175,106,0.20)]" : "border-gray-100"}`}>
+                    <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-[#EAF7EF]">
+                      <Image src={coach.imageUrl} alt={`${coach.name} AI 코치`} fill sizes="(max-width: 480px) 44vw, 180px" className="object-cover object-center" />
                       {isSelected && <span className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#4CAF6A] shadow"><Check size={14} className="text-white" /></span>}
                     </div>
                     <div className="pt-2">
