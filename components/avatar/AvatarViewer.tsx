@@ -15,6 +15,7 @@ type AvatarViewerProps = {
   rotationView?: AvatarRotationView;
   outfit?: AvatarOutfit;
   customImageUrl?: string;
+  statusVideoUrl?: string;
   showControls?: boolean;
   showWindEffect?: boolean;
   showLeaves?: boolean;
@@ -31,7 +32,7 @@ type AvatarViewerProps = {
 
 const sizeClasses = { sm: "h-16 w-16", md: "h-32 w-28", lg: "h-72 w-full", xl: "h-[430px] w-full" };
 
-export default function AvatarViewer({ style, gender, viewMode, mood = "idle", rotationView, outfit, customImageUrl, showControls = false, showWindEffect = true, showLeaves = true, showLightTrails = true, size = "lg", fill = false, cover = false, coverPosition = "center", priority = false, className = "", alt = "마이 아바타", onViewModeChange }: AvatarViewerProps) {
+export default function AvatarViewer({ style, gender, viewMode, mood = "idle", rotationView, outfit, customImageUrl, statusVideoUrl, showControls = false, showWindEffect = true, showLeaves = true, showLightTrails = true, size = "lg", fill = false, cover = false, coverPosition = "center", priority = false, className = "", alt = "마이 아바타", onViewModeChange }: AvatarViewerProps) {
   const [storedOutfit, setStoredOutfit] = useState<AvatarOutfit | null>(outfit || null);
   const [storedTheme, setStoredTheme] = useState<AvatarTheme | null>(null);
   useEffect(() => {
@@ -53,7 +54,7 @@ export default function AvatarViewer({ style, gender, viewMode, mood = "idle", r
   const activeOutfit = outfit || storedOutfit;
   const themeImage = storedTheme ? getAvatarThemeImagePath({ style, gender, viewMode, theme: storedTheme }) : undefined;
   const outfitImage = activeOutfit ? getAvatarOutfitImagePath({ style, gender, viewMode, outfit: activeOutfit }) : undefined;
-  const requested = customImageUrl || themeImage || outfitImage || (rotationView ? getAvatarRotationImagePath({ style, gender, rotationView }) : getAvatarImagePath({ style, gender, viewMode, mood }));
+  const requested = statusVideoUrl || customImageUrl || themeImage || outfitImage || (rotationView ? getAvatarRotationImagePath({ style, gender, rotationView }) : getAvatarImagePath({ style, gender, viewMode, mood }));
   const fullbodyFallback = getAvatarImagePath({ style, gender, viewMode: "fullbody", mood });
   const portraitFallback = customImageUrl || getFallbackAvatarImagePath({ style, gender });
   const [source, setSource] = useState(requested);
@@ -61,7 +62,7 @@ export default function AvatarViewer({ style, gender, viewMode, mood = "idle", r
   useEffect(() => { setSource(requested); setFallbackStep(0); }, [requested]);
   const changeMode = (mode: AvatarViewMode) => { saveToStorage(STORAGE_KEYS.AVATAR_VIEW_MODE, mode); onViewModeChange?.(mode); };
   const handleError = () => {
-    if (customImageUrl) return;
+    if (customImageUrl && !statusVideoUrl) return;
     if (fallbackStep === 0 && source !== fullbodyFallback) { setSource(fullbodyFallback); setFallbackStep(1); return; }
     if (source !== portraitFallback) { setSource(portraitFallback); setFallbackStep(2); }
   };

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Bell, Camera, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Moon, Shirt, Target, Utensils, Users, TrendingUp } from "lucide-react";
+import { Bell, Camera, CheckCircle2, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Moon, Shirt, Target, Utensils, Users, TrendingUp } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
@@ -28,6 +28,20 @@ const quickMenus = [
   { href: "/meals", icon: Utensils, label: "식단 사진\n기록" },
   { href: "/report", icon: FileText, label: "건강\n리포트" },
 ];
+
+type ScoreStatus = "low" | "medium" | "high";
+
+const scoreCoachMessages: Record<ScoreStatus, string> = {
+  low: "오늘은 무리하지 않아도 괜찮아요. 작은 실천 하나부터 시작해볼까요?",
+  medium: "좋아요. 한 가지만 더 실천해볼까요?",
+  high: "아주 좋아요. 오늘의 건강 습관이 잘 이어지고 있어요.",
+};
+
+function getScoreStatus(score: number): ScoreStatus {
+  if (score >= 70) return "high";
+  if (score >= 40) return "medium";
+  return "low";
+}
 
 export default function DashboardPage() {
   const [user, setUser] = useState<UserProfile>(sampleUser);
@@ -59,7 +73,6 @@ export default function DashboardPage() {
     saveToStorage(STORAGE_KEYS.AVATAR_VIEW_MODE, mode);
   };
 
-  const coachMessage = selectedCoach.quote;
   const calories = calculateWalkingCalories(dailyLog.steps, checkup.weight);
   const displayName = user.name?.trim() || "사용자";
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
@@ -68,6 +81,21 @@ export default function DashboardPage() {
   const today = new Date().toISOString().slice(0, 10);
   const todayMeals = meals.filter((meal) => meal.mealDate === today);
   const mealCalories = todayMeals.reduce((sum, meal) => sum + meal.estimatedCalories, 0);
+  const scoreStatus = getScoreStatus(score);
+  const coachMessage = scoreCoachMessages[scoreStatus];
+  const statusVideoUrl = `/avatars/status/avatar_${scoreStatus}.mp4`;
+  const scoreCircleEffect =
+    scoreStatus === "high"
+      ? "border-[#E9D37A]/90 bg-white/64 shadow-[0_0_0_1px_rgba(76,175,106,0.22),0_0_36px_rgba(233,211,122,0.42),0_18px_34px_rgba(31,90,58,0.26)] ring-[#E9D37A]/65"
+      : scoreStatus === "medium"
+        ? "border-white/75 bg-white/60 shadow-[0_0_26px_rgba(109,220,177,0.32),0_14px_30px_rgba(31,90,58,0.22)] ring-[#9BE7C5]/55"
+        : "border-white/70 bg-white/58 shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-[#4CAF6A]/55";
+  const dashboardMetricItems = [
+    { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]", achieved: dailyLog.steps >= 7000 },
+    { icon: Flame, label: "소모 칼로리", value: `${calories} kcal`, color: "text-[#F59E0B]", achieved: calories >= 300 },
+    { icon: Moon, label: "수면", value: `${dailyLog.sleepHours}시간`, color: "text-[#4E66B1]", achieved: dailyLog.sleepHours >= 7 && dailyLog.sleepHours <= 9 },
+    { icon: Droplets, label: "수분", value: `${dailyLog.waterCups}잔`, color: "text-[#27A9D6]", achieved: dailyLog.waterCups >= 6 },
+  ];
 
   const summaryItems = [
     { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]" },
@@ -83,7 +111,7 @@ export default function DashboardPage() {
       <AppHeader />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
         <section className="relative min-h-[760px] overflow-hidden bg-[#1F5A3A] [@media(max-height:700px)]:min-h-[700px]">
-          <div className="absolute inset-0"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} fill cover priority showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} /></div>
+          <div className="absolute inset-0"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} statusVideoUrl={statusVideoUrl} fill cover priority showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} /></div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/18 via-transparent to-transparent" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
@@ -92,19 +120,15 @@ export default function DashboardPage() {
               <Image src={selectedCoach.faceImageUrl || selectedCoach.imageUrl} alt={`${selectedCoach.name} 코치`} fill className="object-cover" />
             </div>
             <div className="relative flex-1 rounded-2xl border border-[#BDE8CA] bg-white/92 px-3.5 py-2 shadow-[0_10px_24px_rgba(31,90,58,0.16)] backdrop-blur-md before:absolute before:left-[-6px] before:top-3.5 before:h-3 before:w-3 before:rotate-45 before:border-b before:border-l before:border-[#BDE8CA] before:bg-white/92">
-              <p className="text-sm font-medium leading-5 text-[#173425]">{selectedCoach.quote}</p>
+              <p className="text-sm font-medium leading-5 text-[#173425]">{coachMessage}</p>
             </div>
           </div>
 
           <div className="absolute inset-0 z-20">
             <div className="absolute left-3 top-[454px] space-y-2 [@media(max-height:700px)]:top-[394px]">
-              {[
-                { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]" },
-                { icon: Flame, label: "소모 칼로리", value: `${calories} kcal`, color: "text-[#F59E0B]" },
-                { icon: Moon, label: "수면", value: `${dailyLog.sleepHours}시간`, color: "text-[#4E66B1]" },
-                { icon: Droplets, label: "수분", value: `${dailyLog.waterCups}잔`, color: "text-[#27A9D6]" },
-              ].map(({ icon: Icon, label, value, color }) => (
-                <div key={label} className="h-16 w-[142px] rounded-[19px] border border-white/65 bg-white/38 px-3 shadow-[0_12px_30px_rgba(10,66,40,0.18)] backdrop-blur-[9px]">
+              {dashboardMetricItems.map(({ icon: Icon, label, value, color, achieved }) => (
+                <div key={label} className={`relative h-16 w-[142px] rounded-[19px] border px-3 shadow-[0_12px_30px_rgba(10,66,40,0.18)] backdrop-blur-[9px] ${achieved ? "border-[#BDE8CA] bg-[#EAF7EF]/62 ring-1 ring-[#9BE7C5]/60" : "border-white/65 bg-white/38"}`}>
+                  {achieved && <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#4CAF6A] text-white"><CheckCircle2 size={11} /></span>}
                   <div className="flex h-full items-center gap-2.5"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/70"><Icon size={21} className={color} /></span><div><p className="whitespace-nowrap text-xs font-semibold text-[#1F2937]/70">{label}</p><p className="whitespace-nowrap text-[17px] font-black leading-5 text-[#102D20]">{value}</p></div></div>
                 </div>
               ))}
@@ -114,8 +138,9 @@ export default function DashboardPage() {
               <p className="text-xs font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-0.5 whitespace-nowrap text-[13px] font-extrabold text-[#163D29]">내일의 나를 만듭니다!</p>
             </div>
 
-            <button type="button" onClick={() => setScoreSheetOpen(true)} className="absolute left-3 top-[210px] flex h-36 w-36 flex-col items-center justify-center rounded-full border-[5px] border-white/70 bg-white/58 text-center shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-2 ring-[#4CAF6A]/55 backdrop-blur-[10px] transition active:scale-95 [@media(max-height:700px)]:top-[176px]" aria-label="오늘 내 점수 분석 열기">
-              <p className="text-xs font-semibold text-gray-500">오늘의 건강관리</p><p className="text-xs text-gray-500">참고 점수</p><p className="mt-1 text-5xl font-black leading-none text-[#24944E]">{score}</p><p className="text-sm text-[#4CAF6A]">/ 100</p>
+            <button type="button" onClick={() => setScoreSheetOpen(true)} className={`absolute left-3 top-[210px] flex h-36 w-36 flex-col items-center justify-center overflow-hidden rounded-full border-[5px] text-center ring-2 backdrop-blur-[10px] transition active:scale-95 [@media(max-height:700px)]:top-[176px] ${scoreCircleEffect}`} aria-label="오늘 내 점수 분석 열기">
+              {scoreStatus === "high" && <span className="pointer-events-none absolute inset-y-[-20%] left-[-70%] w-12 rotate-12 bg-gradient-to-r from-transparent via-white/55 to-transparent blur-sm animate-[scoreShimmer_4.5s_ease-in-out_infinite]" />}
+              <p className="relative text-xs font-semibold text-gray-500">오늘의 건강관리</p><p className="relative text-xs text-gray-500">참고 점수</p><p className="relative mt-1 text-5xl font-black leading-none text-[#24944E]">{score}</p><p className="relative text-sm text-[#4CAF6A]">/ 100</p>
             </button>
           </div>
         </section>
@@ -170,6 +195,23 @@ export default function DashboardPage() {
       </main>
       <HealthScoreSheet open={scoreSheetOpen} onClose={() => setScoreSheetOpen(false)} totalScore={score} dailyLog={dailyLog} meals={meals} />
       <BottomNav />
+      <style jsx>{`
+        @keyframes scoreShimmer {
+          0%,
+          18% {
+            transform: translateX(0) rotate(12deg);
+            opacity: 0;
+          }
+          42% {
+            opacity: 0.55;
+          }
+          72%,
+          100% {
+            transform: translateX(360%) rotate(12deg);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </MobileShell>
   );
 }
