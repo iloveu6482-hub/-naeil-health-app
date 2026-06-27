@@ -46,8 +46,8 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-[34px] font-black tracking-[-0.055em] drop-shadow-sm">내일의건강</h1>
-          <p className="mt-1 text-sm font-medium leading-snug text-green-50">건강검진 결과를 쉽게 이해하고<br />매일의 습관으로 바꾸는 AI 건강관리</p>
-          <span className="mt-2 inline-flex rounded-full bg-gradient-to-r from-[#D8F7DF] to-[#B9EDC6] px-5 py-1.5 text-sm font-extrabold text-[#17663A] shadow-[0_8px_22px_rgba(0,0,0,0.15)]">AI 건강관리 파트너</span>
+          <p className="mt-1 text-base font-semibold leading-snug text-green-50">건강검진 결과를 쉽게 이해하고<br />매일의 습관으로 바꾸는 AI 건강관리</p>
+          <span className="mt-2 inline-flex rounded-full bg-gradient-to-r from-[#D8F7DF] to-[#B9EDC6] px-5 py-1.5 text-[15px] font-extrabold text-[#17663A] shadow-[0_8px_22px_rgba(0,0,0,0.15)]">AI 건강관리 파트너</span>
         </section>
 
         <main className="relative z-10 -mt-10 space-y-2.5 px-3 pb-4">
@@ -57,10 +57,10 @@ export default function HomePage() {
               {avatars.map((avatar) => (
                 <div key={avatar.label} className={`relative rounded-xl border-2 p-1.5 pb-2 text-center transition ${avatar.selected ? "border-[#24944E] bg-[#F4FCF6] shadow-[0_6px_14px_rgba(36,148,78,0.16)]" : "border-gray-100 bg-white shadow-sm"}`}>
                   {avatar.selected && <span className="absolute -right-1 -top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-[#2DAE5B] text-white shadow"><Check size={14} strokeWidth={3} /></span>}
-                  <div className="relative mx-auto h-16 w-16 max-w-full overflow-hidden rounded-full bg-[#EAF7EF]">
+                  <div className="relative mx-auto h-[68px] w-[68px] max-w-full overflow-hidden rounded-full bg-[#EAF7EF]">
                     <Image src={avatar.image} alt={`${avatar.label} 기본 건강이`} fill className="object-cover" />
                   </div>
-                  <p className={`mt-1 text-xs font-extrabold ${avatar.selected ? "text-[#208347]" : "text-[#334155]"}`}>{avatar.label}</p>
+                  <p className={`mt-1 text-[13px] font-extrabold leading-tight ${avatar.selected ? "text-[#208347]" : "text-[#334155]"}`}>{avatar.label}</p>
                 </div>
               ))}
             </div>
@@ -71,9 +71,9 @@ export default function HomePage() {
             <h2 className="mb-2 text-center text-base font-black tracking-tight text-[#1E293B]">내일의건강이 특별한 이유 <span className="text-[#2EAD5A]">♥</span></h2>
             <div className="grid grid-cols-2 gap-2">
               {features.map(({ icon: Icon, label, desc, tone, iconColor }) => (
-                <div key={label} className="flex min-h-[82px] items-center gap-2 rounded-xl border border-gray-100 bg-white p-2 shadow-[0_5px_14px_rgba(31,41,55,0.07)]">
+                <div key={label} className="flex min-h-[86px] items-center gap-2 rounded-xl border border-gray-100 bg-white p-2 shadow-[0_5px_14px_rgba(31,41,55,0.07)]">
                   <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${tone} shadow-inner`}><Icon size={23} className={iconColor} strokeWidth={2.1} /></div>
-                  <div><p className="text-xs font-extrabold leading-snug text-[#1E293B]">{label}</p><p className="mt-0.5 whitespace-pre-line text-[10px] leading-snug text-gray-500">{desc}</p></div>
+                  <div><p className="text-[13px] font-extrabold leading-snug text-[#1E293B]">{label}</p><p className="mt-0.5 whitespace-pre-line text-[11px] leading-snug text-gray-500">{desc}</p></div>
                 </div>
               ))}
             </div>
