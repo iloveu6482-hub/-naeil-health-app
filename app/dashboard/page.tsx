@@ -125,7 +125,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="absolute inset-0 z-20">
-            <div className="absolute left-3 top-[454px] space-y-2 [@media(max-height:700px)]:top-[394px]">
+            <div className="absolute left-3 top-[402px] space-y-2 [@media(max-height:700px)]:top-[342px]">
               {dashboardMetricItems.map(({ icon: Icon, label, value, color, achieved }) => (
                 <div key={label} className={`relative h-16 w-[142px] rounded-[19px] border px-3 shadow-[0_12px_30px_rgba(10,66,40,0.18)] backdrop-blur-[9px] ${achieved ? "border-[#BDE8CA] bg-[#EAF7EF]/62 ring-1 ring-[#9BE7C5]/60" : "border-white/65 bg-white/38"}`}>
                   {achieved && <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#4CAF6A] text-white"><CheckCircle2 size={11} /></span>}
@@ -134,11 +134,11 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            <div className="absolute left-3 top-[382px] flex h-16 w-[142px] flex-col justify-center rounded-xl rounded-bl-sm border border-white/65 bg-white/48 px-3 shadow-[0_8px_20px_rgba(31,90,58,0.13)] backdrop-blur-[9px] [@media(max-height:700px)]:top-[322px]">
+            <div className="absolute left-3 top-[330px] flex h-16 w-[142px] flex-col justify-center rounded-xl rounded-bl-sm border border-white/65 bg-white/48 px-3 shadow-[0_8px_20px_rgba(31,90,58,0.13)] backdrop-blur-[9px] [@media(max-height:700px)]:top-[270px]">
               <p className="text-xs font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-0.5 whitespace-nowrap text-[13px] font-extrabold text-[#163D29]">내일의 나를 만듭니다!</p>
             </div>
 
-            <button type="button" onClick={() => setScoreSheetOpen(true)} className={`absolute left-3 top-[210px] flex h-36 w-36 flex-col items-center justify-center overflow-hidden rounded-full border-[5px] text-center ring-2 backdrop-blur-[10px] transition active:scale-95 [@media(max-height:700px)]:top-[176px] ${scoreCircleEffect}`} aria-label="오늘 내 점수 분석 열기">
+            <button type="button" onClick={() => setScoreSheetOpen(true)} className={`absolute left-3 top-[158px] flex h-36 w-36 flex-col items-center justify-center overflow-hidden rounded-full border-[5px] text-center ring-2 backdrop-blur-[10px] transition active:scale-95 [@media(max-height:700px)]:top-[124px] ${scoreCircleEffect}`} aria-label="오늘 내 점수 분석 열기">
               {scoreStatus === "high" && <span className="pointer-events-none absolute inset-y-[-20%] left-[-70%] w-12 rotate-12 bg-gradient-to-r from-transparent via-white/55 to-transparent blur-sm animate-[scoreShimmer_4.5s_ease-in-out_infinite]" />}
               <p className="relative text-xs font-semibold text-gray-500">오늘의 건강관리</p><p className="relative text-xs text-gray-500">참고 점수</p><p className="relative mt-1 text-5xl font-black leading-none text-[#24944E]">{score}</p><p className="relative text-sm text-[#4CAF6A]">/ 100</p>
             </button>
