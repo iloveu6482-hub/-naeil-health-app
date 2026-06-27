@@ -227,7 +227,7 @@ export default function AvatarPage() {
                 return (
                   <button key={avatar.id} onClick={() => selectDefaultAvatar(avatar)} className={`overflow-hidden rounded-xl border-2 bg-white text-left transition-all ${isSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
                     <div className="relative aspect-[4/3] overflow-hidden bg-[#EAF7EF]">
-                      <AnimatedAvatar style={avatar.style} gender={avatar.gender} viewMode="portrait" mood={isSelected ? "happy" : "idle"} imageUrl={avatar.imageUrl} fill glow={isSelected} alt={`${avatar.name} ${avatarGender === "female" ? "여성" : "남성"} 기본 아바타`} />
+                      <AnimatedAvatar style={avatar.style} gender={avatar.gender} viewMode="portrait" mood={isSelected ? "happy" : "idle"} imageUrl={avatar.imageUrl} fill cover coverPosition="top" glow={isSelected} alt={`${avatar.name} ${avatarGender === "female" ? "여성" : "남성"} 기본 아바타`} />
                       {isSelected && <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#4CAF6A] shadow"><Check size={14} className="text-white" /></span>}
                     </div>
                     <div className="p-2"><p className="text-sm font-extrabold text-[#1F2937]">{avatar.name}</p><p className="mt-0.5 truncate text-[11px] leading-relaxed text-gray-500">{avatar.description}</p></div>

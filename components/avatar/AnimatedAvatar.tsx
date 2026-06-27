@@ -11,6 +11,8 @@ type Props = {
   size?: "sm" | "md" | "lg";
   imageUrl?: string;
   fill?: boolean;
+  cover?: boolean;
+  coverPosition?: "center" | "top";
   glow?: boolean;
   priority?: boolean;
   alt?: string;
@@ -18,6 +20,6 @@ type Props = {
 
 export type { AvatarMood } from "@/types/avatar";
 
-export default function AnimatedAvatar({ style, gender = "female", mood = "idle", viewMode = "portrait", size = "md", imageUrl, fill = false, glow = true, priority = false, alt = "건강이 아바타" }: Props) {
-  return <AvatarViewer style={style} gender={gender} viewMode={viewMode} mood={mood} customImageUrl={imageUrl} size={size} fill={fill} priority={priority} showWindEffect={glow} showLeaves={glow} showLightTrails={glow} alt={alt} />;
+export default function AnimatedAvatar({ style, gender = "female", mood = "idle", viewMode = "portrait", size = "md", imageUrl, fill = false, cover = false, coverPosition = "center", glow = true, priority = false, alt = "건강이 아바타" }: Props) {
+  return <AvatarViewer style={style} gender={gender} viewMode={viewMode} mood={mood} customImageUrl={imageUrl} size={size} fill={fill} cover={cover} coverPosition={coverPosition} priority={priority} showWindEffect={glow} showLeaves={glow} showLightTrails={glow} alt={alt} />;
 }
