@@ -8,6 +8,7 @@ import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
 import CoachMessageCard from "@/components/dashboard/CoachMessageCard";
+import HealthScoreSheet from "@/components/dashboard/HealthScoreSheet";
 import AvatarViewer from "@/components/avatar/AvatarViewer";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculateHealthScore } from "@/lib/healthRules";
@@ -36,6 +37,7 @@ export default function DashboardPage() {
   const [meals, setMeals] = useState<MealAnalysis[]>([]);
   const [avatarViewMode, setAvatarViewMode] = useState<AvatarViewMode>("portrait");
   const [selectedCoach, setSelectedCoach] = useState<AiCoach>(defaultAiCoach);
+  const [scoreSheetOpen, setScoreSheetOpen] = useState(false);
 
   useEffect(() => {
     const savedUser = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
@@ -111,9 +113,9 @@ export default function DashboardPage() {
               <p className="text-xs font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-0.5 whitespace-nowrap text-[13px] font-extrabold text-[#163D29]">내일의 나를 만듭니다!</p>
             </div>
 
-            <div className="absolute left-3 top-[210px] flex h-36 w-36 flex-col items-center justify-center rounded-full border-[5px] border-white/70 bg-white/58 text-center shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-2 ring-[#4CAF6A]/55 backdrop-blur-[10px] [@media(max-height:700px)]:top-[176px]">
+            <button type="button" onClick={() => setScoreSheetOpen(true)} className="absolute left-3 top-[210px] flex h-36 w-36 flex-col items-center justify-center rounded-full border-[5px] border-white/70 bg-white/58 text-center shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-2 ring-[#4CAF6A]/55 backdrop-blur-[10px] transition active:scale-95 [@media(max-height:700px)]:top-[176px]" aria-label="오늘 내 점수 분석 열기">
               <p className="text-xs font-semibold text-gray-500">오늘의 건강관리</p><p className="text-xs text-gray-500">참고 점수</p><p className="mt-1 text-5xl font-black leading-none text-[#24944E]">{score}</p><p className="text-sm text-[#4CAF6A]">/ 100</p>
-            </div>
+            </button>
           </div>
         </section>
 
@@ -165,6 +167,7 @@ export default function DashboardPage() {
         <section className="px-4 pb-3"><CoachMessageCard title={`${selectedCoach.name}의 오늘 한마디`} message={coachMessage} style={user.avatarStyle} gender={avatarGender} imageUrl={selectedCoach.faceImageUrl || selectedCoach.imageUrl} /></section>
         <section className="px-4 pb-6"><Link href="/notifications" className="block rounded-2xl border border-green-100 bg-[#EAF7EF] p-4"><p className="flex items-center gap-2 font-extrabold text-[#1F5A3A]"><Bell size={18} />점심시간이에요</p><p className="mt-1 text-sm text-gray-600">식사 전 사진 한 장으로 오늘의 식단을 기록해보세요.</p></Link></section>
       </main>
+      <HealthScoreSheet open={scoreSheetOpen} onClose={() => setScoreSheetOpen(false)} totalScore={score} dailyLog={dailyLog} meals={meals} />
       <BottomNav />
     </MobileShell>
   );
