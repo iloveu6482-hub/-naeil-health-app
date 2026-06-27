@@ -13,7 +13,8 @@ export default function TrainerPage() {
   const [selectedCoachId, setSelectedCoachId] = useState(defaultAiCoach.id);
 
   useEffect(() => {
-    setSelectedCoachId(getFromStorage<string>(STORAGE_KEYS.SELECTED_AI_COACH_ID, defaultAiCoach.id));
+    const savedCoachId = getFromStorage<string>(STORAGE_KEYS.SELECTED_AI_COACH_ID, defaultAiCoach.id);
+    setSelectedCoachId(aiCoaches.some((coach) => coach.id === savedCoachId) ? savedCoachId : defaultAiCoach.id);
   }, []);
 
   const selectCoach = (coachId: string) => {

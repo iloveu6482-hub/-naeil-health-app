@@ -57,20 +57,6 @@ export const aiCoaches: AiCoach[] = [
     features: ["친근한 응원", "물 마시기", "가벼운 습관", "즐거운 루틴"],
     recommendedFor: ["재미있게 건강관리를 하고 싶은 사용자", "친구 같은 말투를 선호하는 사용자", "가벼운 습관부터 시작하고 싶은 사용자"],
   },
-  {
-    id: "seoyoon",
-    name: "서윤 코치",
-    role: "AI 건강 트레이너",
-    type: "분석형 코칭",
-    tone: "analytic",
-    description:
-      "건강 데이터, 수면, 식단, 활동 기록을 차분하게 분석하고 정확한 피드백을 제공하는 분석형 코치입니다. 수치와 리포트를 중요하게 생각하는 사용자에게 적합합니다.",
-    imageUrl: "/trainers/seoyoon.png",
-    faceImageUrl: "/trainers/faces/seoyoon.png",
-    quote: "최근 수면 시간이 줄어드는 흐름이 보여요. 오늘은 취침 시간을 조금 앞당겨볼까요?",
-    features: ["데이터 분석", "수면 관리", "정확한 피드백", "균형 잡힌 습관"],
-    recommendedFor: ["건강 데이터를 보고 싶은 사용자", "수면, 식단, 활동 패턴을 분석하고 싶은 사용자", "차분한 설명을 선호하는 사용자"],
-  },
 ];
 
 export const defaultAiCoach = aiCoaches[1];

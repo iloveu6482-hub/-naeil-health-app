@@ -6,7 +6,7 @@ import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
 import AvatarViewer from "@/components/avatar/AvatarViewer";
-import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
+import { getFromStorage, removeFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculatePointBalance, canPurchaseItem, purchaseAvatarItem, equipAvatarItem, createSpendTransaction, addPointTransaction } from "@/lib/rewards";
 import { sampleAvatarItems, samplePointTransactions, sampleUser } from "@/lib/sampleData";
 import type { AvatarItem, PointTransaction } from "@/types/reward";
@@ -32,7 +32,8 @@ export default function AvatarShopPage() {
     setViewMode(getFromStorage<AvatarViewMode>(STORAGE_KEYS.AVATAR_VIEW_MODE, "fullbody"));
     const saved = getFromStorage<AvatarItem[]>(STORAGE_KEYS.AVATAR_ITEMS, []).filter((item) => !["item-004", "item-008"].includes(item.id));
     const merged = [...sampleAvatarItems.map((sample) => saved.find((item) => item.id === sample.id) || sample), ...saved.filter((item) => !sampleAvatarItems.some((sample) => sample.id === item.id))];
-    setItems(merged);
+    const activeTheme = getFromStorage<string | null>(STORAGE_KEYS.AVATAR_THEME, null);
+    setItems(merged.map((item) => item.category === "theme" ? { ...item, isEquipped: item.resetTheme ? !activeTheme : item.themeKey === activeTheme } : item));
     const txs = getFromStorage<PointTransaction[]>(STORAGE_KEYS.POINT_TRANSACTIONS, samplePointTransactions);
     setBalance(calculatePointBalance(txs));
   }, []);
@@ -54,7 +55,10 @@ export default function AvatarShopPage() {
       saveToStorage(STORAGE_KEYS.AVATAR_OUTFIT, item.outfitKey);
       window.dispatchEvent(new Event("avatarOutfitUpdated"));
     }
-    if (item.themeKey) {
+    if (item.resetTheme) {
+      removeFromStorage(STORAGE_KEYS.AVATAR_THEME);
+      window.dispatchEvent(new Event("avatarThemeUpdated"));
+    } else if (item.themeKey) {
       saveToStorage(STORAGE_KEYS.AVATAR_THEME, item.themeKey);
       window.dispatchEvent(new Event("avatarThemeUpdated"));
     }

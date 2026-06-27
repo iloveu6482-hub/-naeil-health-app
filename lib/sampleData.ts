@@ -158,6 +158,17 @@ export const samplePointTransactions: PointTransaction[] = [
 
 export const sampleAvatarItems: AvatarItem[] = [
   {
+    id: "theme-default",
+    name: "기본 테마",
+    category: "theme",
+    resetTheme: true,
+    price: 0,
+    description: "기본 건강이 화면으로 다시 돌아가는 테마입니다.",
+    imageUrl: "/avatars/fullbody/avatar-emotional-female.png",
+    isOwned: true,
+    isEquipped: true,
+  },
+  {
     id: "theme-summer",
     name: "여름 테마",
     category: "theme",

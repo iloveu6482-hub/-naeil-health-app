@@ -18,6 +18,7 @@ export type AvatarItem = {
   imageUrl?: string;
   outfitKey?: import("@/types/avatar").AvatarOutfit;
   themeKey?: import("@/types/avatar").AvatarTheme;
+  resetTheme?: boolean;
   isOwned: boolean;
   isEquipped: boolean;
 };
