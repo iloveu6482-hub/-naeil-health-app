@@ -226,7 +226,7 @@ export default function AvatarPage() {
                 const isSelected = !aiAvatarSelected && selectedDefaultId === avatar.id;
                 return (
                   <button key={avatar.id} onClick={() => selectDefaultAvatar(avatar)} className={`overflow-hidden rounded-xl border-2 bg-white text-left transition-all ${isSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
-                    <div className="relative aspect-[4/3] overflow-hidden bg-[#EAF7EF]">
+                    <div className="relative aspect-[6/5] overflow-hidden bg-[#EAF7EF]">
                       <AnimatedAvatar style={avatar.style} gender={avatar.gender} viewMode="portrait" mood={isSelected ? "happy" : "idle"} imageUrl={avatar.imageUrl} fill cover coverPosition="top" glow={isSelected} alt={`${avatar.name} ${avatarGender === "female" ? "여성" : "남성"} 기본 아바타`} />
                       {isSelected && <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#4CAF6A] shadow"><Check size={14} className="text-white" /></span>}
                     </div>
@@ -235,7 +235,7 @@ export default function AvatarPage() {
                 );
               })}
               <button onClick={() => { setAiAvatarSelected(true); setSelectedDefaultId(undefined); setSelected("emotional"); setAvatarImage(undefined); setSourceImage(undefined); setMessage("사진을 올리거나 바로 촬영해서 나만의 AI 건강이를 만들 수 있어요."); }} className={`overflow-hidden rounded-xl border-2 bg-white text-left transition-all ${aiAvatarSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
-                <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#EAF7EF] to-[#D9F6E2]">
+                <div className="relative aspect-[6/5] overflow-hidden bg-gradient-to-br from-[#EAF7EF] to-[#D9F6E2]">
                   <div className="flex h-full flex-col items-center justify-center gap-2 text-[#1F5A3A]">
                     <Sparkles size={34} />
                     <span className="rounded-full bg-white/85 px-3 py-1 text-xs font-extrabold shadow-sm">AI 생성</span>
