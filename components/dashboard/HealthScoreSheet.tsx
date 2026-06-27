@@ -1,21 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Droplets, Dumbbell, Footprints, Moon, Utensils, X } from "lucide-react";
+import { buildLifestyleScoreItems } from "@/lib/lifestyleScore";
 import type { DailyLog } from "@/types/health";
 import type { MealAnalysis } from "@/types/meal";
+import type { LifestyleScoreItem, LifestyleScoreItemId } from "@/lib/lifestyleScore";
 
-type ScoreItemId = "activity" | "meal" | "sleep" | "water" | "exercise";
-
-type ScoreItem = {
-  id: ScoreItemId;
+type ScoreItem = LifestyleScoreItem & {
   icon: typeof Footprints;
-  title: string;
-  valueText: string;
-  score: number;
-  maxScore: number;
-  formula: string;
-  currentKey: string;
 };
 
 type ScoreRule = {
@@ -39,65 +32,7 @@ type Props = {
   meals: MealAnalysis[];
 };
 
-function activityScore(steps: number) {
-  if (steps < 2000) return 0;
-  return Math.min(35, Math.floor(steps / 200));
-}
-
-function activityKey(steps: number) {
-  if (steps >= 7000) return "7000";
-  if (steps >= 5600) return "5600";
-  if (steps >= 4200) return "4200";
-  if (steps >= 2800) return "2800";
-  if (steps >= 2000) return "2000";
-  return "under2000";
-}
-
-function mealScore(mealsCount: number) {
-  if (mealsCount <= 1) return 0;
-  if (mealsCount === 2) return 18;
-  return 25;
-}
-
-function mealKey(mealsCount: number) {
-  if (mealsCount >= 3) return "threeVeg";
-  if (mealsCount === 2) return "twoVeg";
-  return "one";
-}
-
-function sleepScore(hours: number) {
-  if (hours >= 7 && hours <= 9) return 25;
-  if ((hours >= 6 && hours < 7) || (hours > 9 && hours <= 10)) return 17;
-  if (hours >= 5 && hours < 6) return 8;
-  return 0;
-}
-
-function sleepKey(hours: number) {
-  if (hours >= 7 && hours <= 9) return "optimal";
-  if (hours >= 6 && hours < 7) return "short";
-  if (hours > 9 && hours <= 10) return "long";
-  if (hours >= 5 && hours < 6) return "low";
-  return "out";
-}
-
-function waterScore(cups: number) {
-  if (cups <= 1) return 0;
-  return Math.min(15, Math.floor(cups * 2));
-}
-
-function waterKey(cups: number) {
-  if (cups >= 8) return "eight";
-  if (cups >= 6) return "six";
-  if (cups >= 4) return "four";
-  if (cups >= 2) return "two";
-  return "one";
-}
-
-function exerciseKey(done: boolean) {
-  return done ? "on" : "off";
-}
-
-const DETAILS: Record<ScoreItemId, ScoreDetail> = {
+const DETAILS: Record<LifestyleScoreItemId, ScoreDetail> = {
   activity: {
     title: "신체활동 배점 기준",
     rules: [
@@ -182,64 +117,17 @@ export default function HealthScoreSheet({ open, onClose, totalScore, dailyLog, 
   const [selectedItem, setSelectedItem] = useState<ScoreItem | null>(null);
   const [detailTab, setDetailTab] = useState<"table" | "evidence">("table");
 
-  const todayMealCount = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    const recordedMeals = meals.filter((meal) => meal.mealDate === today && meal.mealType !== "snack").length;
-    return Math.max(recordedMeals, dailyLog.mealsCount || 0);
-  }, [dailyLog.mealsCount, meals]);
-
-  const items: ScoreItem[] = [
-    {
-      id: "activity",
-      icon: Footprints,
-      title: "신체활동",
-      valueText: `오늘 ${dailyLog.steps.toLocaleString()}보 걸었어요`,
-      score: activityScore(dailyLog.steps),
-      maxScore: 35,
-      formula: dailyLog.steps < 2000 ? "2,000보 미만 = 0점" : `${dailyLog.steps.toLocaleString()}보 ÷ 200 = ${Math.floor(dailyLog.steps / 200)} → 상한 35점`,
-      currentKey: activityKey(dailyLog.steps),
-    },
-    {
-      id: "meal",
-      icon: Utensils,
-      title: "식단",
-      valueText: `오늘 ${todayMealCount}끼 기록했어요`,
-      score: mealScore(todayMealCount),
-      maxScore: 25,
-      formula: todayMealCount >= 3 ? "3끼 이상 + 채소 기준 = 25점" : todayMealCount === 2 ? "2끼 + 채소 기준 = 18점" : "1끼 이하 = 0점",
-      currentKey: mealKey(todayMealCount),
-    },
-    {
-      id: "sleep",
-      icon: Moon,
-      title: "수면",
-      valueText: `오늘 ${dailyLog.sleepHours}시간 잤어요`,
-      score: sleepScore(dailyLog.sleepHours),
-      maxScore: 25,
-      formula: dailyLog.sleepHours >= 7 && dailyLog.sleepHours <= 9 ? "7~9시간 최적 구간 = 25점" : `${dailyLog.sleepHours}시간 수면 구간 점수 반영`,
-      currentKey: sleepKey(dailyLog.sleepHours),
-    },
-    {
-      id: "water",
-      icon: Droplets,
-      title: "음수",
-      valueText: `오늘 물 ${dailyLog.waterCups}잔 마셨어요`,
-      score: waterScore(dailyLog.waterCups),
-      maxScore: 15,
-      formula: dailyLog.waterCups <= 1 ? "1잔 이하 = 0점" : `${dailyLog.waterCups}잔 × 2 = ${dailyLog.waterCups * 2} → 상한 15점`,
-      currentKey: waterKey(dailyLog.waterCups),
-    },
-    {
-      id: "exercise",
-      icon: Dumbbell,
-      title: "운동 실천",
-      valueText: dailyLog.exerciseDone ? "오늘 별도 운동을 실천했어요" : "오늘 별도 운동 기록이 없어요",
-      score: dailyLog.exerciseDone ? 5 : 0,
-      maxScore: 5,
-      formula: dailyLog.exerciseDone ? "운동 실천 ON = 보너스 5점" : "운동 실천 OFF = 0점",
-      currentKey: exerciseKey(dailyLog.exerciseDone),
-    },
-  ];
+  const icons: Record<LifestyleScoreItemId, typeof Footprints> = {
+    activity: Footprints,
+    meal: Utensils,
+    sleep: Moon,
+    water: Droplets,
+    exercise: Dumbbell,
+  };
+  const items: ScoreItem[] = buildLifestyleScoreItems(dailyLog, meals).map((item) => ({
+    ...item,
+    icon: icons[item.id],
+  }));
 
   if (!open) return null;
 
