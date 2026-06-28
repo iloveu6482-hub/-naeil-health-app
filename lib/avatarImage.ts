@@ -27,6 +27,15 @@ async function renderPortrait(source: string, width: number, height: number, qua
   return canvas.toDataURL("image/jpeg", quality);
 }
 
+function readAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("파일을 불러오지 못했습니다."));
+    reader.readAsDataURL(file);
+  });
+}
+
 export async function prepareAvatarSource(file: File) {
   if (!file.type.startsWith("image/")) throw new Error("이미지 파일을 선택해주세요.");
   if (file.size > 8 * 1024 * 1024) throw new Error("사진은 8MB 이하로 선택해주세요.");
@@ -41,4 +50,24 @@ export async function prepareAvatarSource(file: File) {
 
 export async function compressGeneratedAvatar(imageData: string) {
   return renderPortrait(imageData, 768, 1152, 0.86);
+}
+
+export async function prepareDirectAvatarMedia(file: File, viewMode: "portrait" | "fullbody") {
+  if (file.type.startsWith("image/")) {
+    if (file.size > 8 * 1024 * 1024) throw new Error("이미지는 8MB 이하로 선택해주세요.");
+
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      return await renderPortrait(objectUrl, 768, viewMode === "portrait" ? 1024 : 1152, 0.86);
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  }
+
+  if (file.type === "video/mp4" || file.type === "video/webm") {
+    if (file.size > 3 * 1024 * 1024) throw new Error("직접 넣는 영상은 3MB 이하의 짧은 파일만 저장할 수 있어요.");
+    return readAsDataUrl(file);
+  }
+
+  throw new Error("이미지 또는 짧은 mp4/webm 영상 파일을 선택해주세요.");
 }

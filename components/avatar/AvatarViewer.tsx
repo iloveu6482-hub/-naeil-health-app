@@ -74,7 +74,8 @@ export default function AvatarViewer({ style, gender, viewMode, mood = "idle", r
     : viewMode === "portrait"
     ? "object-contain object-top"
     : "object-contain object-bottom";
-  const isVideoSource = source.toLowerCase().endsWith(".mp4");
+  const lowerSource = source.toLowerCase();
+  const isVideoSource = lowerSource.startsWith("data:video/") || lowerSource.endsWith(".mp4") || lowerSource.endsWith(".webm");
 
   return <div data-avatar-mood={mood} data-avatar-view={viewMode} className={`${fill ? "absolute inset-0" : `relative ${sizeClasses[size]}`} ${className}`}>
     <div className="relative h-full w-full overflow-hidden rounded-[inherit]">

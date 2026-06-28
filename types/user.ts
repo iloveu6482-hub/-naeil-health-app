@@ -8,6 +8,8 @@ export type UserProfile = {
   gender: "male" | "female" | "other";
   avatarStyle: AvatarStyle;
   avatarImage?: string;
+  avatarPortraitImage?: string;
+  avatarFullbodyImage?: string;
   avatarEffect?: "illustrated";
   defaultAvatarId?: string;
   defaultAvatarGender?: AvatarGender;

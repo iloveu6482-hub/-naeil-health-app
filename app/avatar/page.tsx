@@ -3,11 +3,11 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Camera, Check, ImagePlus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
+import { Camera, Check, ImagePlus, RefreshCw, Sparkles, Trash2, Upload } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import CameraCapture from "@/components/avatar/CameraCapture";
 import AvatarPortraitCard from "@/components/avatar/AvatarPortraitCard";
-import { compressGeneratedAvatar, prepareAvatarSource } from "@/lib/avatarImage";
+import { compressGeneratedAvatar, prepareAvatarSource, prepareDirectAvatarMedia } from "@/lib/avatarImage";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { sampleUser } from "@/lib/sampleData";
 import { samplePointTransactions } from "@/lib/sampleData";
@@ -19,17 +19,29 @@ import type { PointTransaction } from "@/types/reward";
 
 const AVATAR_REGENERATION_COST = 1500;
 const MONTHLY_REGENERATION_LIMIT = 1;
+const likenessOptions = [
+  { value: "soft", label: "은은하게", desc: "건강이 스타일을 더 살려요" },
+  { value: "balanced", label: "중간", desc: "나와 건강이의 균형" },
+  { value: "strong", label: "많이", desc: "내 얼굴 특징을 더 반영해요" },
+] as const;
+
+type LikenessLevel = (typeof likenessOptions)[number]["value"];
 
 export default function AvatarPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const directPortraitInputRef = useRef<HTMLInputElement>(null);
+  const directFullbodyInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState<UserProfile>(sampleUser);
   const [selected, setSelected] = useState<AvatarStyle>("emotional");
   const [aiAvatarSelected, setAiAvatarSelected] = useState(false);
   const [avatarGender, setAvatarGender] = useState<AvatarGender>("female");
   const [selectedDefaultId, setSelectedDefaultId] = useState<string>();
   const [avatarImage, setAvatarImage] = useState<string>();
+  const [avatarPortraitImage, setAvatarPortraitImage] = useState<string>();
+  const [avatarFullbodyImage, setAvatarFullbodyImage] = useState<string>();
   const [sourceImage, setSourceImage] = useState<string>();
+  const [likenessLevel, setLikenessLevel] = useState<LikenessLevel>("balanced");
   const [processing, setProcessing] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [consent, setConsent] = useState(false);
@@ -47,6 +59,8 @@ export default function AvatarPage() {
     setAvatarGender(saved.defaultAvatarGender || (saved.gender === "male" ? "male" : "female"));
     setSelectedDefaultId(saved.defaultAvatarId);
     setAvatarImage(saved.avatarImage);
+    setAvatarPortraitImage(saved.avatarPortraitImage);
+    setAvatarFullbodyImage(saved.avatarFullbodyImage);
     const transactions = getFromStorage<PointTransaction[]>(STORAGE_KEYS.POINT_TRANSACTIONS, samplePointTransactions);
     setPointBalance(calculatePointBalance(transactions));
   }, []);
@@ -81,6 +95,19 @@ export default function AvatarPage() {
     void processImage(file);
   };
 
+  const readTemplateImageData = async (templateUrl: string) => {
+    const response = await fetch(templateUrl);
+    if (!response.ok) throw new Error("선택한 건강이 템플릿을 불러오지 못했습니다.");
+    const blob = await response.blob();
+
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("건강이 템플릿을 준비하지 못했습니다."));
+      reader.readAsDataURL(blob);
+    });
+  };
+
   const handleGenerateAvatar = async () => {
     if (!sourceImage || !consent) return;
     const generationCount = profile.avatarGenerationCount || 0;
@@ -99,12 +126,20 @@ export default function AvatarPage() {
     }
 
     setGenerating(true);
-    setMessage(isFirstGeneration ? "첫 AI 건강이를 무료로 만들고 있어요. 약 20~60초 정도 걸릴 수 있어요." : "헬스포인트는 생성 성공 후에만 차감돼요. AI 건강이를 만들고 있어요.");
+    setMessage(isFirstGeneration ? "선택한 건강이 템플릿에 내 얼굴 느낌을 반영하고 있어요. 약 20~60초 정도 걸릴 수 있어요." : "헬스포인트는 생성 성공 후에만 차감돼요. 건강이 템플릿에 내 얼굴 느낌을 반영하고 있어요.");
     try {
+      const selectedTemplate = getDefaultAvatars(avatarGender).find((avatar) => avatar.style === selected);
+      const templateImageData = selectedTemplate ? await readTemplateImageData(selectedTemplate.previewImageUrl) : undefined;
       const response = await fetch("/api/avatar/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageData: sourceImage }),
+        body: JSON.stringify({
+          imageData: sourceImage,
+          templateImageData,
+          likenessLevel,
+          templateStyle: selected,
+          templateGender: avatarGender,
+        }),
       });
       const result = (await response.json()) as { imageData?: string; error?: string };
       if (!response.ok || !result.imageData) throw new Error(result.error || "AI 아바타를 생성하지 못했습니다.");
@@ -123,11 +158,13 @@ export default function AvatarPage() {
 
       const nextProfile: UserProfile = {
         ...profile,
-        avatarStyle: "emotional",
+        avatarStyle: selected,
         avatarImage: generatedImage,
+        avatarPortraitImage: generatedImage,
+        avatarFullbodyImage,
         avatarEffect: "illustrated",
         defaultAvatarId: undefined,
-        defaultAvatarGender: undefined,
+        defaultAvatarGender: avatarGender,
         avatarGenerationCount: generationCount + 1,
         lastAvatarGeneratedAt: new Date().toISOString(),
         avatarRegenerationMonth: isFirstGeneration ? profile.avatarRegenerationMonth : currentMonth,
@@ -136,6 +173,7 @@ export default function AvatarPage() {
       saveToStorage(STORAGE_KEYS.USER_PROFILE, nextProfile);
       setProfile(nextProfile);
       setAvatarImage(generatedImage);
+      setAvatarPortraitImage(generatedImage);
       setMessage(generationCost > 0 ? `AI 건강이가 완성됐어요. ${generationCost.toLocaleString()}P가 차감되어 ${nextBalance.toLocaleString()}P가 남았어요.` : "첫 AI 건강이가 무료로 완성됐어요. 마음에 들면 저장해주세요.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "AI 아바타를 생성하지 못했습니다.");
@@ -146,9 +184,35 @@ export default function AvatarPage() {
 
   const clearImages = () => {
     setAvatarImage(undefined);
+    setAvatarPortraitImage(undefined);
+    setAvatarFullbodyImage(undefined);
     setSourceImage(undefined);
     setConsent(false);
     setMessage("");
+  };
+
+  const handleDirectMedia = async (event: ChangeEvent<HTMLInputElement>, viewMode: "portrait" | "fullbody") => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setProcessing(true);
+    setMessage("");
+    try {
+      const mediaData = await prepareDirectAvatarMedia(file, viewMode);
+      setAiAvatarSelected(true);
+      setSelectedDefaultId(undefined);
+      setAvatarImage(viewMode === "portrait" ? mediaData : avatarImage);
+      if (viewMode === "portrait") setAvatarPortraitImage(mediaData);
+      if (viewMode === "fullbody") setAvatarFullbodyImage(mediaData);
+      setSourceImage(undefined);
+      setConsent(false);
+      setMessage(viewMode === "portrait" ? "상반신 건강이를 직접 넣었어요. 전신도 따로 넣을 수 있어요." : "전신 건강이를 직접 넣었어요. 상반신도 따로 넣을 수 있어요.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "파일을 준비하지 못했습니다.");
+    } finally {
+      setProcessing(false);
+      event.target.value = "";
+    }
   };
 
   const selectDefaultAvatar = (avatar: DefaultAvatar) => {
@@ -157,6 +221,8 @@ export default function AvatarPage() {
     setAiAvatarSelected(false);
     setSelectedDefaultId(avatar.id);
     setAvatarImage(avatar.imageUrl);
+    setAvatarPortraitImage(undefined);
+    setAvatarFullbodyImage(undefined);
     setSourceImage(undefined);
     setConsent(false);
     setMessage(`${avatar.name} 기본 건강이를 선택했어요. 아래 저장 버튼을 눌러주세요.`);
@@ -166,8 +232,10 @@ export default function AvatarPage() {
     const nextProfile: UserProfile = {
       ...profile,
       avatarStyle: selected,
-      avatarImage,
-      avatarEffect: aiAvatarSelected && avatarImage ? "illustrated" : undefined,
+      avatarImage: avatarPortraitImage || avatarImage,
+      avatarPortraitImage,
+      avatarFullbodyImage,
+      avatarEffect: aiAvatarSelected && (avatarPortraitImage || avatarFullbodyImage || avatarImage) ? "illustrated" : undefined,
       defaultAvatarId: selectedDefaultId,
       defaultAvatarGender: selectedDefaultId ? avatarGender : undefined,
     };
@@ -177,8 +245,8 @@ export default function AvatarPage() {
     router.push("/trainer");
   };
 
-  const displayImage = avatarImage || sourceImage;
-  const saveDisabled = processing || generating || !avatarImage || (aiAvatarSelected && Boolean(sourceImage) && !avatarImage);
+  const displayImage = avatarPortraitImage || avatarImage || sourceImage;
+  const saveDisabled = processing || generating || !(avatarPortraitImage || avatarFullbodyImage || avatarImage) || (aiAvatarSelected && Boolean(sourceImage) && !avatarImage);
   const generationCount = profile.avatarGenerationCount || 0;
   const isFirstGeneration = generationCount === 0;
   const currentMonth = new Date().toISOString().slice(0, 7);
@@ -234,7 +302,7 @@ export default function AvatarPage() {
                   </button>
                 );
               })}
-              <button onClick={() => { setAiAvatarSelected(true); setSelectedDefaultId(undefined); setSelected("emotional"); setAvatarImage(undefined); setSourceImage(undefined); setMessage("사진을 올리거나 바로 촬영해서 나만의 AI 건강이를 만들 수 있어요."); }} className={`overflow-hidden rounded-xl border-2 bg-white text-left transition-all ${aiAvatarSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
+              <button onClick={() => { setAiAvatarSelected(true); setSelectedDefaultId(undefined); setAvatarImage(avatarPortraitImage); setSourceImage(undefined); setMessage("사진을 올리거나 직접 만든 이미지/영상을 넣어 나만의 건강이를 만들 수 있어요."); }} className={`overflow-hidden rounded-xl border-2 bg-white text-left transition-all ${aiAvatarSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
                 <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-[#EAF7EF] to-[#D9F6E2]">
                   <Image src="/avatars/selection/avatar-ai-custom.png" alt="나만의 AI 건강이 선택 이미지" fill sizes="(max-width: 430px) 48vw, 190px" className="object-cover" />
                   <span className="absolute bottom-2 left-2 rounded-full bg-white/85 px-3 py-1 text-xs font-extrabold text-[#1F5A3A] shadow-sm">AI 생성</span>
@@ -247,21 +315,42 @@ export default function AvatarPage() {
 
           {aiAvatarSelected && (
             <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
-              <div className="mb-1 flex items-center gap-2"><Sparkles size={20} className="text-[#4CAF6A]" /><h2 className="text-base font-extrabold text-[#1F2937]">내 사진으로 AI 건강이 생성</h2></div>
-              <p className="mb-3 text-sm text-gray-500">직접 촬영하거나 사진을 올리고 싶은 경우에만 이용하세요.</p>
+              <div className="mb-1 flex items-center gap-2"><Sparkles size={20} className="text-[#4CAF6A]" /><h2 className="text-base font-extrabold text-[#1F2937]">나만의 건강이 만들기</h2></div>
+              <p className="mb-3 text-sm text-gray-500">사진으로 AI 합성을 하거나, 직접 만든 이미지·짧은 영상을 상반신/전신으로 넣을 수 있어요.</p>
               <div className="flex flex-col items-center rounded-2xl bg-gradient-to-b from-[#EAF7EF] to-white p-5">
                 <AvatarPortraitCard imageUrl={displayImage} name={avatarImage ? `${profile.name}님의 AI 건강이` : sourceImage ? "AI 생성용 원본 사진" : `${profile.name}님의 건강이`} compact />
-                <p className="mt-3 text-center text-sm text-gray-600">사진을 선택하면 AI가 얼굴 특징을 참고해 새로운 의상·포즈·입체 배경을 생성합니다.</p>
+                <p className="mt-3 text-center text-sm text-gray-600">AI 생성은 선택한 건강이 템플릿의 구도와 배경을 유지하고 얼굴 느낌만 반영합니다.</p>
               </div>
 
               <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleImage} />
+              <input ref={directPortraitInputRef} type="file" accept="image/png,image/jpeg,image/webp,video/mp4,video/webm" className="hidden" onChange={(event) => handleDirectMedia(event, "portrait")} />
+              <input ref={directFullbodyInputRef} type="file" accept="image/png,image/jpeg,image/webp,video/mp4,video/webm" className="hidden" onChange={(event) => handleDirectMedia(event, "fullbody")} />
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <button onClick={() => fileInputRef.current?.click()} disabled={processing || generating} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#4CAF6A] px-3 font-bold text-white disabled:opacity-60">{sourceImage ? <RefreshCw size={18} /> : <ImagePlus size={18} />}{processing ? "준비 중..." : "사진 업로드"}</button>
                 <button onClick={() => setShowCamera(true)} disabled={processing || generating} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#1F5A3A] px-3 font-bold text-white disabled:opacity-60"><Camera size={18} />바로 촬영</button>
               </div>
+              <div className="mt-3 rounded-2xl border border-green-100 bg-[#F7FBF8] p-3">
+                <p className="text-sm font-extrabold text-[#1F2937]">내가 만든 파일 직접 넣기</p>
+                <p className="mt-1 text-xs leading-relaxed text-gray-500">상반신과 전신을 따로 넣을 수 있어요. 영상은 3MB 이하 mp4/webm만 권장합니다.</p>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button onClick={() => directPortraitInputRef.current?.click()} disabled={processing || generating} className={`flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-bold transition disabled:opacity-60 ${avatarPortraitImage ? "border-[#4CAF6A] bg-[#EAF7EF] text-[#1F5A3A]" : "border-gray-200 bg-white text-gray-600"}`}><Upload size={17} />상반신 넣기</button>
+                  <button onClick={() => directFullbodyInputRef.current?.click()} disabled={processing || generating} className={`flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-bold transition disabled:opacity-60 ${avatarFullbodyImage ? "border-[#4CAF6A] bg-[#EAF7EF] text-[#1F5A3A]" : "border-gray-200 bg-white text-gray-600"}`}><Upload size={17} />전신 넣기</button>
+                </div>
+              </div>
 
               {sourceImage && (
                 <div className="mt-4 rounded-2xl border border-green-100 bg-[#F7FBF8] p-4">
+                  <div className="mb-3 rounded-xl bg-white p-3 shadow-sm">
+                    <p className="text-sm font-extrabold text-[#1F2937]">닮은 정도 선택</p>
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      {likenessOptions.map((option) => (
+                        <button key={option.value} onClick={() => setLikenessLevel(option.value)} className={`rounded-xl border px-2 py-2 text-center transition ${likenessLevel === option.value ? "border-[#4CAF6A] bg-[#EAF7EF] text-[#1F5A3A]" : "border-gray-100 bg-white text-gray-500"}`}>
+                          <p className="text-xs font-extrabold">{option.label}</p>
+                          <p className="mt-1 text-[10px] leading-snug">{option.desc}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="mb-3 rounded-xl bg-white p-3 shadow-sm">
                     <div className="flex items-center justify-between gap-3"><span className="text-sm font-bold text-[#1F2937]">{isFirstGeneration ? "첫 AI 건강이" : "AI 건강이 재생성"}</span><span className={`rounded-full px-3 py-1 text-sm font-extrabold ${isFirstGeneration ? "bg-[#EAF7EF] text-[#1F5A3A]" : "bg-amber-50 text-amber-700"}`}>{isFirstGeneration ? "최초 1회 무료" : `${AVATAR_REGENERATION_COST.toLocaleString()}P`}</span></div>
                     <p className="mt-2 text-xs leading-relaxed text-gray-500">{isFirstGeneration ? "회원당 첫 생성은 무료로 제공됩니다." : `재생성은 월 ${MONTHLY_REGENERATION_LIMIT}회 가능하며, 생성 성공 후에만 포인트가 차감됩니다.`}</p>

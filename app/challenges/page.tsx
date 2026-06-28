@@ -11,6 +11,7 @@ import AvatarRewardEffect from "@/components/avatar/AvatarRewardEffect";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { createEarnTransaction, addPointTransaction } from "@/lib/rewards";
 import { sampleChallenges, sampleUser } from "@/lib/sampleData";
+import { getCustomAvatarSource } from "@/lib/avatarProfile";
 import type { Challenge } from "@/types/challenge";
 import type { UserProfile } from "@/types/user";
 import { Sprout, Trophy, Droplets, Footprints, Moon, UtensilsCrossed, Dumbbell } from "lucide-react";
@@ -77,7 +78,7 @@ export default function ChallengesPage() {
     return Math.max(0, diff);
   };
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
-  const customImage = user.avatarEffect === "illustrated" && user.avatarImage?.startsWith("data:") ? user.avatarImage : undefined;
+  const customImage = getCustomAvatarSource(user, "fullbody");
 
   return (
     <MobileShell>

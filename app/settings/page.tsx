@@ -7,7 +7,7 @@ import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
 import AvatarViewer from "@/components/avatar/AvatarViewer";
-import { getDefaultAvatarImage } from "@/lib/defaultAvatars";
+import { getCustomAvatarSource, getHeaderAvatarSource } from "@/lib/avatarProfile";
 import { getFromStorage, saveToStorage, removeFromStorage, STORAGE_KEYS } from "@/lib/storage";
 import { sampleUser } from "@/lib/sampleData";
 import type { UserProfile } from "@/types/user";
@@ -51,8 +51,8 @@ export default function SettingsPage() {
   };
   const displayName = user.name?.trim() || "사용자";
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
-  const customImage = user.avatarEffect === "illustrated" && user.avatarImage?.startsWith("data:") ? user.avatarImage : undefined;
-  const profileAvatar = user.avatarImage || getDefaultAvatarImage(avatarGender, user.avatarStyle) || "/avatars/default-female-3d.png";
+  const customImage = getCustomAvatarSource(user, "fullbody");
+  const profileAvatar = getHeaderAvatarSource(user, avatarGender);
 
   return (
     <MobileShell>

@@ -13,7 +13,7 @@ import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculateLifestyleScore } from "@/lib/lifestyleScore";
 import { calculateWalkingCalories } from "@/lib/activity";
 import { calculatePointBalance } from "@/lib/rewards";
-import { getDefaultAvatarImage } from "@/lib/defaultAvatars";
+import { getCustomAvatarSource, getHeaderAvatarSource } from "@/lib/avatarProfile";
 import { defaultAiCoach, getAiCoachById } from "@/lib/coachData";
 import { sampleUser, sampleCheckup, sampleDailyLog } from "@/lib/sampleData";
 import {
@@ -126,9 +126,8 @@ export default function DashboardPage() {
   const calories = calculateWalkingCalories(dailyLog.steps, checkup.weight);
   const displayName = user.name?.trim() || "사용자";
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
-  const headerAvatar = user.avatarImage || getDefaultAvatarImage(avatarGender, user.avatarStyle) || "/avatars/default-female-3d.png";
-  const heroImage = user.avatarImage || getDefaultAvatarImage(avatarGender, user.avatarStyle) || "/avatars/default-female-3d.png";
-  const customAvatarImage = user.avatarEffect === "illustrated" && user.avatarImage?.startsWith("data:") ? user.avatarImage : undefined;
+  const headerAvatar = getHeaderAvatarSource(user, avatarGender);
+  const customAvatarImage = getCustomAvatarSource(user, avatarViewMode);
   const formattedCurrentTime = currentTime.toLocaleTimeString("ko-KR", {
     hour: "2-digit",
     minute: "2-digit",

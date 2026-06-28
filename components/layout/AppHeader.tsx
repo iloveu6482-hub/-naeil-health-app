@@ -9,7 +9,7 @@ import { calculatePointBalance } from "@/lib/rewards";
 import type { PointTransaction } from "@/types/reward";
 import type { UserProfile } from "@/types/user";
 import { sampleUser } from "@/lib/sampleData";
-import { getDefaultAvatarImage } from "@/lib/defaultAvatars";
+import { getHeaderAvatarSource } from "@/lib/avatarProfile";
 
 interface AppHeaderProps {
   title?: string;
@@ -45,7 +45,7 @@ export default function AppHeader({ title, showBack, backHref }: AppHeaderProps)
   }, []);
 
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
-  const headerAvatar = user.avatarImage || getDefaultAvatarImage(avatarGender, user.avatarStyle) || "/avatars/default-female-3d.png";
+  const headerAvatar = getHeaderAvatarSource(user, avatarGender);
 
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-1.5">

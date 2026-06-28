@@ -4,6 +4,23 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const likenessPrompts = {
+  soft: "Subtle likeness: preserve the template character face mostly, and only gently reflect the user's hairstyle, eyewear, age impression, and overall mood.",
+  balanced: "Balanced likeness: blend the user's facial traits with the template character so it feels like the user, while still clearly remaining the app's health avatar.",
+  strong: "Strong likeness: reflect the user's face shape, eyes, nose, mouth, hairstyle, eyewear, and facial identity more strongly, while still preserving the template pose and layout.",
+} as const;
+
+type LikenessLevel = keyof typeof likenessPrompts;
+
+function parseImageData(value?: string) {
+  const match = value?.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
+  if (!match || !ALLOWED_IMAGE_TYPES.has(match[1])) return null;
+
+  const bytes = Buffer.from(match[2], "base64");
+  if (bytes.byteLength > 8 * 1024 * 1024) return null;
+
+  return { bytes, type: match[1] };
+}
 
 export async function POST(request: Request) {
   try {
@@ -14,29 +31,43 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = (await request.json()) as { imageData?: string };
-    const match = body.imageData?.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
-    if (!match || !ALLOWED_IMAGE_TYPES.has(match[1])) {
+    const body = (await request.json()) as {
+      imageData?: string;
+      templateImageData?: string;
+      likenessLevel?: LikenessLevel;
+      templateStyle?: string;
+      templateGender?: string;
+    };
+    const userImage = parseImageData(body.imageData);
+    const templateImage = parseImageData(body.templateImageData);
+    if (!userImage) {
       return NextResponse.json({ error: "지원되는 얼굴 사진을 다시 선택해주세요." }, { status: 400 });
     }
-
-    const imageBytes = Buffer.from(match[2], "base64");
-    if (imageBytes.byteLength > 8 * 1024 * 1024) {
-      return NextResponse.json({ error: "사진은 8MB 이하로 선택해주세요." }, { status: 400 });
-    }
+    const likenessLevel = body.likenessLevel && body.likenessLevel in likenessPrompts ? body.likenessLevel : "balanced";
 
     const prompt = [
-      "Create a brand-new polished 3D animated health-hero avatar using the uploaded person's face as identity reference.",
-      "Preserve recognizable facial structure, hairstyle, skin tone, eyewear, and friendly expression, while clearly transforming the result into a premium stylized 3D character rather than a filtered photograph.",
-      "Show the character from head to upper thighs in a confident energetic pose, one fist raised gently, wearing a clean light-mint athletic zip jacket with subtle leaf-shaped branding but no readable words or logos.",
-      "Use a cinematic dimensional green nature background with soft leaves, glowing light trails, depth, rim lighting, and a tasteful health-dashboard atmosphere.",
+      templateImage
+        ? "Use the first image as the user's face identity reference and the second image as the fixed avatar template."
+        : "Use the uploaded person's face as identity reference.",
+      templateImage
+        ? "Keep the template avatar's body, clothing, background, framing, composition, pose, camera angle, and safe layout almost exactly the same."
+        : "Create a polished health-hero avatar with a stable portrait composition.",
+      "Only regenerate the face and nearby hair details enough to reflect the user naturally.",
+      likenessPrompts[likenessLevel],
+      `Template style: ${body.templateStyle || "health avatar"}, template gender: ${body.templateGender || "unspecified"}.`,
+      "Do not change the green wellness app atmosphere, mint outfit tone, or UI-safe body position.",
       "Warm, trustworthy Korean wellness app aesthetic, natural proportions, highly refined character illustration, realistic 3D volume but not photorealistic.",
-      "Portrait composition, centered subject, clean face, no captions, no UI text, no watermark, no medical symbols.",
+      "Clean face, no captions, no UI text, no watermark, no medical symbols.",
     ].join(" ");
 
     const formData = new FormData();
     formData.append("model", process.env.OPENAI_IMAGE_MODEL || "gpt-image-1");
-    formData.append("image", new Blob([imageBytes], { type: match[1] }), "avatar-reference.jpg");
+    if (templateImage) {
+      formData.append("image[]", new Blob([userImage.bytes], { type: userImage.type }), "user-reference.jpg");
+      formData.append("image[]", new Blob([templateImage.bytes], { type: templateImage.type }), "avatar-template.jpg");
+    } else {
+      formData.append("image", new Blob([userImage.bytes], { type: userImage.type }), "avatar-reference.jpg");
+    }
     formData.append("prompt", prompt);
     formData.append("size", "1024x1536");
     formData.append("quality", "medium");

@@ -9,6 +9,7 @@ import AvatarViewer from "@/components/avatar/AvatarViewer";
 import { getFromStorage, removeFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculatePointBalance, canPurchaseItem, purchaseAvatarItem, equipAvatarItem, createSpendTransaction, addPointTransaction } from "@/lib/rewards";
 import { sampleAvatarItems, samplePointTransactions, sampleUser } from "@/lib/sampleData";
+import { getCustomAvatarSource } from "@/lib/avatarProfile";
 import type { AvatarItem, PointTransaction } from "@/types/reward";
 import type { AvatarRotationView, AvatarViewMode } from "@/types/avatar";
 import type { UserProfile } from "@/types/user";
@@ -68,7 +69,7 @@ export default function AvatarShopPage() {
   const changeViewMode = (mode: AvatarViewMode) => { setViewMode(mode); saveToStorage(STORAGE_KEYS.AVATAR_VIEW_MODE, mode); };
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
   const displayName = user.name?.trim() || "사용자";
-  const customImage = user.avatarEffect === "illustrated" && user.avatarImage?.startsWith("data:") ? user.avatarImage : undefined;
+  const customImage = getCustomAvatarSource(user, viewMode);
   const filtered = filterCat === "all" ? items : items.filter((item) => item.category === filterCat);
   const categories: (AvatarItem["category"] | "all")[] = ["all", "theme", "outfit", "shoes", "accessory", "background"];
 
