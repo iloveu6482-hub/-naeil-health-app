@@ -4,6 +4,9 @@ export function getAvatarImagePath({ style, gender, viewMode }: { style: AvatarS
   if (style === "emotional" && gender === "female" && viewMode === "portrait") {
     return "/avatars/portrait/avatar-emotional-female.mp4";
   }
+  if (style === "webtoon" && gender === "female" && viewMode === "portrait") {
+    return "/avatars/portrait/avatar-webtoon-female.mp4";
+  }
   if (style === "webtoon" && gender === "male" && viewMode === "portrait") {
     return "/avatars/portrait/avatar-webtoon-male.mp4";
   }
