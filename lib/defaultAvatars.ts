@@ -8,6 +8,7 @@ export type DefaultAvatar = {
   name: string;
   description: string;
   imageUrl: string;
+  previewImageUrl: string;
 };
 
 const styleDetails: Record<AvatarStyle, Pick<DefaultAvatar, "name" | "description">> = {
@@ -35,6 +36,7 @@ const makeAvatar = (gender: AvatarGender, style: AvatarStyle): DefaultAvatar => 
   style,
   ...styleDetails[style],
   imageUrl: getFallbackAvatarImagePath({ style, gender }),
+  previewImageUrl: `/avatars/selection/avatar-${style}-${gender}.jpg`,
 });
 
 export const defaultAvatars: DefaultAvatar[] = (["male", "female"] as const).flatMap((gender) =>

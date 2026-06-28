@@ -1,12 +1,12 @@
 "use client";
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Camera, Check, ImagePlus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import CameraCapture from "@/components/avatar/CameraCapture";
 import AvatarPortraitCard from "@/components/avatar/AvatarPortraitCard";
-import AnimatedAvatar from "@/components/avatar/AnimatedAvatar";
 import { compressGeneratedAvatar, prepareAvatarSource } from "@/lib/avatarImage";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { sampleUser } from "@/lib/sampleData";
@@ -221,13 +221,13 @@ export default function AvatarPage() {
               ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {getDefaultAvatars(avatarGender).map((avatar) => {
                 const isSelected = !aiAvatarSelected && selectedDefaultId === avatar.id;
                 return (
                   <button key={avatar.id} onClick={() => selectDefaultAvatar(avatar)} className={`overflow-hidden rounded-xl border-2 bg-white text-left transition-all ${isSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
-                    <div className="relative aspect-[6/5] overflow-hidden bg-[#EAF7EF]">
-                      <AnimatedAvatar style={avatar.style} gender={avatar.gender} viewMode="portrait" mood={isSelected ? "happy" : "idle"} imageUrl={avatar.imageUrl} fill cover coverPosition="top" glow={isSelected} alt={`${avatar.name} ${avatarGender === "female" ? "여성" : "남성"} 기본 아바타`} />
+                    <div className="relative aspect-square overflow-hidden bg-[#EAF7EF]">
+                      <Image src={avatar.previewImageUrl} alt={`${avatar.name} ${avatarGender === "female" ? "여성" : "남성"} 기본 아바타`} fill sizes="(max-width: 430px) 48vw, 190px" className="object-cover" />
                       {isSelected && <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#4CAF6A] shadow"><Check size={14} className="text-white" /></span>}
                     </div>
                     <div className="p-2"><p className="text-sm font-extrabold text-[#1F2937]">{avatar.name}</p><p className="mt-0.5 truncate text-[11px] leading-relaxed text-gray-500">{avatar.description}</p></div>
@@ -235,11 +235,9 @@ export default function AvatarPage() {
                 );
               })}
               <button onClick={() => { setAiAvatarSelected(true); setSelectedDefaultId(undefined); setSelected("emotional"); setAvatarImage(undefined); setSourceImage(undefined); setMessage("사진을 올리거나 바로 촬영해서 나만의 AI 건강이를 만들 수 있어요."); }} className={`overflow-hidden rounded-xl border-2 bg-white text-left transition-all ${aiAvatarSelected ? "border-[#4CAF6A] shadow-[0_10px_25px_rgba(76,175,106,0.24)]" : "border-gray-100"}`}>
-                <div className="relative aspect-[6/5] overflow-hidden bg-gradient-to-br from-[#EAF7EF] to-[#D9F6E2]">
-                  <div className="flex h-full flex-col items-center justify-center gap-2 text-[#1F5A3A]">
-                    <Sparkles size={34} />
-                    <span className="rounded-full bg-white/85 px-3 py-1 text-xs font-extrabold shadow-sm">AI 생성</span>
-                  </div>
+                <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-[#EAF7EF] to-[#D9F6E2]">
+                  <Image src="/avatars/selection/avatar-ai-custom.png" alt="나만의 AI 건강이 선택 이미지" fill sizes="(max-width: 430px) 48vw, 190px" className="object-cover" />
+                  <span className="absolute bottom-2 left-2 rounded-full bg-white/85 px-3 py-1 text-xs font-extrabold text-[#1F5A3A] shadow-sm">AI 생성</span>
                   {aiAvatarSelected && <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#4CAF6A] shadow"><Check size={14} className="text-white" /></span>}
                 </div>
                 <div className="p-2"><p className="text-sm font-extrabold text-[#1F2937]">나만의 AI 건강이</p><p className="mt-0.5 truncate text-[11px] leading-relaxed text-gray-500">내 사진으로 만드는 맞춤 건강이</p></div>
