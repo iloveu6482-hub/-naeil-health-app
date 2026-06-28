@@ -275,12 +275,32 @@ export default function DashboardPage() {
   const bubbleCoachEmoji = coachEmojiMap[bubbleCoachId] || coachEmojiMap[selectedCoachId] || "";
   const statusVideoUrl = `/avatars/status/avatar_${scoreStatus}.mp4`;
   const activeStatusVideoUrl = avatarViewMode === "fullbody" ? statusVideoUrl : undefined;
+  const clampedScore = Math.max(0, Math.min(100, score));
+  const scoreGaugeColor =
+    clampedScore >= 100
+      ? "#16A34A"
+      : clampedScore >= 90
+        ? "#22C55E"
+        : clampedScore >= 70
+          ? "#A3E635"
+          : clampedScore >= 40
+            ? "#FACC15"
+            : clampedScore >= 20
+              ? "#FB923C"
+              : "#EF4444";
+  const scoreGaugeStyle = {
+    background: `conic-gradient(${scoreGaugeColor} ${clampedScore * 3.6}deg, rgba(255,255,255,0.58) ${clampedScore * 3.6}deg 360deg)`,
+  };
   const scoreCircleEffect =
-    scoreStatus === "high"
-      ? "border-[#E9D37A]/90 bg-white/64 shadow-[0_0_0_1px_rgba(76,175,106,0.22),0_0_36px_rgba(233,211,122,0.42),0_18px_34px_rgba(31,90,58,0.26)] ring-[#E9D37A]/65"
-      : scoreStatus === "medium"
-        ? "border-white/75 bg-white/60 shadow-[0_0_26px_rgba(109,220,177,0.32),0_14px_30px_rgba(31,90,58,0.22)] ring-[#9BE7C5]/55"
-        : "border-white/70 bg-white/58 shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-[#4CAF6A]/55";
+    clampedScore >= 100
+      ? "border-[#22C55E]/90 bg-white/68 shadow-[0_0_0_1px_rgba(34,197,94,0.35),0_0_34px_rgba(34,197,94,0.34),0_18px_34px_rgba(31,90,58,0.28)] ring-[#86EFAC]/80 score-health-glow"
+      : clampedScore >= 90
+        ? "border-[#4ADE80]/85 bg-white/66 shadow-[0_0_0_1px_rgba(74,222,128,0.28),0_0_28px_rgba(74,222,128,0.28),0_16px_32px_rgba(31,90,58,0.24)] ring-[#BBF7D0]/75 score-health-glow"
+        : scoreStatus === "high"
+          ? "border-[#A3E635]/85 bg-white/64 shadow-[0_0_22px_rgba(163,230,53,0.24),0_14px_30px_rgba(31,90,58,0.22)] ring-[#D9F99D]/65"
+          : scoreStatus === "medium"
+            ? "border-[#FACC15]/70 bg-white/60 shadow-[0_0_22px_rgba(250,204,21,0.22),0_14px_30px_rgba(31,90,58,0.2)] ring-[#FEF3C7]/65"
+            : "border-[#FB923C]/65 bg-white/58 shadow-[0_14px_30px_rgba(31,90,58,0.22)] ring-[#FED7AA]/60";
   const dashboardMetricItems = [
     { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]", achieved: dailyLog.steps >= 7000, href: "/habits?type=steps" },
     { icon: Flame, label: "소모 칼로리", value: `${calories} kcal`, color: "text-[#F59E0B]", achieved: calories >= 300 },
@@ -382,9 +402,20 @@ export default function DashboardPage() {
               <p className="text-xs font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-0.5 whitespace-nowrap text-[13px] font-extrabold text-[#163D29]">내일의 나를 만듭니다!</p>
             </div>
 
-            <button type="button" onClick={() => setScoreSheetOpen(true)} className={`absolute left-[3%] top-[13.5%] flex h-36 w-36 flex-col items-center justify-center overflow-hidden rounded-full border-[5px] text-center ring-2 backdrop-blur-[10px] transition active:scale-95 ${scoreCircleEffect}`} aria-label="오늘 내 점수 분석 열기">
-              {scoreStatus === "high" && <span className="pointer-events-none absolute inset-y-[-20%] left-[-70%] w-12 rotate-12 bg-gradient-to-r from-transparent via-white/55 to-transparent blur-sm animate-[scoreShimmer_4.5s_ease-in-out_infinite]" />}
-              <p className="relative text-xs font-semibold text-gray-500">오늘의 건강관리</p><p className="relative text-xs text-gray-500">참고 점수</p><p className="relative mt-1 text-5xl font-black leading-none text-[#24944E]">{score}</p><p className="relative text-sm text-[#4CAF6A]">/ 100</p>
+            <button type="button" onClick={() => setScoreSheetOpen(true)} className={`absolute left-[3%] top-[13.5%] flex h-36 w-36 flex-col items-center justify-center overflow-visible rounded-full border-[5px] text-center ring-2 backdrop-blur-[10px] transition active:scale-95 ${scoreCircleEffect}`} aria-label="오늘 내 점수 분석 열기">
+              {clampedScore >= 100 && <span className="score-complete-wave pointer-events-none absolute -inset-3 rounded-full border border-[#86EFAC]/70" />}
+              <span className="pointer-events-none absolute inset-0 rounded-full" style={scoreGaugeStyle} />
+              <span className="pointer-events-none absolute inset-[9px] rounded-full bg-white/82 shadow-inner backdrop-blur-[10px]" />
+              {clampedScore >= 90 && <span className="pointer-events-none absolute inset-y-[-20%] left-[-70%] w-12 rotate-12 bg-gradient-to-r from-transparent via-emerald-100/70 to-transparent blur-sm animate-[scoreShimmer_5.5s_ease-in-out_infinite]" />}
+              {clampedScore >= 100 && (
+                <>
+                  <span className="score-leaf-particle pointer-events-none absolute left-4 top-4">🌿</span>
+                  <span className="score-spark-particle pointer-events-none absolute right-5 top-5">✦</span>
+                  <span className="absolute -right-1 top-1 rounded-full bg-[#F7C948] px-2 py-0.5 text-[10px] font-black text-white shadow-sm">완료</span>
+                </>
+              )}
+              <p className="relative text-xs font-semibold text-gray-500">오늘의 건강관리</p><p className="relative text-xs text-gray-500">{clampedScore >= 100 ? "건강 루틴 완료!" : "참고 점수"}</p><p className="relative mt-1 text-5xl font-black leading-none" style={{ color: scoreGaugeColor }}>{score}</p><p className="relative text-sm text-[#4CAF6A]">/ 100</p>
+              {clampedScore >= 100 && <p className="relative mt-1 text-[10px] font-black text-[#15803D]">오늘의 건강 루틴 완료!</p>}
             </button>
           </div>
         </section>
@@ -453,6 +484,81 @@ export default function DashboardPage() {
           100% {
             transform: translateX(360%) rotate(12deg);
             opacity: 0;
+          }
+        }
+        @keyframes scoreHealthGlow {
+          0%,
+          100% {
+            box-shadow:
+              0 0 0 1px rgba(34, 197, 94, 0.28),
+              0 0 22px rgba(74, 222, 128, 0.2),
+              0 18px 34px rgba(31, 90, 58, 0.24);
+          }
+          50% {
+            box-shadow:
+              0 0 0 1px rgba(34, 197, 94, 0.42),
+              0 0 34px rgba(74, 222, 128, 0.34),
+              0 18px 34px rgba(31, 90, 58, 0.25);
+          }
+        }
+        @keyframes scoreCompleteWave {
+          0% {
+            opacity: 0.55;
+            transform: scale(0.94);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(1.24);
+          }
+        }
+        @keyframes scoreLeafParticle {
+          0% {
+            opacity: 0;
+            transform: translateY(8px) rotate(-12deg) scale(0.72);
+          }
+          25% {
+            opacity: 0.85;
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(-20px) rotate(12deg) scale(0.95);
+          }
+        }
+        @keyframes scoreSparkParticle {
+          0% {
+            opacity: 0;
+            transform: translateY(6px) scale(0.72);
+          }
+          30% {
+            opacity: 0.8;
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(-18px) scale(1.05);
+          }
+        }
+        .score-health-glow {
+          animation: scoreHealthGlow 4.8s ease-in-out infinite;
+        }
+        .score-complete-wave {
+          animation: scoreCompleteWave 1.8s ease-out 1;
+        }
+        .score-leaf-particle {
+          animation: scoreLeafParticle 2.4s ease-out 1;
+          font-size: 15px;
+        }
+        .score-spark-particle {
+          animation: scoreSparkParticle 2s ease-out 1;
+          color: #bbf7d0;
+          text-shadow: 0 0 9px rgba(74, 222, 128, 0.75);
+          font-size: 15px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .score-health-glow,
+          .score-complete-wave,
+          .score-leaf-particle,
+          .score-spark-particle {
+            animation: none !important;
           }
         }
       `}</style>
