@@ -4,6 +4,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const AVATAR_GENERATION_TOTAL_LIMIT = 3;
 const likenessPrompts = {
   soft: "Subtle likeness: preserve the template character face mostly, and only gently reflect the user's hairstyle, eyewear, age impression, and overall mood.",
   balanced: "Balanced likeness: blend the user's facial traits with the template character so it feels like the user, while still clearly remaining the app's health avatar.",
@@ -37,11 +38,15 @@ export async function POST(request: Request) {
       likenessLevel?: LikenessLevel;
       templateStyle?: string;
       templateGender?: string;
+      generationCount?: number;
     };
     const userImage = parseImageData(body.imageData);
     const templateImage = parseImageData(body.templateImageData);
     if (!userImage) {
       return NextResponse.json({ error: "지원되는 얼굴 사진을 다시 선택해주세요." }, { status: 400 });
+    }
+    if (typeof body.generationCount === "number" && body.generationCount >= AVATAR_GENERATION_TOTAL_LIMIT) {
+      return NextResponse.json({ error: "AI 건강이 생성 가능 횟수를 모두 사용했습니다." }, { status: 429 });
     }
     const likenessLevel = body.likenessLevel && body.likenessLevel in likenessPrompts ? body.likenessLevel : "balanced";
 
