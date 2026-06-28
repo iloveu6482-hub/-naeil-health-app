@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Bell, Camera, CheckCircle2, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Moon, Shirt, Target, Utensils, Users, TrendingUp } from "lucide-react";
+import { Bell, Camera, CheckCircle2, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Moon, Settings, Shirt, Sprout, Target, Utensils, Users, TrendingUp, Volume2 } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
-import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
 import CoachMessageCard from "@/components/dashboard/CoachMessageCard";
 import HealthScoreSheet from "@/components/dashboard/HealthScoreSheet";
@@ -13,14 +12,22 @@ import AvatarViewer from "@/components/avatar/AvatarViewer";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculateLifestyleScore } from "@/lib/lifestyleScore";
 import { calculateWalkingCalories } from "@/lib/activity";
+import { calculatePointBalance } from "@/lib/rewards";
 import { getDefaultAvatarImage } from "@/lib/defaultAvatars";
 import { defaultAiCoach, getAiCoachById } from "@/lib/coachData";
 import { sampleUser, sampleCheckup, sampleDailyLog } from "@/lib/sampleData";
+import {
+  getCurrentCoachTimeSlot,
+  getRandomCoachMessage,
+  type CoachTimeSlot,
+  type CoachId,
+} from "@/lib/coachMessages";
 import type { UserProfile } from "@/types/user";
 import type { HealthCheckup, DailyLog } from "@/types/health";
 import type { MealAnalysis } from "@/types/meal";
 import type { AvatarViewMode } from "@/types/avatar";
 import type { AiCoach } from "@/types/coach";
+import type { PointTransaction } from "@/types/reward";
 
 const quickMenus = [
   { href: "/avatar", icon: Camera, label: "내 사진·아바타\n변경" },
@@ -37,10 +44,35 @@ const scoreCoachMessages: Record<ScoreStatus, string> = {
   high: "아주 좋아요. 오늘의 건강 습관이 잘 이어지고 있어요.",
 };
 
+const timeSlotLabelMap: Record<CoachTimeSlot, string> = {
+  morning: "아침",
+  lunch: "점심",
+  afternoon: "오후",
+  evening: "저녁",
+  night: "밤",
+  late_night: "새벽",
+};
+
 function getScoreStatus(score: number): ScoreStatus {
   if (score >= 70) return "high";
   if (score >= 40) return "medium";
   return "low";
+}
+
+function resolveCoachMessageId(selectedCoach: AiCoach): CoachId {
+  if (selectedCoach.id === "haru") return "haru";
+  if (selectedCoach.id === "taeo") return "taeo";
+  if (selectedCoach.id === "rumi") return "rumi";
+  if (selectedCoach.id === "onyu") return "onyu";
+  if (selectedCoach.id === "lumi") return "rumi";
+  if (selectedCoach.id === "onyou") return "onyu";
+
+  if (selectedCoach.name?.includes("하루")) return "haru";
+  if (selectedCoach.name?.includes("태오")) return "taeo";
+  if (selectedCoach.name?.includes("루미")) return "rumi";
+  if (selectedCoach.name?.includes("온유")) return "onyu";
+
+  return "onyu";
 }
 
 export default function DashboardPage() {
@@ -48,6 +80,8 @@ export default function DashboardPage() {
   const [checkup, setCheckup] = useState<HealthCheckup>(sampleCheckup);
   const [dailyLog, setDailyLog] = useState<DailyLog>(sampleDailyLog);
   const [score, setScore] = useState(0);
+  const [points, setPoints] = useState(0);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [meals, setMeals] = useState<MealAnalysis[]>([]);
   const [avatarViewMode, setAvatarViewMode] = useState<AvatarViewMode>("portrait");
   const [selectedCoach, setSelectedCoach] = useState<AiCoach>(defaultAiCoach);
@@ -66,6 +100,29 @@ export default function DashboardPage() {
     setMeals(savedMeals);
     setAvatarViewMode(getFromStorage<AvatarViewMode>(STORAGE_KEYS.AVATAR_VIEW_MODE, "portrait"));
     setSelectedCoach(getAiCoachById(getFromStorage<string>(STORAGE_KEYS.SELECTED_AI_COACH_ID, defaultAiCoach.id)));
+
+    const updatePoints = () => {
+      const txs = getFromStorage<PointTransaction[]>(
+        STORAGE_KEYS.POINT_TRANSACTIONS,
+        []
+      );
+      setPoints(calculatePointBalance(txs));
+    };
+    updatePoints();
+    window.addEventListener("storage", updatePoints);
+    window.addEventListener("pointsUpdated", updatePoints);
+    return () => {
+      window.removeEventListener("storage", updatePoints);
+      window.removeEventListener("pointsUpdated", updatePoints);
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60_000);
+
+    return () => window.clearInterval(timer);
   }, []);
 
   const changeAvatarViewMode = (mode: AvatarViewMode) => {
@@ -73,16 +130,30 @@ export default function DashboardPage() {
     saveToStorage(STORAGE_KEYS.AVATAR_VIEW_MODE, mode);
   };
 
+  const handleCoachMessageClick = () => {
+    console.log("코치 음성 안내는 추후 제공될 예정입니다.");
+  };
+
   const calories = calculateWalkingCalories(dailyLog.steps, checkup.weight);
   const displayName = user.name?.trim() || "사용자";
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
+  const headerAvatar = user.avatarImage || getDefaultAvatarImage(avatarGender, user.avatarStyle) || "/avatars/default-female-3d.png";
   const heroImage = user.avatarImage || getDefaultAvatarImage(avatarGender, user.avatarStyle) || "/avatars/default-female-3d.png";
   const customAvatarImage = user.avatarEffect === "illustrated" && user.avatarImage?.startsWith("data:") ? user.avatarImage : undefined;
+  const formattedCurrentTime = currentTime.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const currentTimeSlotLabel = timeSlotLabelMap[getCurrentCoachTimeSlot(currentTime)];
   const today = new Date().toISOString().slice(0, 10);
   const todayMeals = meals.filter((meal) => meal.mealDate === today);
   const mealCalories = todayMeals.reduce((sum, meal) => sum + meal.estimatedCalories, 0);
   const scoreStatus = getScoreStatus(score);
   const coachMessage = scoreCoachMessages[scoreStatus];
+  const selectedCoachMessage = useMemo(() => {
+    const coachId = resolveCoachMessageId(selectedCoach);
+    return getRandomCoachMessage(coachId);
+  }, [selectedCoach]);
   const statusVideoUrl = `/avatars/status/avatar_${scoreStatus}.mp4`;
   const scoreCircleEffect =
     scoreStatus === "high"
@@ -108,7 +179,29 @@ export default function DashboardPage() {
 
   return (
     <MobileShell>
-      <AppHeader />
+      <header className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-1.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <Link href="/dashboard" className="flex min-w-0 items-center gap-1">
+            <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full border-2 border-[#BDE8CA] bg-[#EAF7EF] shadow-sm ring-1 ring-white">
+              <Image src={headerAvatar} alt="내 아바타" fill priority unoptimized={headerAvatar.startsWith("data:")} className="scale-[1.18] rounded-full object-cover object-[center_18%]" />
+            </span>
+            <span className="truncate text-base font-bold text-[#1F5A3A]">내일의건강</span>
+          </Link>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="whitespace-nowrap rounded-full bg-[#EAF7EF]/80 px-2.5 py-1 text-xs font-bold text-[#1F5A3A]" aria-label={`현재 시간 ${formattedCurrentTime}, ${currentTimeSlotLabel}`}>
+            {formattedCurrentTime} · {currentTimeSlotLabel}
+          </span>
+          <Link href="/points" className="flex items-center gap-1 rounded-full bg-[#EAF7EF] px-3 py-1">
+            <Sprout size={14} className="text-[#4CAF6A]" />
+            <span className="text-sm font-bold text-[#1F5A3A]">{points.toLocaleString()}</span>
+            <span className="text-xs text-[#4CAF6A]">P</span>
+          </Link>
+          <Link href="/settings" className="text-gray-400 hover:text-gray-600" aria-label="설정">
+            <Settings size={20} />
+          </Link>
+        </div>
+      </header>
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
         <section className="relative min-h-[760px] overflow-hidden bg-[#1F5A3A] [@media(max-height:700px)]:min-h-[700px]">
           <div className="absolute inset-0"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} statusVideoUrl={statusVideoUrl} fill cover priority showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} /></div>
@@ -119,9 +212,12 @@ export default function DashboardPage() {
             <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-white bg-[#EAF7EF] shadow-md ring-1 ring-[#BDE8CA]">
               <Image src={selectedCoach.faceImageUrl || selectedCoach.imageUrl} alt={`${selectedCoach.name} 코치`} fill className="object-cover" />
             </div>
-            <div className="relative flex-1 rounded-2xl border border-[#BDE8CA] bg-white/92 px-3.5 py-2 shadow-[0_10px_24px_rgba(31,90,58,0.16)] backdrop-blur-md before:absolute before:left-[-6px] before:top-3.5 before:h-3 before:w-3 before:rotate-45 before:border-b before:border-l before:border-[#BDE8CA] before:bg-white/92">
-              <p className="text-sm font-medium leading-5 text-[#173425]">{coachMessage}</p>
-            </div>
+            <button type="button" onClick={handleCoachMessageClick} aria-label="코치 음성 안내 준비중" title="코치 음성 안내 준비중" className="relative flex-1 rounded-2xl border border-[#BDE8CA] bg-white/92 px-3.5 py-2 text-left shadow-[0_10px_24px_rgba(31,90,58,0.16)] backdrop-blur-md transition duration-150 hover:bg-white/95 active:scale-[0.98] active:bg-white before:absolute before:left-[-6px] before:top-3.5 before:h-3 before:w-3 before:rotate-45 before:border-b before:border-l before:border-[#BDE8CA] before:bg-white/92">
+              <span className="flex items-start gap-2">
+                <span className="flex-1 text-sm font-medium leading-5 text-[#173425]">{selectedCoachMessage.message.text}</span>
+                <Volume2 size={15} className="mt-0.5 shrink-0 text-[#4CAF6A]/55" aria-hidden="true" />
+              </span>
+            </button>
           </div>
 
           <div className="absolute inset-0 z-20">
