@@ -35,6 +35,21 @@ const quickMenus = [
 ];
 
 type ScoreStatus = "low" | "medium" | "high";
+type TodayCoachMessage = {
+  message: string;
+  date: string;
+  coachId: string;
+};
+
+const coachEmojiMap: Record<string, string> = {
+  onyu: "🌿",
+  onyou: "🌿",
+  haru: "☀️",
+  taeo: "💪",
+  kangtaeo: "💪",
+  rumi: "🤖",
+  lumi: "🤖",
+};
 
 const scoreCoachMessages: Record<ScoreStatus, string> = {
   low: "오늘은 무리하지 않아도 괜찮아요. 작은 실천 하나부터 시작해볼까요?",
@@ -64,6 +79,12 @@ function resolveCoachMessageId(selectedCoach: AiCoach): CoachId {
   return "onyu";
 }
 
+function isTodayCoachMessage(value: unknown): value is TodayCoachMessage {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  return typeof record.message === "string" && typeof record.date === "string" && typeof record.coachId === "string";
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<UserProfile>(sampleUser);
   const [checkup, setCheckup] = useState<HealthCheckup>(sampleCheckup);
@@ -74,6 +95,7 @@ export default function DashboardPage() {
   const [meals, setMeals] = useState<MealAnalysis[]>([]);
   const [avatarViewMode, setAvatarViewMode] = useState<AvatarViewMode>("portrait");
   const [selectedCoach, setSelectedCoach] = useState<AiCoach>(defaultAiCoach);
+  const [todayCoachMessage, setTodayCoachMessage] = useState<TodayCoachMessage | null>(null);
   const [scoreSheetOpen, setScoreSheetOpen] = useState(false);
 
   useEffect(() => {
@@ -89,6 +111,8 @@ export default function DashboardPage() {
     setMeals(savedMeals);
     setAvatarViewMode(getFromStorage<AvatarViewMode>(STORAGE_KEYS.AVATAR_VIEW_MODE, "portrait"));
     setSelectedCoach(getAiCoachById(getFromStorage<string>(STORAGE_KEYS.SELECTED_AI_COACH_ID, defaultAiCoach.id)));
+    const savedTodayCoachMessage = getFromStorage<unknown>(STORAGE_KEYS.TODAY_COACH_MESSAGE, null);
+    setTodayCoachMessage(isTodayCoachMessage(savedTodayCoachMessage) ? savedTodayCoachMessage : null);
 
     const updatePoints = () => {
       const txs = getFromStorage<PointTransaction[]>(
@@ -137,10 +161,15 @@ export default function DashboardPage() {
   const mealCalories = todayMeals.reduce((sum, meal) => sum + meal.estimatedCalories, 0);
   const scoreStatus = getScoreStatus(score);
   const coachMessage = scoreCoachMessages[scoreStatus];
+  const selectedCoachId = useMemo(() => resolveCoachMessageId(selectedCoach), [selectedCoach]);
   const selectedCoachMessage = useMemo(() => {
-    const coachId = resolveCoachMessageId(selectedCoach);
-    return getRandomCoachMessage(coachId);
-  }, [selectedCoach]);
+    return getRandomCoachMessage(selectedCoachId);
+  }, [selectedCoachId]);
+  const activeTodayCoachMessage =
+    todayCoachMessage?.date === today && todayCoachMessage.message ? todayCoachMessage : null;
+  const bubbleCoachId = activeTodayCoachMessage?.coachId || selectedCoachId;
+  const bubbleMessageText = activeTodayCoachMessage?.message || selectedCoachMessage.message.text;
+  const bubbleCoachEmoji = coachEmojiMap[bubbleCoachId] || coachEmojiMap[selectedCoachId] || "";
   const statusVideoUrl = `/avatars/status/avatar_${scoreStatus}.mp4`;
   const activeStatusVideoUrl = avatarViewMode === "fullbody" ? statusVideoUrl : undefined;
   const scoreCircleEffect =
@@ -203,7 +232,7 @@ export default function DashboardPage() {
             </div>
             <button type="button" onClick={handleCoachMessageClick} aria-label="코치 음성 안내 준비중" title="코치 음성 안내 준비중" className="relative flex-1 rounded-2xl border border-[#BDE8CA] bg-white/92 px-3.5 py-2 text-left shadow-[0_10px_24px_rgba(31,90,58,0.16)] backdrop-blur-md transition duration-150 hover:bg-white/95 active:scale-[0.98] active:bg-white before:absolute before:left-[-6px] before:top-3.5 before:h-3 before:w-3 before:rotate-45 before:border-b before:border-l before:border-[#BDE8CA] before:bg-white/92">
               <span className="flex items-start gap-2">
-                <span className="flex-1 text-sm font-medium leading-5 text-[#173425]">{selectedCoachMessage.message.text}</span>
+                <span className="flex-1 text-sm font-medium leading-5 text-[#173425]">{bubbleCoachEmoji} {bubbleMessageText}</span>
                 <Volume2 size={15} className="mt-0.5 shrink-0 text-[#4CAF6A]/55" aria-hidden="true" />
               </span>
             </button>

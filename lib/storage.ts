@@ -61,5 +61,6 @@ export const STORAGE_KEYS = {
   ACCOUNTS: "naeil_accounts",
   AUTH_SESSION: "naeil_auth_session",
   SELECTED_AI_COACH_ID: "selectedAiCoachId",
+  TODAY_COACH_MESSAGE: "todayCoachMessage",
   SAVED_LOGIN_EMAIL: "naeil_saved_login_email",
 };
