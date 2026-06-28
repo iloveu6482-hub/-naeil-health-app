@@ -16,7 +16,7 @@ import type { AvatarItem } from "@/types/reward";
 import type { PointTransaction } from "@/types/reward";
 import type { Challenge } from "@/types/challenge";
 import { calculatePointBalance } from "@/lib/rewards";
-import { User, RefreshCw, AlertTriangle, Bell, Shirt } from "lucide-react";
+import { User, RefreshCw, AlertTriangle, Bell, FileText, Shirt } from "lucide-react";
 import { signOutLocal } from "@/lib/auth";
 import type { AvatarGrowthMode } from "@/types/v3";
 
@@ -144,6 +144,13 @@ export default function SettingsPage() {
             className="w-full flex items-center justify-between px-4 py-4 border-t border-gray-50 hover:bg-gray-50 active:bg-gray-100 transition-colors"
           >
             <span className="flex items-center gap-2 font-medium text-[#1F2937]"><Bell size={18} className="text-[#4CAF6A]" />알림 설정</span>
+            <span className="text-gray-400">→</span>
+          </button>
+          <button
+            onClick={() => router.push("/privacy")}
+            className="w-full flex items-center justify-between px-4 py-4 border-t border-gray-50 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+          >
+            <span className="flex items-center gap-2 font-medium text-[#1F2937]"><FileText size={18} className="text-[#4CAF6A]" />개인정보처리방침</span>
             <span className="text-gray-400">→</span>
           </button>
           <button

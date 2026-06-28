@@ -1,4 +1,5 @@
 import { getFromStorage, removeFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
+import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import type { AuthSession, LocalAccount } from "@/types/user";
 
 async function hashPassword(password: string) {
@@ -70,5 +71,8 @@ export function getSession() {
 
 export function signOutLocal() {
   removeFromStorage(STORAGE_KEYS.AUTH_SESSION);
-  if (typeof window !== "undefined") sessionStorage.removeItem(STORAGE_KEYS.AUTH_SESSION);
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem(STORAGE_KEYS.AUTH_SESSION);
+    void getSupabaseBrowserClient()?.auth.signOut();
+  }
 }

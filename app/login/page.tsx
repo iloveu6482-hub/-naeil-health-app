@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LockKeyhole, Mail, Sprout } from "lucide-react";
+import { LockKeyhole, Mail, MessageCircle, Sprout } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import { getSession, signInLocal } from "@/lib/auth";
 import { loadDemoData } from "@/lib/demoData";
+import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { getFromStorage, removeFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import type { UserProfile } from "@/types/user";
 
@@ -57,6 +58,30 @@ export default function LoginPage() {
     router.push("/dashboard");
   };
 
+  const handleKakaoLogin = async () => {
+    setLoading(true);
+    setError("");
+
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setLoading(false);
+      setError("Supabase 환경변수 설정 후 카카오 로그인을 사용할 수 있어요.");
+      return;
+    }
+
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "kakao",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (oauthError) {
+      setLoading(false);
+      setError(oauthError.message);
+    }
+  };
+
   return (
     <MobileShell>
       <main className="flex min-h-screen flex-col bg-gradient-to-b from-[#EAF7EF] to-[#FAFCFA] px-6 py-12">
@@ -87,6 +112,15 @@ export default function LoginPage() {
           {error && <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-600">{error}</p>}
           <button disabled={loading} className="mt-5 w-full rounded-2xl bg-[#4CAF6A] py-4 text-lg font-bold text-white shadow-lg disabled:opacity-60">{loading ? "로그인 중..." : "로그인"}</button>
         </form>
+        <button
+          type="button"
+          onClick={handleKakaoLogin}
+          disabled={loading}
+          className="mt-3 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#FEE500] px-4 text-base font-black text-[#181600] shadow-sm transition active:scale-95 disabled:opacity-60"
+        >
+          <MessageCircle size={19} />
+          카카오로 계속하기
+        </button>
         <div className="mt-4 rounded-3xl border border-green-200 bg-white/70 p-4 text-center shadow-sm">
           <p className="text-sm font-bold text-[#1F5A3A]">실제 데이터 없이 체험해보세요</p>
           <p className="mt-1 text-xs leading-relaxed text-gray-500">심사용 데모 기록으로 대시보드와 리포트를 바로 볼 수 있어요.</p>
