@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Camera, Check, ImagePlus, RefreshCw, Sparkles, Trash2, Upload } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import CameraCapture from "@/components/avatar/CameraCapture";
-import AvatarPortraitCard from "@/components/avatar/AvatarPortraitCard";
 import { compressGeneratedAvatar, prepareAvatarSource, prepareDirectAvatarMedia } from "@/lib/avatarImage";
 import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { sampleUser } from "@/lib/sampleData";
@@ -269,6 +268,7 @@ export default function AvatarPage() {
   const generationCost = isFirstGeneration || profile.isPremium ? 0 : AVATAR_REGENERATION_COST;
   const insufficientPoints = generationCost > pointBalance;
   const generationLimitReached = generationCount >= AVATAR_GENERATION_TOTAL_LIMIT;
+  const aiTemplateAvatars = getDefaultAvatars(avatarGender);
 
   return (
     <MobileShell>
@@ -332,8 +332,42 @@ export default function AvatarPage() {
             <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
               <div className="mb-1 flex items-center gap-2"><Sparkles size={20} className="text-[#4CAF6A]" /><h2 className="text-base font-extrabold text-[#1F2937]">나만의 건강이 만들기</h2></div>
               <p className="mb-3 text-sm text-gray-500">사진으로 AI 합성을 하거나, 직접 만든 이미지·짧은 영상을 상반신/전신으로 넣을 수 있어요.</p>
-              <div className="flex flex-col items-center rounded-2xl bg-gradient-to-b from-[#EAF7EF] to-white p-5">
-                <AvatarPortraitCard imageUrl={displayImage} name={displayCardName} compact />
+              <div className="flex flex-col items-center rounded-2xl bg-gradient-to-b from-[#EAF7EF] to-white p-4">
+                <div className="mb-4 w-full">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-extrabold text-[#1F2937]">누구를 기반으로 만들까요?</p>
+                      <p className="mt-0.5 text-xs text-gray-500">사진 업로드 전에 합성할 기본 건강이를 골라주세요.</p>
+                    </div>
+                  </div>
+                  <div className="mb-3 grid grid-cols-2 rounded-2xl bg-white/70 p-1">
+                    {(["female", "male"] as const).map((gender) => (
+                      <button key={gender} onClick={() => setAvatarGender(gender)} className={`min-h-9 rounded-xl text-sm font-bold transition ${avatarGender === gender ? "bg-white text-[#1F5A3A] shadow-sm" : "text-gray-500"}`}>
+                        {gender === "female" ? "여성" : "남성"}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+                    {aiTemplateAvatars.map((avatar) => {
+                      const isTemplateSelected = selected === avatar.style;
+                      return (
+                        <button key={avatar.id} onClick={() => { setSelected(avatar.style); setSelectedDefaultId(undefined); setAvatarImage(undefined); setAvatarPortraitImage(undefined); setConsent(false); }} className={`w-[82px] shrink-0 overflow-hidden rounded-2xl border-2 bg-white text-left transition ${isTemplateSelected ? "border-[#4CAF6A] shadow-[0_8px_18px_rgba(76,175,106,0.22)]" : "border-white/70"}`}>
+                          <div className="relative h-[68px] overflow-hidden bg-[#EAF7EF]">
+                            <Image src={avatar.previewImageUrl} alt={`${avatar.name} 기반 건강이`} fill sizes="82px" className="object-cover object-top" />
+                            {isTemplateSelected && <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#4CAF6A] shadow"><Check size={12} className="text-white" /></span>}
+                          </div>
+                          <p className="truncate px-1.5 py-1.5 text-center text-[11px] font-extrabold text-[#1F2937]">{avatar.name}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="w-full max-w-[230px] overflow-hidden rounded-3xl bg-white shadow-sm">
+                  <div className="relative h-[124px] bg-[#EAF7EF]">
+                    {displayImage && <Image src={displayImage} alt={displayCardName} fill sizes="230px" className="object-cover object-top" />}
+                    <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-extrabold text-[#1F5A3A] shadow-sm">{displayCardName}</span>
+                  </div>
+                </div>
                 <p className="mt-3 text-center text-sm text-gray-600">AI 생성은 선택한 건강이 템플릿의 구도와 배경을 유지하고 얼굴 느낌만 반영합니다.</p>
               </div>
 
