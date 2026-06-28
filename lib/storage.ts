@@ -62,5 +62,9 @@ export const STORAGE_KEYS = {
   AUTH_SESSION: "naeil_auth_session",
   SELECTED_AI_COACH_ID: "selectedAiCoachId",
   TODAY_COACH_MESSAGE: "todayCoachMessage",
+  WEEKLY_REPORTS: "weeklyReports",
+  NOTIFICATION_PERMISSION: "notificationPermission",
+  LAST_NUDGE_SENT: "lastNudgeSent",
+  LAST_NUDGE_BANNER_DISMISSED: "lastNudgeBannerDismissed",
   SAVED_LOGIN_EMAIL: "naeil_saved_login_email",
 };

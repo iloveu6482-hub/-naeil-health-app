@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { LockKeyhole, Mail, Sprout } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import { getSession, signInLocal } from "@/lib/auth";
+import { loadDemoData } from "@/lib/demoData";
 import { getFromStorage, removeFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import type { UserProfile } from "@/types/user";
 
@@ -51,6 +52,11 @@ export default function LoginPage() {
     }
   };
 
+  const handleDemoLogin = () => {
+    loadDemoData();
+    router.push("/dashboard");
+  };
+
   return (
     <MobileShell>
       <main className="flex min-h-screen flex-col bg-gradient-to-b from-[#EAF7EF] to-[#FAFCFA] px-6 py-12">
@@ -81,6 +87,17 @@ export default function LoginPage() {
           {error && <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-600">{error}</p>}
           <button disabled={loading} className="mt-5 w-full rounded-2xl bg-[#4CAF6A] py-4 text-lg font-bold text-white shadow-lg disabled:opacity-60">{loading ? "로그인 중..." : "로그인"}</button>
         </form>
+        <div className="mt-4 rounded-3xl border border-green-200 bg-white/70 p-4 text-center shadow-sm">
+          <p className="text-sm font-bold text-[#1F5A3A]">실제 데이터 없이 체험해보세요</p>
+          <p className="mt-1 text-xs leading-relaxed text-gray-500">심사용 데모 기록으로 대시보드와 리포트를 바로 볼 수 있어요.</p>
+          <button
+            type="button"
+            onClick={handleDemoLogin}
+            className="mt-3 w-full rounded-2xl border-2 border-[#4CAF6A] bg-white py-3 text-sm font-black text-[#1F5A3A] transition active:scale-95"
+          >
+            데모 체험하기
+          </button>
+        </div>
         <p className="mt-6 text-center text-sm text-gray-600">처음 오셨나요? <Link href="/signup" className="font-bold text-[#1F5A3A]">회원가입</Link></p>
         <p className="mt-auto pt-8 text-center text-xs leading-relaxed text-gray-400">MVP 버전에서는 계정과 사진이 현재 브라우저에 저장됩니다.</p>
       </main>

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Bell, Camera, CheckCircle2, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Moon, Settings, Shirt, Sprout, Target, Utensils, Users, TrendingUp, Volume2 } from "lucide-react";
+import { Bell, Camera, CheckCircle2, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Moon, Settings, Shirt, Sprout, Target, Utensils, Users, TrendingUp, Volume2, X } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import BottomNav from "@/components/layout/BottomNav";
 import CoachMessageCard from "@/components/dashboard/CoachMessageCard";
@@ -39,6 +39,11 @@ type TodayCoachMessage = {
   message: string;
   date: string;
   coachId: string;
+};
+type NudgeCoachId = "onyu" | "haru" | "kangtaeo" | "rumi";
+type NudgeMessage = {
+  title: string;
+  message: string;
 };
 
 const coachEmojiMap: Record<string, string> = {
@@ -85,6 +90,46 @@ function isTodayCoachMessage(value: unknown): value is TodayCoachMessage {
   return typeof record.message === "string" && typeof record.date === "string" && typeof record.coachId === "string";
 }
 
+function getLocalDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function addDays(date: Date, days: number) {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + days);
+  return nextDate;
+}
+
+function countConsecutiveMissedDays(logs: DailyLog[]) {
+  const loggedDates = new Set(logs.map((log) => log.logDate));
+  let missed = 0;
+
+  for (let offset = 0; offset < 30; offset += 1) {
+    const dateKey = getLocalDateKey(addDays(new Date(), -offset));
+    if (loggedDates.has(dateKey)) break;
+    missed += 1;
+  }
+
+  return missed;
+}
+
+function resolveNudgeCoachId(coachId?: string | null): NudgeCoachId {
+  if (coachId === "onyu" || coachId === "onyou") return "onyu";
+  if (coachId === "haru") return "haru";
+  if (coachId === "taeo" || coachId === "kangtaeo") return "kangtaeo";
+  if (coachId === "rumi" || coachId === "lumi") return "rumi";
+  return "haru";
+}
+
+function isNudgeMessage(value: unknown): value is NudgeMessage {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  return typeof record.title === "string" && typeof record.message === "string";
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<UserProfile>(sampleUser);
   const [checkup, setCheckup] = useState<HealthCheckup>(sampleCheckup);
@@ -96,6 +141,7 @@ export default function DashboardPage() {
   const [avatarViewMode, setAvatarViewMode] = useState<AvatarViewMode>("portrait");
   const [selectedCoach, setSelectedCoach] = useState<AiCoach>(defaultAiCoach);
   const [todayCoachMessage, setTodayCoachMessage] = useState<TodayCoachMessage | null>(null);
+  const [nudgeBanner, setNudgeBanner] = useState<NudgeMessage | null>(null);
   const [scoreSheetOpen, setScoreSheetOpen] = useState(false);
 
   useEffect(() => {
@@ -103,6 +149,7 @@ export default function DashboardPage() {
     const savedCheckup = getFromStorage<HealthCheckup>(STORAGE_KEYS.HEALTH_CHECKUP, sampleCheckup);
     const logs = getFromStorage<DailyLog[]>(STORAGE_KEYS.DAILY_LOGS, []);
     const latestLog = logs[logs.length - 1] || sampleDailyLog;
+    const savedCoachId = getFromStorage<string>(STORAGE_KEYS.SELECTED_AI_COACH_ID, defaultAiCoach.id);
     setUser(savedUser);
     setCheckup(savedCheckup);
     const savedMeals = getFromStorage<MealAnalysis[]>(STORAGE_KEYS.MEAL_RECORDS, []);
@@ -110,9 +157,60 @@ export default function DashboardPage() {
     setScore(calculateLifestyleScore(latestLog, savedMeals));
     setMeals(savedMeals);
     setAvatarViewMode(getFromStorage<AvatarViewMode>(STORAGE_KEYS.AVATAR_VIEW_MODE, "portrait"));
-    setSelectedCoach(getAiCoachById(getFromStorage<string>(STORAGE_KEYS.SELECTED_AI_COACH_ID, defaultAiCoach.id)));
+    setSelectedCoach(getAiCoachById(savedCoachId));
     const savedTodayCoachMessage = getFromStorage<unknown>(STORAGE_KEYS.TODAY_COACH_MESSAGE, null);
     setTodayCoachMessage(isTodayCoachMessage(savedTodayCoachMessage) ? savedTodayCoachMessage : null);
+
+    const requestNotificationPermission = async () => {
+      const savedPermission = getFromStorage<string | null>(STORAGE_KEYS.NOTIFICATION_PERMISSION, null);
+      if (savedPermission) return;
+
+      if (!("Notification" in window)) {
+        saveToStorage(STORAGE_KEYS.NOTIFICATION_PERMISSION, "unsupported");
+        return;
+      }
+
+      const permission = await Notification.requestPermission();
+      saveToStorage(STORAGE_KEYS.NOTIFICATION_PERMISSION, permission);
+    };
+
+    const checkNudge = async () => {
+      const todayKey = getLocalDateKey();
+      const dismissedDate = getFromStorage<string | null>(STORAGE_KEYS.LAST_NUDGE_BANNER_DISMISSED, null);
+      const lastSentDate = getFromStorage<string | null>(STORAGE_KEYS.LAST_NUDGE_SENT, null);
+      const daysMissed = countConsecutiveMissedDays(logs);
+
+      if (daysMissed < 3 || dismissedDate === todayKey || lastSentDate === todayKey) return;
+
+      try {
+        const response = await fetch("/api/nudge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            coachId: resolveNudgeCoachId(savedCoachId),
+            daysMissed,
+          }),
+        });
+        const result = (await response.json()) as unknown;
+        if (!response.ok || !isNudgeMessage(result)) return;
+
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification(result.title, {
+            body: result.message,
+            icon: "/icons/icon-192x192.png",
+          });
+          saveToStorage(STORAGE_KEYS.LAST_NUDGE_SENT, todayKey);
+        } else {
+          setNudgeBanner(result);
+        }
+      } catch (error) {
+        console.error("Nudge check failed", error);
+      }
+    };
+
+    void requestNotificationPermission().finally(() => {
+      void checkNudge();
+    });
 
     const updatePoints = () => {
       const txs = getFromStorage<PointTransaction[]>(
@@ -129,6 +227,11 @@ export default function DashboardPage() {
       window.removeEventListener("pointsUpdated", updatePoints);
     };
   }, []);
+
+  const closeNudgeBanner = () => {
+    saveToStorage(STORAGE_KEYS.LAST_NUDGE_BANNER_DISMISSED, getLocalDateKey());
+    setNudgeBanner(null);
+  };
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -221,6 +324,20 @@ export default function DashboardPage() {
         </div>
       </header>
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
+        {nudgeBanner && (
+          <section className="mx-4 mt-3 rounded-2xl border border-green-100 bg-[#EAF7EF] p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <Bell className="mt-0.5 shrink-0 text-[#4CAF6A]" size={19} />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-black text-[#1F5A3A]">{nudgeBanner.title}</p>
+                <p className="mt-1 text-sm leading-relaxed text-[#1F2937]">{nudgeBanner.message}</p>
+              </div>
+              <button type="button" onClick={closeNudgeBanner} aria-label="이탈 알림 닫기" className="rounded-full p-1 text-gray-400 transition hover:bg-white/70 hover:text-gray-600">
+                <X size={16} />
+              </button>
+            </div>
+          </section>
+        )}
         <section className="relative h-[clamp(700px,178vw,760px)] overflow-hidden bg-[#1F5A3A]">
           <div className="absolute inset-0"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} statusVideoUrl={activeStatusVideoUrl} fill cover priority showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} /></div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/18 via-transparent to-transparent" />

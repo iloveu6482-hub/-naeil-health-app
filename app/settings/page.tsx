@@ -8,6 +8,7 @@ import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
 import AvatarViewer from "@/components/avatar/AvatarViewer";
 import { getCustomAvatarSource, getHeaderAvatarSource } from "@/lib/avatarProfile";
+import { resetDemoData } from "@/lib/demoData";
 import { getFromStorage, saveToStorage, removeFromStorage, STORAGE_KEYS } from "@/lib/storage";
 import { sampleUser } from "@/lib/sampleData";
 import type { UserProfile } from "@/types/user";
@@ -48,6 +49,11 @@ export default function SettingsPage() {
   const handleReset = () => {
     Object.values(STORAGE_KEYS).forEach((key) => removeFromStorage(key));
     router.push("/");
+  };
+  const handleDemoReset = () => {
+    if (!window.confirm("데모 데이터를 포함한 모든 로컬 데이터를 초기화할까요?")) return;
+    resetDemoData();
+    router.push("/login");
   };
   const displayName = user.name?.trim() || "사용자";
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
@@ -168,6 +174,13 @@ export default function SettingsPage() {
             <span className="text-sm font-semibold text-gray-600">v1.0.0 MVP</span>
           </div>
         </div>
+
+        <button
+          onClick={handleDemoReset}
+          className="mb-4 w-full rounded-2xl border-2 border-[#4CAF6A] bg-white py-3 text-sm font-black text-[#1F5A3A] transition active:scale-95"
+        >
+          데모 데이터 초기화
+        </button>
 
         {/* Reset */}
         {!showConfirm ? (
