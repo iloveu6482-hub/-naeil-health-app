@@ -252,8 +252,11 @@ export default function CheckupPage() {
   const handleUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    setForm((prev) => ({ ...prev, uploadedFileName: file.name }));
-    setMessage("파일을 선택했어요. OCR은 다음 단계에서 연결하고, 지금은 수치를 수동으로 입력해주세요.");
+    setForm((prev) => ({
+      ...prev,
+      uploadedFileName: file.name,
+    }));
+    setMessage("파일을 올렸어요. 자동 판독은 준비 중이라 아래 수치를 검진표와 비교해 직접 입력해주세요.");
     event.target.value = "";
   };
 
@@ -346,7 +349,14 @@ export default function CheckupPage() {
             PDF/이미지 선택
             <input type="file" accept="application/pdf,image/*" className="hidden" onChange={handleUpload} />
           </label>
-          {form.uploadedFileName && <p className="mt-2 text-xs font-bold text-[#4CAF6A]">선택한 파일: {form.uploadedFileName}</p>}
+          {form.uploadedFileName && (
+            <div className="mt-3 rounded-2xl bg-white/80 p-3">
+              <p className="text-xs font-black text-[#4CAF6A]">선택한 파일: {form.uploadedFileName}</p>
+              <p className="mt-1 text-xs leading-relaxed text-gray-500">
+                현재는 OCR 자동입력 전 단계입니다. 검진표의 수치를 확인한 뒤 아래 입력칸에 직접 입력하고 저장해주세요.
+              </p>
+            </div>
+          )}
         </section>
 
         <section className="mt-4 rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
