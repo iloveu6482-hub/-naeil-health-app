@@ -251,7 +251,15 @@ export default function AvatarPage() {
     router.push("/trainer");
   };
 
-  const displayImage = avatarPortraitImage || avatarImage || sourceImage;
+  const selectedTemplate = getDefaultAvatars(avatarGender).find((avatar) => avatar.style === selected);
+  const displayImage = avatarPortraitImage || avatarImage || (aiAvatarSelected ? selectedTemplate?.previewImageUrl : undefined) || sourceImage;
+  const displayCardName = avatarImage
+    ? `${profile.name}님의 AI 건강이`
+    : aiAvatarSelected && selectedTemplate
+      ? `${selectedTemplate.name} 기반 건강이`
+      : sourceImage
+        ? "AI 생성용 원본 사진"
+        : `${profile.name}님의 건강이`;
   const saveDisabled = processing || generating || !(avatarPortraitImage || avatarFullbodyImage || avatarImage) || (aiAvatarSelected && Boolean(sourceImage) && !avatarImage);
   const generationCount = profile.avatarGenerationCount || 0;
   const isFirstGeneration = generationCount === 0;
@@ -325,7 +333,7 @@ export default function AvatarPage() {
               <div className="mb-1 flex items-center gap-2"><Sparkles size={20} className="text-[#4CAF6A]" /><h2 className="text-base font-extrabold text-[#1F2937]">나만의 건강이 만들기</h2></div>
               <p className="mb-3 text-sm text-gray-500">사진으로 AI 합성을 하거나, 직접 만든 이미지·짧은 영상을 상반신/전신으로 넣을 수 있어요.</p>
               <div className="flex flex-col items-center rounded-2xl bg-gradient-to-b from-[#EAF7EF] to-white p-5">
-                <AvatarPortraitCard imageUrl={displayImage} name={avatarImage ? `${profile.name}님의 AI 건강이` : sourceImage ? "AI 생성용 원본 사진" : `${profile.name}님의 건강이`} compact />
+                <AvatarPortraitCard imageUrl={displayImage} name={displayCardName} compact />
                 <p className="mt-3 text-center text-sm text-gray-600">AI 생성은 선택한 건강이 템플릿의 구도와 배경을 유지하고 얼굴 느낌만 반영합니다.</p>
               </div>
 
@@ -347,6 +355,17 @@ export default function AvatarPage() {
 
               {sourceImage && (
                 <div className="mt-4 rounded-2xl border border-green-100 bg-[#F7FBF8] p-4">
+                  <div className="mb-3 rounded-xl bg-white p-3 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-[#EAF7EF]">
+                        <Image src={sourceImage} alt="AI 합성용으로 업로드한 원본 사진" fill sizes="80px" className="object-cover" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-extrabold text-[#1F2937]">업로드한 원본 사진</p>
+                        <p className="mt-1 text-xs leading-relaxed text-gray-500">이 얼굴 느낌을 아래 닮은 정도에 맞춰 선택한 기본 건강이에 반영해요.</p>
+                      </div>
+                    </div>
+                  </div>
                   <div className="mb-3 rounded-xl bg-white p-3 shadow-sm">
                     <p className="text-sm font-extrabold text-[#1F2937]">닮은 정도 선택</p>
                     <div className="mt-3 grid grid-cols-3 gap-2">
