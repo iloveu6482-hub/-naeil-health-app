@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
@@ -11,9 +11,35 @@ import { createEarnTransaction, hasEarnedTodayForReason, addPointTransaction } f
 import { sampleDailyLog } from "@/lib/sampleData";
 import type { DailyLog } from "@/types/health";
 import type { MealAnalysis } from "@/types/meal";
-import { Footprints, Moon, Droplets, UtensilsCrossed, Pill, Dumbbell, Heart, Smile } from "lucide-react";
+import { CheckCircle2, ChevronRight, Droplets, Footprints, Moon, UtensilsCrossed } from "lucide-react";
+
+type HabitType = "steps" | "sleep" | "water" | "meal" | "all";
+
+const habitTabs: Array<{ type: HabitType; label: string }> = [
+  { type: "steps", label: "걸음수" },
+  { type: "sleep", label: "수면" },
+  { type: "water", label: "수분" },
+  { type: "meal", label: "식사" },
+];
+
+function parseTimeToMinutes(time: string) {
+  const [hour = "0", minute = "0"] = time.split(":");
+  return Number(hour) * 60 + Number(minute);
+}
+
+function calculateSleepHours(bedTime: string, wakeTime: string) {
+  const bedMinutes = parseTimeToMinutes(bedTime);
+  let wakeMinutes = parseTimeToMinutes(wakeTime);
+
+  if (wakeMinutes <= bedMinutes) {
+    wakeMinutes += 24 * 60;
+  }
+
+  return Math.round(((wakeMinutes - bedMinutes) / 60) * 10) / 10;
+}
 
 export default function HabitsPage() {
+  const [activeType, setActiveType] = useState<HabitType>("all");
   const [form, setForm] = useState<Omit<DailyLog, "id" | "logDate">>({
     steps: sampleDailyLog.steps,
     sleepHours: sampleDailyLog.sleepHours,
@@ -24,13 +50,33 @@ export default function HabitsPage() {
     conditionScore: sampleDailyLog.conditionScore,
     memo: "",
   });
+  const [bedTime, setBedTime] = useState("23:00");
+  const [wakeTime, setWakeTime] = useState("06:30");
   const [saved, setSaved] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [earnedPoints, setEarnedPoints] = useState(0);
   const [todayMeals, setTodayMeals] = useState<MealAnalysis[]>([]);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get("type") as HabitType | null;
+    if (type && ["steps", "sleep", "water", "meal"].includes(type)) {
+      setActiveType(type);
+    }
+
     const todayKey = new Date().toISOString().slice(0, 10);
+    const logs = getFromStorage<DailyLog[]>(STORAGE_KEYS.DAILY_LOGS, []);
+    const latestLog = logs[logs.length - 1] || sampleDailyLog;
+    setForm({
+      steps: latestLog.steps,
+      sleepHours: latestLog.sleepHours,
+      waterCups: latestLog.waterCups,
+      mealsCount: latestLog.mealsCount,
+      medicationTaken: latestLog.medicationTaken,
+      exerciseDone: latestLog.exerciseDone,
+      conditionScore: latestLog.conditionScore,
+      memo: latestLog.memo || "",
+    });
     setTodayMeals(getFromStorage<MealAnalysis[]>(STORAGE_KEYS.MEAL_RECORDS, []).filter((meal) => meal.mealDate === todayKey));
   }, []);
 
@@ -41,14 +87,31 @@ export default function HabitsPage() {
     weekday: "long",
   });
 
+  const todayMealCount = useMemo(
+    () => Math.max(form.mealsCount, todayMeals.filter((meal) => meal.mealType !== "snack").length),
+    [form.mealsCount, todayMeals]
+  );
+
+  const visibleTypes = activeType === "all" ? habitTabs.map((tab) => tab.type) : [activeType];
+
+  const updateSleepTimes = (nextBedTime: string, nextWakeTime: string) => {
+    setSaved(false);
+    setBedTime(nextBedTime);
+    setWakeTime(nextWakeTime);
+    setForm((prev) => ({ ...prev, sleepHours: calculateSleepHours(nextBedTime, nextWakeTime) }));
+  };
+
   const handleSave = () => {
+    const todayKey = new Date().toISOString().split("T")[0];
     const log: DailyLog = {
       ...form,
+      mealsCount: todayMealCount,
       id: `daily-${Date.now()}`,
-      logDate: new Date().toISOString().split("T")[0],
+      logDate: todayKey,
     };
     const logs = getFromStorage<DailyLog[]>(STORAGE_KEYS.DAILY_LOGS, []);
-    saveToStorage(STORAGE_KEYS.DAILY_LOGS, [...logs, log]);
+    const nextLogs = [...logs.filter((item) => item.logDate !== todayKey), log];
+    saveToStorage(STORAGE_KEYS.DAILY_LOGS, nextLogs);
 
     let totalPoints = 0;
     const txs = getFromStorage(STORAGE_KEYS.POINT_TRANSACTIONS, []);
@@ -78,255 +141,157 @@ export default function HabitsPage() {
     setSaved(true);
   };
 
-  const achievementRate = Math.round(
-    (([
-      form.steps >= 7000,
-      form.sleepHours >= 7,
-      form.waterCups >= 6,
-      form.mealsCount >= 3,
-      form.exerciseDone,
-    ].filter(Boolean).length) / 5) * 100
-  );
-
   return (
     <MobileShell>
-      <AppHeader title="생활습관 기록" />
-      <RewardToast
-        message="오늘의 습관 기록 완료!"
-        points={earnedPoints}
-        visible={showToast}
-        onHide={() => setShowToast(false)}
-      />
+      <AppHeader title="생활습관 기록" showBack backHref="/dashboard" />
+      <RewardToast message="오늘의 습관 기록 완료!" points={earnedPoints} visible={showToast} onHide={() => setShowToast(false)} />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
-        {/* Date + Progress */}
-        <div className="bg-gradient-to-br from-[#EAF7EF] to-white px-4 py-5 border-b border-gray-100">
+        <section className="border-b border-gray-100 bg-gradient-to-br from-[#EAF7EF] to-white px-4 py-5">
           <p className="text-sm text-gray-500">{today}</p>
-          <div className="flex items-center justify-between mt-2">
-            <h2 className="text-lg font-bold text-[#1F2937]">오늘의 건강 기록</h2>
-            <div className="text-right">
-              <p className="text-2xl font-extrabold text-[#4CAF6A]">{achievementRate}%</p>
-              <p className="text-xs text-gray-400">달성률</p>
-            </div>
-          </div>
-          <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[#4CAF6A] rounded-full transition-all duration-500"
-              style={{ width: `${achievementRate}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="px-4 py-4 flex flex-col gap-3">
-          <section className="rounded-2xl border border-green-100 bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between"><h3 className="text-lg font-extrabold text-[#1F2937]">오늘의 건강 행동</h3><Link href="/meals/new" className="rounded-full bg-[#4CAF6A] px-3 py-2 text-xs font-bold text-white">식단 사진 기록</Link></div>
-            <div className="mt-3 space-y-2">{[
-              { label: "아침 식단 기록", done: todayMeals.some((meal) => meal.mealType === "breakfast"), reward: 5 },
-              { label: "점심 식단 기록", done: todayMeals.some((meal) => meal.mealType === "lunch"), reward: 5 },
-              { label: "저녁 식단 기록", done: todayMeals.some((meal) => meal.mealType === "dinner"), reward: 5 },
-              { label: "물 6잔 이상", done: form.waterCups >= 6, reward: 10 },
-              { label: "7,000보 걷기", done: form.steps >= 7000, reward: 20 },
-              { label: "수면 7시간 이상", done: form.sleepHours >= 7, reward: 15 },
-              { label: "운동 완료", done: form.exerciseDone, reward: 10 },
-            ].map((action) => <div key={action.label} className="flex items-center gap-3 rounded-xl bg-[#F7FBF8] px-3 py-2"><span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-black ${action.done ? "bg-[#4CAF6A] text-white" : "bg-gray-200 text-gray-400"}`}>{action.done ? "✓" : ""}</span><span className="flex-1 text-sm font-semibold text-[#1F2937]">{action.label}</span><span className="text-xs font-bold text-[#4CAF6A]">+{action.reward}P</span></div>)}</div>
-          </section>
-          {/* Steps */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2 mb-3">
-              <Footprints size={18} className="text-[#4CAF6A]" />
-              <p className="font-semibold text-[#1F2937]">걸음 수</p>
-              <span className="ml-auto text-xs text-gray-400">목표: 7,000보</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min={0}
-                max={15000}
-                step={100}
-                value={form.steps}
-                onChange={(e) => setForm((p) => ({ ...p, steps: parseInt(e.target.value) }))}
-                className="flex-1 accent-[#4CAF6A]"
-              />
-              <input
-                type="number"
-                value={form.steps}
-                onChange={(e) => setForm((p) => ({ ...p, steps: parseInt(e.target.value) || 0 }))}
-                className="w-20 text-right font-bold text-[#1F2937] border border-gray-200 rounded-lg px-2 py-1 text-sm"
-              />
-            </div>
-            {form.steps >= 7000 && <p className="text-xs text-[#4CAF6A] mt-1 font-medium">✓ 목표 달성! +20P</p>}
-          </div>
-
-          {/* Sleep */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2 mb-3">
-              <Moon size={18} className="text-blue-400" />
-              <p className="font-semibold text-[#1F2937]">수면 시간</p>
-              <span className="ml-auto text-xs text-gray-400">목표: 7시간</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min={0}
-                max={12}
-                step={0.5}
-                value={form.sleepHours}
-                onChange={(e) => setForm((p) => ({ ...p, sleepHours: parseFloat(e.target.value) }))}
-                className="flex-1 accent-blue-400"
-              />
-              <span className="w-20 text-right font-bold text-[#1F2937] text-sm">{form.sleepHours}시간</span>
-            </div>
-            {form.sleepHours >= 7 && <p className="text-xs text-blue-500 mt-1 font-medium">✓ 목표 달성! +15P</p>}
-          </div>
-
-          {/* Water */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2 mb-3">
-              <Droplets size={18} className="text-cyan-500" />
-              <p className="font-semibold text-[#1F2937]">물 마시기</p>
-              <span className="ml-auto text-xs text-gray-400">목표: 6잔</span>
-            </div>
-            <div className="flex gap-2">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setForm((p) => ({ ...p, waterCups: n }))}
-                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${
-                    n <= form.waterCups
-                      ? "bg-cyan-500 text-white"
-                      : "bg-gray-100 text-gray-400"
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-            {form.waterCups >= 6 && <p className="text-xs text-cyan-600 mt-2 font-medium">✓ 목표 달성! +10P</p>}
-          </div>
-
-          {/* Meals */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2 mb-3">
-              <UtensilsCrossed size={18} className="text-orange-400" />
-              <p className="font-semibold text-[#1F2937]">식사 횟수</p>
-            </div>
-            <div className="flex gap-2">
-              {[1, 2, 3, 4].map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setForm((p) => ({ ...p, mealsCount: n }))}
-                  className={`flex-1 py-2 rounded-lg text-sm font-bold transition-colors ${
-                    form.mealsCount === n ? "bg-orange-400 text-white" : "bg-gray-100 text-gray-500"
-                  }`}
-                >
-                  {n}끼
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Checkboxes */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3">
-            {[
-              { key: "medicationTaken", icon: Pill, label: "약 복용", color: "text-purple-500" },
-              { key: "exerciseDone", icon: Dumbbell, label: "운동 실천", color: "text-green-500" },
-            ].map(({ key, icon: Icon, label, color }) => (
-              <div
-                key={key}
-                className="flex items-center justify-between"
-                onClick={() =>
-                  setForm((p) => ({ ...p, [key]: !p[key as keyof typeof p] }))
-                }
+          <h1 className="mt-1 text-xl font-black text-[#1F2937]">
+            {activeType === "steps" && "걸음수 입력"}
+            {activeType === "sleep" && "수면시간 입력"}
+            {activeType === "water" && "수분 입력"}
+            {activeType === "meal" && "식사 기록"}
+            {activeType === "all" && "오늘의 생활습관"}
+          </h1>
+          <div className="mt-4 grid grid-cols-4 gap-2">
+            {habitTabs.map((tab) => (
+              <button
+                key={tab.type}
+                onClick={() => {
+                  setActiveType(tab.type);
+                  setSaved(false);
+                }}
+                className={`min-h-10 rounded-xl text-sm font-bold transition ${activeType === tab.type ? "bg-[#4CAF6A] text-white shadow-sm" : "bg-white text-gray-500 ring-1 ring-gray-100"}`}
               >
-                <div className="flex items-center gap-2">
-                  <Icon size={18} className={color} />
-                  <p className="font-medium text-[#1F2937]">{label}</p>
-                </div>
-                <div
-                  className={`w-12 h-6 rounded-full transition-colors ${
-                    form[key as keyof typeof form] ? "bg-[#4CAF6A]" : "bg-gray-200"
-                  }`}
-                >
-                  <div
-                    className={`w-6 h-6 bg-white rounded-full shadow transition-transform ${
-                      form[key as keyof typeof form] ? "translate-x-6" : "translate-x-0"
-                    }`}
-                  />
-                </div>
-              </div>
+                {tab.label}
+              </button>
             ))}
           </div>
+        </section>
 
-          {/* Condition Score */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2 mb-3">
-              <Smile size={18} className="text-yellow-400" />
-              <p className="font-semibold text-[#1F2937]">오늘의 컨디션</p>
-              <span className="ml-auto text-2xl font-extrabold text-[#4CAF6A]">{form.conditionScore}</span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={form.conditionScore}
-              onChange={(e) => setForm((p) => ({ ...p, conditionScore: parseInt(e.target.value) }))}
-              className="w-full accent-[#F7C948]"
-            />
-            <div className="flex justify-between text-xs text-gray-400 mt-1">
-              <span>매우 나쁨</span>
-              <span>보통</span>
-              <span>매우 좋음</span>
-            </div>
-          </div>
+        <div className="flex flex-col gap-3 px-4 py-4">
+          {visibleTypes.includes("steps") && (
+            <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-center gap-2">
+                <Footprints className="text-[#4CAF6A]" size={22} />
+                <div>
+                  <h2 className="font-black text-[#1F2937]">걸음수</h2>
+                  <p className="text-xs text-gray-500">오늘 걸은 걸음수만 입력해요.</p>
+                </div>
+              </div>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={form.steps}
+                onChange={(event) => {
+                  setSaved(false);
+                  setForm((prev) => ({ ...prev, steps: Number(event.target.value) || 0 }));
+                }}
+                className="w-full rounded-2xl border border-gray-200 px-4 py-4 text-right text-3xl font-black text-[#1F2937] outline-none focus:border-[#4CAF6A]"
+              />
+              <p className="mt-2 text-right text-sm font-bold text-[#4CAF6A]">목표 7,000보</p>
+            </section>
+          )}
 
-          {/* Memo */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <p className="font-semibold text-[#1F2937] mb-2">메모</p>
-            <textarea
-              value={form.memo}
-              onChange={(e) => setForm((p) => ({ ...p, memo: e.target.value }))}
-              placeholder="오늘의 건강 기록 메모를 남겨보세요..."
-              rows={3}
-              className="w-full text-sm text-gray-700 border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-[#4CAF6A]"
-            />
-          </div>
+          {visibleTypes.includes("sleep") && (
+            <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-center gap-2">
+                <Moon className="text-[#4E66B1]" size={22} />
+                <div>
+                  <h2 className="font-black text-[#1F2937]">수면시간</h2>
+                  <p className="text-xs text-gray-500">취침 시간과 기상 시간을 체크하면 자동 계산돼요.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="rounded-2xl bg-[#F7FBF8] p-3">
+                  <span className="text-xs font-bold text-gray-500">취침</span>
+                  <input type="time" value={bedTime} onChange={(event) => updateSleepTimes(event.target.value, wakeTime)} className="mt-2 w-full bg-transparent text-lg font-black text-[#1F2937] outline-none" />
+                </label>
+                <label className="rounded-2xl bg-[#F7FBF8] p-3">
+                  <span className="text-xs font-bold text-gray-500">기상</span>
+                  <input type="time" value={wakeTime} onChange={(event) => updateSleepTimes(bedTime, event.target.value)} className="mt-2 w-full bg-transparent text-lg font-black text-[#1F2937] outline-none" />
+                </label>
+              </div>
+              <div className="mt-4 rounded-2xl bg-blue-50 p-4 text-center">
+                <p className="text-xs font-bold text-blue-500">자동 계산된 수면</p>
+                <p className="mt-1 text-3xl font-black text-[#4E66B1]">{form.sleepHours}시간</p>
+              </div>
+            </section>
+          )}
 
-          {/* Coach message */}
-          <div className="bg-[#EAF7EF] rounded-2xl p-3 flex items-center gap-2">
-            <span className="text-xl">🌱</span>
-            <p className="text-sm text-[#1F5A3A]">
-              {achievementRate >= 80
-                ? "오늘 정말 잘 하고 계세요! 이 습관을 계속 유지해봐요."
-                : achievementRate >= 60
-                ? "좋은 흐름이에요. 조금만 더 실천해볼까요?"
-                : "작은 것부터 시작해도 괜찮아요. 건강이가 응원해요!"}
+          {visibleTypes.includes("water") && (
+            <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-center gap-2">
+                <Droplets className="text-[#27A9D6]" size={22} />
+                <div>
+                  <h2 className="font-black text-[#1F2937]">수분</h2>
+                  <p className="text-xs text-gray-500">오늘 물을 몇 잔 마셨는지만 선택해요.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((cup) => (
+                  <button
+                    key={cup}
+                    onClick={() => {
+                      setSaved(false);
+                      setForm((prev) => ({ ...prev, waterCups: cup }));
+                    }}
+                    className={`min-h-12 rounded-2xl text-sm font-black transition ${cup <= form.waterCups ? "bg-cyan-500 text-white shadow-sm" : "bg-gray-100 text-gray-400"}`}
+                  >
+                    {cup}잔
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {visibleTypes.includes("meal") && (
+            <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-center gap-2">
+                <UtensilsCrossed className="text-[#E58A2B]" size={22} />
+                <div>
+                  <h2 className="font-black text-[#1F2937]">식사</h2>
+                  <p className="text-xs text-gray-500">오늘 챙긴 식사 횟수를 박스로 기록해요.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                {[0, 1, 2, 3].map((count) => (
+                  <button
+                    key={count}
+                    onClick={() => {
+                      setSaved(false);
+                      setForm((prev) => ({ ...prev, mealsCount: count }));
+                    }}
+                    className={`min-h-12 rounded-2xl text-sm font-black transition ${todayMealCount === count ? "bg-orange-400 text-white shadow-sm" : "bg-gray-100 text-gray-500"}`}
+                  >
+                    {count}회
+                  </button>
+                ))}
+              </div>
+              <Link href="/meals/new" className="mt-3 flex min-h-12 items-center justify-between rounded-2xl bg-[#FFF6E9] px-4 text-sm font-extrabold text-[#B96B13]">
+                식단 사진으로 자세히 기록하기
+                <ChevronRight size={18} />
+              </Link>
+            </section>
+          )}
+
+          <section className="rounded-2xl bg-[#EAF7EF] p-4">
+            <p className="flex items-center gap-2 text-sm font-extrabold text-[#1F5A3A]">
+              <CheckCircle2 size={18} />
+              저장하면 오늘 기록에 반영돼요
             </p>
-          </div>
-
-          {/* Reward info */}
-          <div className="bg-white rounded-2xl p-3 border border-[#4CAF6A]/30">
-            <p className="text-xs text-gray-500 mb-1 font-semibold">오늘 획득 가능한 헬스포인트</p>
-            <div className="flex gap-2 flex-wrap">
-              {[
-                { label: "기록 완료", pts: 10, done: false },
-                { label: "물 6잔+", pts: 10, done: form.waterCups >= 6 },
-                { label: "7,000보+", pts: 20, done: form.steps >= 7000 },
-                { label: "수면 7h+", pts: 15, done: form.sleepHours >= 7 },
-              ].map(({ label, pts, done }) => (
-                <span key={label} className={`text-xs px-2 py-1 rounded-full font-medium ${done ? "bg-[#4CAF6A] text-white" : "bg-gray-100 text-gray-500"}`}>
-                  {label} +{pts}P
-                </span>
-              ))}
-            </div>
-          </div>
+            <p className="mt-1 text-xs leading-relaxed text-gray-600">같은 날짜 기록은 최신 입력값으로 업데이트됩니다.</p>
+          </section>
 
           <button
             onClick={handleSave}
             disabled={saved}
-            className={`w-full py-4 rounded-2xl text-lg font-bold transition-all ${
-              saved ? "bg-gray-200 text-gray-400" : "bg-[#4CAF6A] text-white shadow-lg active:scale-95"
-            }`}
+            className={`w-full rounded-2xl py-4 text-lg font-bold transition-all ${saved ? "bg-gray-200 text-gray-400" : "bg-[#4CAF6A] text-white shadow-lg active:scale-95"}`}
           >
-            {saved ? "✓ 오늘의 습관 기록 완료!" : "저장하기"}
+            {saved ? "오늘 기록 저장 완료" : "저장하기"}
           </button>
         </div>
       </main>

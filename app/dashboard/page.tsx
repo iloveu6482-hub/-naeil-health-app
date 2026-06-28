@@ -150,10 +150,11 @@ export default function DashboardPage() {
         ? "border-white/75 bg-white/60 shadow-[0_0_26px_rgba(109,220,177,0.32),0_14px_30px_rgba(31,90,58,0.22)] ring-[#9BE7C5]/55"
         : "border-white/70 bg-white/58 shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-[#4CAF6A]/55";
   const dashboardMetricItems = [
-    { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]", achieved: dailyLog.steps >= 7000, href: "/habits" },
+    { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]", achieved: dailyLog.steps >= 7000, href: "/habits?type=steps" },
     { icon: Flame, label: "소모 칼로리", value: `${calories} kcal`, color: "text-[#F59E0B]", achieved: calories >= 300 },
-    { icon: Moon, label: "수면", value: `${dailyLog.sleepHours}시간`, color: "text-[#4E66B1]", achieved: dailyLog.sleepHours >= 7 && dailyLog.sleepHours <= 9, href: "/habits" },
-    { icon: Droplets, label: "수분", value: `${dailyLog.waterCups}잔`, color: "text-[#27A9D6]", achieved: dailyLog.waterCups >= 6, href: "/habits" },
+    { icon: Moon, label: "수면", value: `${dailyLog.sleepHours}시간`, color: "text-[#4E66B1]", achieved: dailyLog.sleepHours >= 7 && dailyLog.sleepHours <= 9, href: "/habits?type=sleep" },
+    { icon: Droplets, label: "수분", value: `${dailyLog.waterCups}잔`, color: "text-[#27A9D6]", achieved: dailyLog.waterCups >= 6, href: "/habits?type=water" },
+    { icon: Utensils, label: "식사", value: `${todayMeals.filter((meal) => meal.mealType !== "snack").length || dailyLog.mealsCount}/3회`, color: "text-[#E58A2B]", achieved: todayMeals.filter((meal) => meal.mealType !== "snack").length >= 3 || dailyLog.mealsCount >= 3, href: "/habits?type=meal" },
   ];
 
   const summaryItems = [
@@ -209,13 +210,13 @@ export default function DashboardPage() {
           </div>
 
           <div className="absolute inset-0 z-20">
-            <div className="absolute left-3 top-[402px] space-y-2 [@media(max-height:700px)]:top-[342px]">
+            <div className="absolute left-3 top-[390px] space-y-1.5 [@media(max-height:700px)]:top-[326px]">
               {dashboardMetricItems.map(({ icon: Icon, label, value, color, achieved, href }) => {
-                const metricClassName = `relative block h-16 w-[142px] rounded-[19px] border px-3 shadow-[0_12px_30px_rgba(10,66,40,0.18)] backdrop-blur-[9px] ${href ? "transition active:scale-[0.98]" : ""} ${achieved ? "border-[#BDE8CA] bg-[#EAF7EF]/62 ring-1 ring-[#9BE7C5]/60" : "border-white/65 bg-white/38"}`;
+                const metricClassName = `relative block h-14 w-[142px] rounded-[18px] border px-3 shadow-[0_12px_30px_rgba(10,66,40,0.18)] backdrop-blur-[9px] ${href ? "transition active:scale-[0.98]" : ""} ${achieved ? "border-[#BDE8CA] bg-[#EAF7EF]/62 ring-1 ring-[#9BE7C5]/60" : "border-white/65 bg-white/38"}`;
                 const metricContent = (
                   <>
                     {achieved && <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#4CAF6A] text-white"><CheckCircle2 size={11} /></span>}
-                    <div className="flex h-full items-center gap-2.5"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/70"><Icon size={21} className={color} /></span><div><p className="whitespace-nowrap text-xs font-semibold text-[#1F2937]/70">{label}</p><p className="whitespace-nowrap text-[17px] font-black leading-5 text-[#102D20]">{value}</p></div></div>
+                    <div className="flex h-full items-center gap-2.5"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/70"><Icon size={20} className={color} /></span><div><p className="whitespace-nowrap text-[11px] font-semibold text-[#1F2937]/70">{label}</p><p className="whitespace-nowrap text-base font-black leading-5 text-[#102D20]">{value}</p></div></div>
                   </>
                 );
 
