@@ -17,9 +17,7 @@ import { getDefaultAvatarImage } from "@/lib/defaultAvatars";
 import { defaultAiCoach, getAiCoachById } from "@/lib/coachData";
 import { sampleUser, sampleCheckup, sampleDailyLog } from "@/lib/sampleData";
 import {
-  getCurrentCoachTimeSlot,
   getRandomCoachMessage,
-  type CoachTimeSlot,
   type CoachId,
 } from "@/lib/coachMessages";
 import type { UserProfile } from "@/types/user";
@@ -42,15 +40,6 @@ const scoreCoachMessages: Record<ScoreStatus, string> = {
   low: "오늘은 무리하지 않아도 괜찮아요. 작은 실천 하나부터 시작해볼까요?",
   medium: "좋아요. 한 가지만 더 실천해볼까요?",
   high: "아주 좋아요. 오늘의 건강 습관이 잘 이어지고 있어요.",
-};
-
-const timeSlotLabelMap: Record<CoachTimeSlot, string> = {
-  morning: "아침",
-  lunch: "점심",
-  afternoon: "오후",
-  evening: "저녁",
-  night: "밤",
-  late_night: "새벽",
 };
 
 function getScoreStatus(score: number): ScoreStatus {
@@ -144,7 +133,6 @@ export default function DashboardPage() {
     hour: "2-digit",
     minute: "2-digit",
   });
-  const currentTimeSlotLabel = timeSlotLabelMap[getCurrentCoachTimeSlot(currentTime)];
   const today = new Date().toISOString().slice(0, 10);
   const todayMeals = meals.filter((meal) => meal.mealDate === today);
   const mealCalories = todayMeals.reduce((sum, meal) => sum + meal.estimatedCalories, 0);
@@ -190,8 +178,8 @@ export default function DashboardPage() {
           </Link>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="whitespace-nowrap rounded-full bg-[#EAF7EF]/80 px-2.5 py-1 text-xs font-bold text-[#1F5A3A]" aria-label={`현재 시간 ${formattedCurrentTime}, ${currentTimeSlotLabel}`}>
-            {formattedCurrentTime} · {currentTimeSlotLabel}
+          <span className="whitespace-nowrap rounded-full bg-[#EAF7EF]/80 px-2.5 py-1 text-xs font-bold text-[#1F5A3A]" aria-label={`현재 시간 ${formattedCurrentTime}`}>
+            {formattedCurrentTime}
           </span>
           <Link href="/points" className="flex items-center gap-1 rounded-full bg-[#EAF7EF] px-3 py-1">
             <Sprout size={14} className="text-[#4CAF6A]" />
