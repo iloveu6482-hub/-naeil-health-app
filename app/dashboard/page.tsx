@@ -151,10 +151,10 @@ export default function DashboardPage() {
         ? "border-white/75 bg-white/60 shadow-[0_0_26px_rgba(109,220,177,0.32),0_14px_30px_rgba(31,90,58,0.22)] ring-[#9BE7C5]/55"
         : "border-white/70 bg-white/58 shadow-[0_14px_30px_rgba(31,90,58,0.24)] ring-[#4CAF6A]/55";
   const dashboardMetricItems = [
-    { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]", achieved: dailyLog.steps >= 7000 },
+    { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]", achieved: dailyLog.steps >= 7000, href: "/habits" },
     { icon: Flame, label: "소모 칼로리", value: `${calories} kcal`, color: "text-[#F59E0B]", achieved: calories >= 300 },
-    { icon: Moon, label: "수면", value: `${dailyLog.sleepHours}시간`, color: "text-[#4E66B1]", achieved: dailyLog.sleepHours >= 7 && dailyLog.sleepHours <= 9 },
-    { icon: Droplets, label: "수분", value: `${dailyLog.waterCups}잔`, color: "text-[#27A9D6]", achieved: dailyLog.waterCups >= 6 },
+    { icon: Moon, label: "수면", value: `${dailyLog.sleepHours}시간`, color: "text-[#4E66B1]", achieved: dailyLog.sleepHours >= 7 && dailyLog.sleepHours <= 9, href: "/habits" },
+    { icon: Droplets, label: "수분", value: `${dailyLog.waterCups}잔`, color: "text-[#27A9D6]", achieved: dailyLog.waterCups >= 6, href: "/habits" },
   ];
 
   const summaryItems = [
@@ -177,10 +177,10 @@ export default function DashboardPage() {
             <span className="truncate text-base font-bold text-[#1F5A3A]">내일의건강</span>
           </Link>
         </div>
+        <span className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#EAF7EF]/80 px-2.5 py-1 text-xs font-bold text-[#1F5A3A]" aria-label={`현재 시간 ${formattedCurrentTime}`}>
+          {formattedCurrentTime}
+        </span>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="whitespace-nowrap rounded-full bg-[#EAF7EF]/80 px-2.5 py-1 text-xs font-bold text-[#1F5A3A]" aria-label={`현재 시간 ${formattedCurrentTime}`}>
-            {formattedCurrentTime}
-          </span>
           <Link href="/points" className="flex items-center gap-1 rounded-full bg-[#EAF7EF] px-3 py-1">
             <Sprout size={14} className="text-[#4CAF6A]" />
             <span className="text-sm font-bold text-[#1F5A3A]">{points.toLocaleString()}</span>
@@ -211,12 +211,25 @@ export default function DashboardPage() {
 
           <div className="absolute inset-0 z-20">
             <div className="absolute left-3 top-[402px] space-y-2 [@media(max-height:700px)]:top-[342px]">
-              {dashboardMetricItems.map(({ icon: Icon, label, value, color, achieved }) => (
-                <div key={label} className={`relative h-16 w-[142px] rounded-[19px] border px-3 shadow-[0_12px_30px_rgba(10,66,40,0.18)] backdrop-blur-[9px] ${achieved ? "border-[#BDE8CA] bg-[#EAF7EF]/62 ring-1 ring-[#9BE7C5]/60" : "border-white/65 bg-white/38"}`}>
-                  {achieved && <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#4CAF6A] text-white"><CheckCircle2 size={11} /></span>}
-                  <div className="flex h-full items-center gap-2.5"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/70"><Icon size={21} className={color} /></span><div><p className="whitespace-nowrap text-xs font-semibold text-[#1F2937]/70">{label}</p><p className="whitespace-nowrap text-[17px] font-black leading-5 text-[#102D20]">{value}</p></div></div>
-                </div>
-              ))}
+              {dashboardMetricItems.map(({ icon: Icon, label, value, color, achieved, href }) => {
+                const metricClassName = `relative block h-16 w-[142px] rounded-[19px] border px-3 shadow-[0_12px_30px_rgba(10,66,40,0.18)] backdrop-blur-[9px] ${href ? "transition active:scale-[0.98]" : ""} ${achieved ? "border-[#BDE8CA] bg-[#EAF7EF]/62 ring-1 ring-[#9BE7C5]/60" : "border-white/65 bg-white/38"}`;
+                const metricContent = (
+                  <>
+                    {achieved && <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#4CAF6A] text-white"><CheckCircle2 size={11} /></span>}
+                    <div className="flex h-full items-center gap-2.5"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/70"><Icon size={21} className={color} /></span><div><p className="whitespace-nowrap text-xs font-semibold text-[#1F2937]/70">{label}</p><p className="whitespace-nowrap text-[17px] font-black leading-5 text-[#102D20]">{value}</p></div></div>
+                  </>
+                );
+
+                return href ? (
+                  <Link key={label} href={href} aria-label={`${label} 입력하기`} className={metricClassName}>
+                    {metricContent}
+                  </Link>
+                ) : (
+                  <div key={label} className={metricClassName}>
+                    {metricContent}
+                  </div>
+                );
+              })}
             </div>
 
             <div className="absolute left-3 top-[330px] flex h-16 w-[142px] flex-col justify-center rounded-xl rounded-bl-sm border border-white/65 bg-white/48 px-3 shadow-[0_8px_20px_rgba(31,90,58,0.13)] backdrop-blur-[9px] [@media(max-height:700px)]:top-[270px]">
