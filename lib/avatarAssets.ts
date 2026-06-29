@@ -14,6 +14,10 @@ export function getAvatarImagePath({ style, gender, viewMode }: { style: AvatarS
     return `/avatars/portrait/avatar-${style}-${gender}.mp4`;
   }
 
+  if (viewMode === "fullbody" && style === "emotional" && gender === "male") {
+    return "/avatars/fullbody/avatar-emotional-male.mp4";
+  }
+
   return `/avatars/${viewMode}/avatar-${style}-${gender}.png`;
 }
 
