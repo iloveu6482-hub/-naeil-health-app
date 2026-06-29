@@ -46,6 +46,10 @@ type NudgeMessage = {
   message: string;
 };
 
+const TODAY_COACH_MESSAGE_VISIBLE_MS = 12_000;
+const medicalDisclaimerPattern =
+  /\s*[※*]*\s*이\s*코칭은\s*의료\s*진단이\s*아닌\s*건강\s*습관\s*가이드입니다\.?\s*/g;
+
 const coachEmojiMap: Record<string, string> = {
   onyu: "🌿",
   onyou: "🌿",
@@ -88,6 +92,10 @@ function isTodayCoachMessage(value: unknown): value is TodayCoachMessage {
   if (!value || typeof value !== "object") return false;
   const record = value as Record<string, unknown>;
   return typeof record.message === "string" && typeof record.date === "string" && typeof record.coachId === "string";
+}
+
+function cleanCoachBubbleMessage(message: string) {
+  return message.replace(medicalDisclaimerPattern, " ").replace(/\s{2,}/g, " ").trim();
 }
 
 function getLocalDateKey(date = new Date()) {
@@ -234,6 +242,16 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
+    if (todayCoachMessage?.date !== getLocalDateKey() || !todayCoachMessage.message) return;
+
+    const timer = window.setTimeout(() => {
+      setTodayCoachMessage(null);
+    }, TODAY_COACH_MESSAGE_VISIBLE_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [todayCoachMessage]);
+
+  useEffect(() => {
     const timer = window.setInterval(() => {
       setCurrentTime(new Date());
     }, 60_000);
@@ -259,7 +277,7 @@ export default function DashboardPage() {
     hour: "2-digit",
     minute: "2-digit",
   });
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalDateKey(currentTime);
   const todayMeals = meals.filter((meal) => meal.mealDate === today);
   const mealCalories = todayMeals.reduce((sum, meal) => sum + meal.estimatedCalories, 0);
   const scoreStatus = getScoreStatus(score);
@@ -271,7 +289,7 @@ export default function DashboardPage() {
   const activeTodayCoachMessage =
     todayCoachMessage?.date === today && todayCoachMessage.message ? todayCoachMessage : null;
   const bubbleCoachId = activeTodayCoachMessage?.coachId || selectedCoachId;
-  const bubbleMessageText = activeTodayCoachMessage?.message || selectedCoachMessage.message.text;
+  const bubbleMessageText = cleanCoachBubbleMessage(activeTodayCoachMessage?.message || selectedCoachMessage.message.text);
   const bubbleCoachEmoji = coachEmojiMap[bubbleCoachId] || coachEmojiMap[selectedCoachId] || "";
   const statusVideoUrl = `/avatars/status/avatar_${scoreStatus}.mp4`;
   const activeStatusVideoUrl = avatarViewMode === "fullbody" ? statusVideoUrl : undefined;
@@ -289,7 +307,9 @@ export default function DashboardPage() {
               ? "#FB923C"
               : "#EF4444";
   const scoreGaugeStyle = {
-    background: `conic-gradient(${scoreGaugeColor} ${clampedScore * 3.6}deg, rgba(255,255,255,0.58) ${clampedScore * 3.6}deg 360deg)`,
+    background: `conic-gradient(${scoreGaugeColor} ${clampedScore * 3.6}deg, rgba(250,204,21,0.48) ${clampedScore * 3.6}deg 360deg)`,
+    WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px))",
+    mask: "radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px))",
   };
   const scoreCircleEffect =
     clampedScore >= 100
@@ -404,8 +424,8 @@ export default function DashboardPage() {
 
             <button type="button" onClick={() => setScoreSheetOpen(true)} className={`absolute left-[3%] top-[13.5%] flex h-36 w-36 flex-col items-center justify-center overflow-visible rounded-full border-[5px] text-center ring-2 backdrop-blur-[10px] transition active:scale-95 ${scoreCircleEffect}`} aria-label="오늘 내 점수 분석 열기">
               {clampedScore >= 100 && <span className="score-complete-wave pointer-events-none absolute -inset-3 rounded-full border border-[#86EFAC]/70" />}
-              <span className="pointer-events-none absolute inset-0 rounded-full" style={scoreGaugeStyle} />
-              <span className="pointer-events-none absolute inset-[9px] rounded-full bg-white/82 shadow-inner backdrop-blur-[10px]" />
+              <span className="pointer-events-none absolute -inset-[8px] rounded-full" style={scoreGaugeStyle} />
+              <span className="pointer-events-none absolute inset-[7px] rounded-full bg-white/84 shadow-inner backdrop-blur-[10px]" />
               {clampedScore >= 90 && <span className="pointer-events-none absolute inset-y-[-20%] left-[-70%] w-12 rotate-12 bg-gradient-to-r from-transparent via-emerald-100/70 to-transparent blur-sm animate-[scoreShimmer_5.5s_ease-in-out_infinite]" />}
               {clampedScore >= 100 && (
                 <>

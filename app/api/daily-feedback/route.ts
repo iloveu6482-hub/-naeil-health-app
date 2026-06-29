@@ -43,8 +43,8 @@ export async function POST(request: Request) {
       "You write short Korean health habit coaching feedback for the app Naeil Health.",
       `Use this coach style: ${coachToneMap[coachId]}.`,
       "Return exactly one JSON object only. Do not include markdown or text outside JSON.",
-      'The response shape must be {"message":"50-80 Korean characters of feedback ending with the required disclaimer"}',
-      'The message must always end with "※ 이 코칭은 의료 진단이 아닌 건강 습관 가이드입니다"',
+      'The response shape must be {"message":"50-80 Korean characters of feedback"}',
+      "Do not add a medical disclaimer sentence to the message.",
     ].join("\n");
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
