@@ -73,6 +73,51 @@ function getScoreStatus(score: number): ScoreStatus {
   return "low";
 }
 
+function hexToRgb(hex: string) {
+  const normalized = hex.replace("#", "");
+  return {
+    r: parseInt(normalized.slice(0, 2), 16),
+    g: parseInt(normalized.slice(2, 4), 16),
+    b: parseInt(normalized.slice(4, 6), 16),
+  };
+}
+
+function interpolateColor(from: string, to: string, amount: number) {
+  const start = hexToRgb(from);
+  const end = hexToRgb(to);
+  const clampedAmount = Math.max(0, Math.min(1, amount));
+  const channel = (fromValue: number, toValue: number) =>
+    Math.round(fromValue + (toValue - fromValue) * clampedAmount);
+
+  return `rgb(${channel(start.r, end.r)}, ${channel(start.g, end.g)}, ${channel(start.b, end.b)})`;
+}
+
+function getScoreGaugeColor(score: number) {
+  const stops = [
+    { score: 0, color: "#EF4444" },
+    { score: 25, color: "#FB923C" },
+    { score: 50, color: "#FACC15" },
+    { score: 75, color: "#A3E635" },
+    { score: 100, color: "#16A34A" },
+  ];
+  const clampedScore = Math.max(0, Math.min(100, score));
+
+  for (let index = 0; index < stops.length - 1; index += 1) {
+    const current = stops[index];
+    const next = stops[index + 1];
+
+    if (clampedScore >= current.score && clampedScore <= next.score) {
+      return interpolateColor(
+        current.color,
+        next.color,
+        (clampedScore - current.score) / (next.score - current.score)
+      );
+    }
+  }
+
+  return stops[stops.length - 1].color;
+}
+
 function resolveCoachMessageId(selectedCoach: AiCoach): CoachId {
   if (selectedCoach.id === "haru") return "haru";
   if (selectedCoach.id === "taeo") return "taeo";
@@ -327,22 +372,12 @@ export default function DashboardPage() {
   const statusVideoUrl = `/avatars/status/avatar_${scoreStatus}.mp4`;
   const activeStatusVideoUrl = avatarViewMode === "fullbody" ? statusVideoUrl : undefined;
   const clampedScore = Math.max(0, Math.min(100, score));
-  const scoreGaugeColor =
-    clampedScore >= 100
-      ? "#16A34A"
-      : clampedScore >= 90
-        ? "#22C55E"
-        : clampedScore >= 70
-          ? "#A3E635"
-          : clampedScore >= 40
-            ? "#FACC15"
-            : clampedScore >= 20
-              ? "#FB923C"
-              : "#EF4444";
+  const scoreGaugeColor = getScoreGaugeColor(clampedScore);
   const scoreGaugeStyle = {
-    background: `conic-gradient(${scoreGaugeColor} ${clampedScore * 3.6}deg, rgba(250,204,21,0.48) ${clampedScore * 3.6}deg 360deg)`,
+    background: `conic-gradient(from -90deg, #EF4444 0deg, ${scoreGaugeColor} ${clampedScore * 3.6}deg, transparent ${clampedScore * 3.6}deg 360deg)`,
     WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px))",
     mask: "radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px))",
+    transition: "background 500ms ease, filter 500ms ease",
   };
   const scoreCircleEffect =
     clampedScore >= 100
@@ -458,7 +493,7 @@ export default function DashboardPage() {
             <button type="button" onClick={() => setScoreSheetOpen(true)} className={`absolute left-[3%] top-[13.5%] flex h-36 w-36 flex-col items-center justify-center overflow-visible rounded-full border-[5px] text-center ring-2 backdrop-blur-[10px] transition active:scale-95 ${scoreCircleEffect}`} aria-label="오늘 내 점수 분석 열기">
               {clampedScore >= 100 && <span className="score-complete-wave pointer-events-none absolute -inset-3 rounded-full border border-[#86EFAC]/70" />}
               <span className="pointer-events-none absolute -inset-[8px] rounded-full" style={scoreGaugeStyle} />
-              <span className="pointer-events-none absolute inset-[7px] rounded-full bg-white/84 shadow-inner backdrop-blur-[10px]" />
+              <span className="pointer-events-none absolute inset-[7px] rounded-full border border-white/55 bg-white/42 shadow-[inset_0_1px_10px_rgba(255,255,255,0.38),0_10px_24px_rgba(31,90,58,0.14)] backdrop-blur-[12px]" />
               {clampedScore >= 90 && <span className="pointer-events-none absolute inset-y-[-20%] left-[-70%] w-12 rotate-12 bg-gradient-to-r from-transparent via-emerald-100/70 to-transparent blur-sm animate-[scoreShimmer_5.5s_ease-in-out_infinite]" />}
               {clampedScore >= 100 && (
                 <>
