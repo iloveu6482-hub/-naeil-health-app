@@ -93,8 +93,9 @@ function getScoreGaugeColor(score: number) {
     { score: 50, color: "#D9A900" },
     { score: 75, color: "#6FBF3B" },
     { score: 100, color: "#087A35" },
+    { score: 110, color: "#00A86B" },
   ];
-  const clampedScore = Math.max(0, Math.min(100, score));
+  const clampedScore = Math.max(0, Math.min(110, score));
 
   for (let index = 0; index < stops.length - 1; index += 1) {
     const current = stops[index];
@@ -374,6 +375,7 @@ export default function DashboardPage() {
           exerciseDone: dailyLog.exerciseDone,
           conditionScore: dailyLog.conditionScore,
           score,
+          currentHour: currentTime.getHours(),
           mode: "final",
         }),
       });
@@ -428,10 +430,11 @@ export default function DashboardPage() {
   const hasTodayRecord = dailyLog.steps > 0 || dailyLog.sleepHours > 0 || dailyLog.waterCups > 0 || dailyLog.mealsCount > 0 || todayMeals.length > 0;
   const statusVideoUrl = `/avatars/status/avatar_${scoreStatus}.mp4`;
   const activeStatusVideoUrl = avatarViewMode === "fullbody" ? statusVideoUrl : undefined;
-  const clampedScore = Math.max(0, Math.min(100, score));
+  const clampedScore = Math.max(0, Math.min(110, score));
+  const gaugePercent = Math.min(1, clampedScore / 110);
   const scoreGaugeColor = getScoreGaugeColor(clampedScore);
   const scoreGaugeStyle = {
-    background: `conic-gradient(from 0deg, #DC5A4E 0deg, ${scoreGaugeColor} ${clampedScore * 3.6}deg, transparent ${clampedScore * 3.6}deg 360deg)`,
+    background: `conic-gradient(from 0deg, #DC5A4E 0deg, ${scoreGaugeColor} ${gaugePercent * 360}deg, transparent ${gaugePercent * 360}deg 360deg)`,
     WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px))",
     mask: "radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px))",
     transition: "background 500ms ease, filter 500ms ease",
@@ -441,7 +444,9 @@ export default function DashboardPage() {
       "radial-gradient(circle at 38% 24%, rgba(255,255,255,0.46), rgba(255,255,255,0.2) 34%, rgba(76,175,106,0.18) 72%, rgba(31,90,58,0.08) 100%)",
   };
   const scoreCircleEffect =
-    clampedScore >= 100
+    clampedScore >= 110
+      ? "border-transparent bg-transparent shadow-[0_0_0_1px_rgba(16,185,129,0.42),0_0_46px_rgba(34,197,94,0.48),0_0_72px_rgba(250,204,21,0.22),0_18px_34px_rgba(31,90,58,0.24)] ring-[#BBF7D0]/65 score-celebration-glow"
+      : clampedScore >= 100
       ? "border-transparent bg-transparent shadow-[0_0_0_1px_rgba(34,197,94,0.22),0_0_34px_rgba(34,197,94,0.28),0_18px_34px_rgba(31,90,58,0.22)] ring-[#86EFAC]/45 score-health-glow"
       : clampedScore >= 90
         ? "border-transparent bg-transparent shadow-[0_0_0_1px_rgba(74,222,128,0.2),0_0_28px_rgba(74,222,128,0.24),0_16px_32px_rgba(31,90,58,0.2)] ring-[#BBF7D0]/40 score-health-glow"
@@ -553,6 +558,7 @@ export default function DashboardPage() {
 
             <button type="button" onClick={() => setScoreSheetOpen(true)} className={`absolute left-[3%] top-[13.5%] flex h-36 w-36 flex-col items-center justify-center overflow-visible rounded-full border-[5px] text-center ring-2 backdrop-blur-[10px] transition active:scale-95 ${scoreCircleEffect}`} aria-label="오늘 내 점수 분석 열기">
               {clampedScore >= 100 && <span className="score-complete-wave pointer-events-none absolute -inset-3 rounded-full border border-[#86EFAC]/70" />}
+              {clampedScore >= 110 && <span className="score-celebration-wave pointer-events-none absolute -inset-5 rounded-full border border-[#FDE68A]/70" />}
               <span className="pointer-events-none absolute -inset-[8px] rounded-full" style={scoreGaugeStyle} />
               <span className="pointer-events-none absolute inset-0 rounded-full border border-white/18 shadow-[inset_0_1px_14px_rgba(255,255,255,0.34),inset_0_-12px_22px_rgba(31,90,58,0.1),0_10px_24px_rgba(31,90,58,0.12)] backdrop-blur-[14px] backdrop-saturate-150" style={scoreGlassStyle} />
               {clampedScore >= 90 && <span className="pointer-events-none absolute inset-y-[-20%] left-[-70%] w-12 rotate-12 bg-gradient-to-r from-transparent via-emerald-100/70 to-transparent blur-sm animate-[scoreShimmer_5.5s_ease-in-out_infinite]" />}
@@ -563,12 +569,19 @@ export default function DashboardPage() {
                   <span className="absolute -right-1 top-1 rounded-full bg-[#F7C948] px-2 py-0.5 text-[10px] font-black text-white shadow-sm">완료</span>
                 </>
               )}
+              {clampedScore >= 110 && (
+                <>
+                  <span className="score-spark-particle score-spark-delay pointer-events-none absolute left-8 bottom-5">✦</span>
+                  <span className="score-leaf-particle score-leaf-delay pointer-events-none absolute right-8 bottom-4">🌿</span>
+                  <span className="absolute -left-2 top-7 rounded-full bg-[#10B981] px-2 py-0.5 text-[10px] font-black text-white shadow-sm">110</span>
+                </>
+              )}
               <span className="relative mt-2 flex flex-col items-center leading-none">
                 <span className="text-[13px] font-extrabold leading-[1.15] text-[#14251B] drop-shadow-[0_1px_1px_rgba(255,255,255,0.55)]">오늘의 건강관리</span>
-                <span className="mt-0.5 text-[13px] font-bold leading-[1.15] text-[#263F31] drop-shadow-[0_1px_1px_rgba(255,255,255,0.55)]">{clampedScore >= 100 ? "루틴 완료!" : "참고 점수"}</span>
+                <span className="mt-0.5 text-[13px] font-bold leading-[1.15] text-[#263F31] drop-shadow-[0_1px_1px_rgba(255,255,255,0.55)]">{clampedScore >= 110 ? "완벽 달성!" : clampedScore >= 100 ? "루틴 완료!" : "참고 점수"}</span>
               </span>
-              <p className="relative mt-1 text-5xl font-black leading-none drop-shadow-[0_2px_2px_rgba(255,255,255,0.42)]" style={{ color: scoreGaugeColor }}>{score}</p><p className="relative text-base font-extrabold leading-tight text-[#087A35] drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">/ 100</p>
-              {clampedScore >= 100 && <p className="relative mt-1 text-[10px] font-black text-[#15803D]">오늘의 건강 루틴 완료!</p>}
+              <p className="relative mt-1 text-5xl font-black leading-none drop-shadow-[0_2px_2px_rgba(255,255,255,0.42)]" style={{ color: scoreGaugeColor }}>{score}</p><p className="relative text-base font-extrabold leading-tight text-[#087A35] drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">/ 110</p>
+              {clampedScore >= 100 && <p className="relative mt-1 text-[10px] font-black text-[#15803D]">{clampedScore >= 110 ? "오늘의 건강 루틴 완벽 달성!" : "오늘의 건강 루틴 완료!"}</p>}
             </button>
           </div>
         </section>
@@ -720,6 +733,31 @@ export default function DashboardPage() {
             transform: scale(1.24);
           }
         }
+        @keyframes scoreCelebrationGlow {
+          0%,
+          100% {
+            filter: saturate(1.05) brightness(1);
+          }
+          35% {
+            filter: saturate(1.35) brightness(1.08);
+          }
+          65% {
+            filter: saturate(1.18) brightness(1.04);
+          }
+        }
+        @keyframes scoreCelebrationWave {
+          0% {
+            opacity: 0.75;
+            transform: scale(0.9);
+          }
+          55% {
+            opacity: 0.35;
+          }
+          100% {
+            opacity: 0;
+            transform: scale(1.42);
+          }
+        }
         @keyframes scoreLeafParticle {
           0% {
             opacity: 0;
@@ -752,6 +790,12 @@ export default function DashboardPage() {
         .score-complete-wave {
           animation: scoreCompleteWave 1.8s ease-out 1;
         }
+        .score-celebration-glow {
+          animation: scoreHealthGlow 3.2s ease-in-out infinite, scoreCelebrationGlow 2.4s ease-in-out infinite;
+        }
+        .score-celebration-wave {
+          animation: scoreCelebrationWave 2s ease-out infinite;
+        }
         .score-leaf-particle {
           animation: scoreLeafParticle 2.4s ease-out 1;
           font-size: 15px;
@@ -762,9 +806,17 @@ export default function DashboardPage() {
           text-shadow: 0 0 9px rgba(74, 222, 128, 0.75);
           font-size: 15px;
         }
+        .score-spark-delay {
+          animation-delay: 0.35s;
+        }
+        .score-leaf-delay {
+          animation-delay: 0.55s;
+        }
         @media (prefers-reduced-motion: reduce) {
           .score-health-glow,
+          .score-celebration-glow,
           .score-complete-wave,
+          .score-celebration-wave,
           .score-leaf-particle,
           .score-spark-particle {
             animation: none !important;

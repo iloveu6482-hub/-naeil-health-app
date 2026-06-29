@@ -101,7 +101,7 @@ const DETAILS: Record<LifestyleScoreItemId, ScoreDetail> = {
   exercise: {
     title: "운동 실천 보너스 기준",
     rules: [
-      { key: "on", range: "운동 실천 ON", score: "+5점" },
+      { key: "on", range: "운동 실천 ON", score: "+10점" },
       { key: "off", range: "운동 실천 OFF", score: "0점" },
     ],
     evidence: [
@@ -167,9 +167,9 @@ export default function HealthScoreSheet({ open, onClose, totalScore, dailyLog, 
             <p className="text-sm font-bold text-gray-500">총점</p>
             <div className="mt-1 flex items-end gap-1">
               <span className="text-5xl font-black leading-none text-[#24944E]">{totalScore}</span>
-              <span className="pb-1 text-lg font-bold text-[#4CAF50]">/ 100</span>
+              <span className="pb-1 text-lg font-bold text-[#4CAF50]">/ 110</span>
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-gray-500">생활습관 4개 항목 100점에 운동 실천 보너스 5점을 참고 지표로 함께 보여줘요.</p>
+            <p className="mt-2 text-xs leading-relaxed text-gray-500">생활습관 4개 항목 100점에 운동 실천 보너스 10점을 참고 지표로 함께 보여줘요.</p>
           </section>
 
           <div className="mt-3 space-y-3">

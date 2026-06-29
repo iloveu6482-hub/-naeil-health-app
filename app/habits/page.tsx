@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Droplets,
+  Dumbbell,
   Footprints,
   Moon,
   Target,
@@ -51,6 +52,8 @@ function toDateKey(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
+const exerciseOptions = ["걷기", "근력", "스트레칭", "자전거", "수영", "기타"];
+
 function getRangeStart(days?: number) {
   if (!days) return "";
   const start = new Date();
@@ -65,12 +68,12 @@ function average(values: number[]) {
 
 function calculateLogScore(log: DailyLog) {
   return Math.min(
-    100,
+    110,
     calculateActivityScore(log.steps) +
       calculateSleepScore(log.sleepHours) +
       calculateWaterScore(log.waterCups) +
       calculateMealScore(log.mealsCount) +
-      (log.exerciseDone ? 5 : 0)
+      (log.exerciseDone ? 10 : 0)
   );
 }
 
@@ -118,6 +121,7 @@ function createEmptyDailyLog(logDate: string): DailyLog {
     mealsCount: 0,
     medicationTaken: false,
     exerciseDone: false,
+    exerciseTypes: [],
     conditionScore: 0,
     memo: "",
   };
@@ -135,6 +139,7 @@ export default function HabitsPage() {
     mealsCount: sampleDailyLog.mealsCount,
     medicationTaken: sampleDailyLog.medicationTaken,
     exerciseDone: sampleDailyLog.exerciseDone,
+    exerciseTypes: sampleDailyLog.exerciseTypes || [],
     conditionScore: sampleDailyLog.conditionScore,
     memo: "",
   });
@@ -163,6 +168,7 @@ export default function HabitsPage() {
       mealsCount: latestLog.mealsCount,
       medicationTaken: latestLog.medicationTaken,
       exerciseDone: latestLog.exerciseDone,
+      exerciseTypes: latestLog.exerciseTypes || [],
       conditionScore: latestLog.conditionScore,
       memo: latestLog.memo || "",
     });
@@ -449,6 +455,68 @@ export default function HabitsPage() {
                 }}
                 className="w-full rounded-2xl border border-gray-200 px-4 py-4 text-right text-3xl font-black text-[#1F2937] outline-none focus:border-[#4CAF6A]"
               />
+              <div className="mt-4 rounded-2xl bg-[#F7FBF8] p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Dumbbell className="text-[#4CAF6A]" size={18} />
+                    <div>
+                      <p className="text-sm font-black text-[#1F2937]">추가 운동</p>
+                      <p className="text-xs font-bold text-gray-500">걷기 외 운동을 했다면 +10점</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSaved(false);
+                      setForm((prev) => ({
+                        ...prev,
+                        exerciseDone: !prev.exerciseDone,
+                        exerciseTypes: prev.exerciseDone ? [] : prev.exerciseTypes || [],
+                      }));
+                    }}
+                    className={`rounded-full px-3 py-1.5 text-xs font-black transition ${
+                      form.exerciseDone ? "bg-[#4CAF6A] text-white shadow-sm" : "bg-white text-gray-500 ring-1 ring-gray-200"
+                    }`}
+                  >
+                    {form.exerciseDone ? "운동함" : "없음"}
+                  </button>
+                </div>
+
+                {form.exerciseDone && (
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    {exerciseOptions.map((exerciseType) => {
+                      const selected = form.exerciseTypes?.includes(exerciseType) || false;
+
+                      return (
+                        <button
+                          key={exerciseType}
+                          type="button"
+                          onClick={() => {
+                            setSaved(false);
+                            setForm((prev) => {
+                              const currentTypes = prev.exerciseTypes || [];
+                              const nextTypes = selected
+                                ? currentTypes.filter((item) => item !== exerciseType)
+                                : [...currentTypes, exerciseType];
+
+                              return {
+                                ...prev,
+                                exerciseDone: nextTypes.length > 0,
+                                exerciseTypes: nextTypes,
+                              };
+                            });
+                          }}
+                          className={`min-h-9 rounded-xl text-xs font-black transition ${
+                            selected ? "bg-[#DFF4E7] text-[#1F5A3A] ring-1 ring-[#4CAF6A]" : "bg-white text-gray-500 ring-1 ring-gray-100"
+                          }`}
+                        >
+                          {exerciseType}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
               <p className="mt-2 text-right text-sm font-bold text-[#4CAF6A]">목표 7,000보</p>
             </section>
           )}

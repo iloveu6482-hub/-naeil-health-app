@@ -121,9 +121,9 @@ export function buildLifestyleScoreItems(dailyLog: DailyLog, meals: MealAnalysis
       id: "exercise",
       title: "운동 실천",
       valueText: dailyLog.exerciseDone ? "오늘 별도 운동을 실천했어요" : "오늘 별도 운동 기록이 없어요",
-      score: dailyLog.exerciseDone ? 5 : 0,
-      maxScore: 5,
-      formula: dailyLog.exerciseDone ? "운동 실천 ON = 보너스 5점" : "운동 실천 OFF = 0점",
+      score: dailyLog.exerciseDone ? 10 : 0,
+      maxScore: 10,
+      formula: dailyLog.exerciseDone ? "운동 실천 ON = 보너스 10점" : "운동 실천 OFF = 0점",
       currentKey: getExerciseScoreKey(dailyLog.exerciseDone),
     },
   ];
@@ -131,5 +131,5 @@ export function buildLifestyleScoreItems(dailyLog: DailyLog, meals: MealAnalysis
 
 export function calculateLifestyleScore(dailyLog: DailyLog, meals: MealAnalysis[] = []) {
   const total = buildLifestyleScoreItems(dailyLog, meals).reduce((sum, item) => sum + item.score, 0);
-  return Math.min(100, total);
+  return Math.min(110, total);
 }

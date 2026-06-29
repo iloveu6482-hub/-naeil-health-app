@@ -14,6 +14,7 @@ type DailyFeedbackBody = {
   exerciseDone?: boolean;
   conditionScore?: number;
   score?: number;
+  currentHour?: number;
   mode?: "quick" | "final";
 };
 
@@ -42,15 +43,20 @@ export async function POST(request: Request) {
     const body = (await request.json()) as DailyFeedbackBody;
     const coachId = body.coachId || "haru";
     const isFinalMode = body.mode === "final";
+    const currentHour =
+      typeof body.currentHour === "number" && Number.isFinite(body.currentHour)
+        ? body.currentHour
+        : new Date().getHours();
     const systemPrompt = [
       isFinalMode
         ? "You write Korean end-of-day health habit coaching for the app Naeil Health."
-        : "You write short Korean health habit coaching feedback for the app Naeil Health.",
+        : "You write Korean in-progress health habit coaching feedback for the app Naeil Health.",
       `Use this coach style: ${coachToneMap[coachId]}.`,
+      `Current local hour is ${currentHour}.`,
       "Return exactly one JSON object only. Do not include markdown or text outside JSON.",
       isFinalMode
-        ? 'The response shape must be {"message":"160-230 Korean characters of end-of-day coaching. Mention one good point, one weak point, and one concrete action for tomorrow."}'
-        : 'The response shape must be {"message":"50-80 Korean characters of feedback"}',
+        ? 'The response shape must be {"message":"160-230 Korean characters of end-of-day coaching. Mention one praise point from today, one weak point, and one concrete action for tomorrow."}'
+        : 'The response shape must be {"message":"90-140 Korean characters of in-progress coaching. Encourage the user and suggest what they can still do today based on the current time. Do not say what to do tomorrow."}',
       "Do not add a medical disclaimer sentence to the message.",
     ].join("\n");
 
@@ -70,8 +76,8 @@ export async function POST(request: Request) {
           {
             role: "user",
             content: isFinalMode
-              ? `오늘 하루를 마감하는 최종 코칭입니다. 아래 기록을 바탕으로 한국어로 충분히 의미 있는 코칭을 작성해주세요. 사용자가 "AI 코칭이 별거 없다"고 느끼지 않도록 구체적이고 따뜻하게 정리하되, 의료 진단처럼 말하지 마세요.\n${JSON.stringify(body)}`
-              : `오늘 습관 기록입니다. 한국어로 코치 피드백을 작성해주세요.\n${JSON.stringify(body)}`,
+              ? `오늘 하루를 마감하는 최종 코칭입니다. 아래 기록을 바탕으로 한국어로 충분히 의미 있는 코칭을 작성해주세요. 오늘 잘한 점을 먼저 인정하고, 부족한 부분을 짚은 뒤, 내일을 위한 구체적인 행동 1가지를 제안하세요. 의료 진단처럼 말하지 마세요.\n${JSON.stringify(body)}`
+              : `오늘 진행 중 코칭입니다. 현재 시간이 ${currentHour}시이므로 내일 이야기를 앞세우지 말고, 남은 오늘 시간 안에 추가로 할 수 있는 구체적인 행동을 제안하세요. 점수가 낮아도 부담을 주기보다 다시 움직이게 응원하세요.\n${JSON.stringify(body)}`,
           },
         ],
       }),

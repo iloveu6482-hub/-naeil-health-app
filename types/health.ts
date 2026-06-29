@@ -32,6 +32,7 @@ export type DailyLog = {
   mealsCount: number;
   medicationTaken: boolean;
   exerciseDone: boolean;
+  exerciseTypes?: string[];
   conditionScore: number;
   memo?: string;
 };
