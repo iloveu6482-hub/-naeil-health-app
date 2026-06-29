@@ -51,6 +51,7 @@ type DailyFeedbackResponse = {
 };
 
 const FINAL_COACHING_AVAILABLE_HOUR = 21;
+const PRIORITY_AI_COACHING_VISIBLE_MS = 5 * 60 * 1000;
 const medicalDisclaimerPattern =
   /\s*[※*]*\s*이\s*코칭은\s*의료\s*진단이\s*아닌\s*건강\s*습관\s*가이드입니다\.?\s*/g;
 
@@ -212,6 +213,7 @@ export default function DashboardPage() {
   const [avatarViewMode, setAvatarViewMode] = useState<AvatarViewMode>("portrait");
   const [selectedCoach, setSelectedCoach] = useState<AiCoach>(defaultAiCoach);
   const [todayCoachMessage, setTodayCoachMessage] = useState<TodayCoachMessage | null>(null);
+  const [showPriorityCoachMessage, setShowPriorityCoachMessage] = useState(false);
   const [nudgeBanner, setNudgeBanner] = useState<NudgeMessage | null>(null);
   const [scoreSheetOpen, setScoreSheetOpen] = useState(false);
   const [finalCoachingLoading, setFinalCoachingLoading] = useState(false);
@@ -233,7 +235,10 @@ export default function DashboardPage() {
     setAvatarViewMode(getFromStorage<AvatarViewMode>(STORAGE_KEYS.AVATAR_VIEW_MODE, "portrait"));
     setSelectedCoach(getAiCoachById(savedCoachId));
     const savedTodayCoachMessage = getFromStorage<unknown>(STORAGE_KEYS.TODAY_COACH_MESSAGE, null);
-    setTodayCoachMessage(isTodayCoachMessage(savedTodayCoachMessage) ? savedTodayCoachMessage : null);
+    if (isTodayCoachMessage(savedTodayCoachMessage)) {
+      setTodayCoachMessage(savedTodayCoachMessage);
+      setShowPriorityCoachMessage(savedTodayCoachMessage.date === healthDayKey);
+    }
 
     const requestNotificationPermission = async () => {
       const savedPermission = getFromStorage<string | null>(STORAGE_KEYS.NOTIFICATION_PERMISSION, null);
@@ -320,6 +325,16 @@ export default function DashboardPage() {
   }, [currentHealthDayKey]);
 
   useEffect(() => {
+    if (!showPriorityCoachMessage || todayCoachMessage?.date !== currentHealthDayKey || !todayCoachMessage.message) return;
+
+    const timer = window.setTimeout(() => {
+      setShowPriorityCoachMessage(false);
+    }, PRIORITY_AI_COACHING_VISIBLE_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [currentHealthDayKey, showPriorityCoachMessage, todayCoachMessage]);
+
+  useEffect(() => {
     const timer = window.setInterval(() => {
       setCurrentTime(new Date());
     }, 60_000);
@@ -376,6 +391,7 @@ export default function DashboardPage() {
 
       saveToStorage(STORAGE_KEYS.TODAY_COACH_MESSAGE, nextMessage);
       setTodayCoachMessage(nextMessage);
+      setShowPriorityCoachMessage(true);
     } catch (error) {
       console.error("Final daily coaching failed", error);
       setFinalCoachingError("최종 코칭 생성에 실패했어요. 잠시 후 다시 시도해주세요.");
@@ -404,7 +420,9 @@ export default function DashboardPage() {
   }, [selectedCoachId]);
   const activeTodayCoachMessage =
     todayCoachMessage?.date === today && todayCoachMessage.message ? todayCoachMessage : null;
-  const bubbleMessageText = cleanCoachBubbleMessage(selectedCoachMessage.message.text);
+  const bubbleMessageText = cleanCoachBubbleMessage(
+    showPriorityCoachMessage && activeTodayCoachMessage ? activeTodayCoachMessage.message : selectedCoachMessage.message.text
+  );
   const finalCoachingText = activeTodayCoachMessage ? cleanCoachBubbleMessage(activeTodayCoachMessage.message) : "";
   const canCreateFinalCoaching = currentTime.getHours() >= FINAL_COACHING_AVAILABLE_HOUR;
   const hasTodayRecord = dailyLog.steps > 0 || dailyLog.sleepHours > 0 || dailyLog.waterCups > 0 || dailyLog.mealsCount > 0 || todayMeals.length > 0;
