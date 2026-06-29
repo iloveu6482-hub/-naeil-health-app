@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ClipboardList, BookOpen, Trophy, BarChart2, UserRound } from "lucide-react";
+import { Home, ClipboardList, BookOpen, Trophy, BarChart2, UsersRound } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "홈" },
   { href: "/checkup", icon: ClipboardList, label: "검진" },
   { href: "/habits", icon: BookOpen, label: "습관" },
   { href: "/weekly-report", icon: BarChart2, label: "리포트" },
-  { href: "/settings", icon: UserRound, label: "나의" },
+  { href: "/community", icon: UsersRound, label: "커뮤니티" },
   { href: "/challenges", icon: Trophy, label: "챌린지" },
 ];
 

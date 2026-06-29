@@ -126,7 +126,7 @@ export default function SettingsPage() {
 
   return (
     <MobileShell>
-      <AppHeader title="설정" />
+      <AppHeader title="나의 페이지" />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24 px-4 py-4">
         {/* Profile Card */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4">
