@@ -51,16 +51,6 @@ const TODAY_COACH_MESSAGE_VISIBLE_MS = 12_000;
 const medicalDisclaimerPattern =
   /\s*[※*]*\s*이\s*코칭은\s*의료\s*진단이\s*아닌\s*건강\s*습관\s*가이드입니다\.?\s*/g;
 
-const coachEmojiMap: Record<string, string> = {
-  onyu: "🌿",
-  onyou: "🌿",
-  haru: "☀️",
-  taeo: "💪",
-  kangtaeo: "💪",
-  rumi: "🤖",
-  lumi: "🤖",
-};
-
 const scoreCoachMessages: Record<ScoreStatus, string> = {
   low: "오늘은 무리하지 않아도 괜찮아요. 작은 실천 하나부터 시작해볼까요?",
   medium: "좋아요. 한 가지만 더 실천해볼까요?",
@@ -366,15 +356,13 @@ export default function DashboardPage() {
   }, [selectedCoachId]);
   const activeTodayCoachMessage =
     todayCoachMessage?.date === today && todayCoachMessage.message ? todayCoachMessage : null;
-  const bubbleCoachId = activeTodayCoachMessage?.coachId || selectedCoachId;
   const bubbleMessageText = cleanCoachBubbleMessage(activeTodayCoachMessage?.message || selectedCoachMessage.message.text);
-  const bubbleCoachEmoji = coachEmojiMap[bubbleCoachId] || coachEmojiMap[selectedCoachId] || "";
   const statusVideoUrl = `/avatars/status/avatar_${scoreStatus}.mp4`;
   const activeStatusVideoUrl = avatarViewMode === "fullbody" ? statusVideoUrl : undefined;
   const clampedScore = Math.max(0, Math.min(100, score));
   const scoreGaugeColor = getScoreGaugeColor(clampedScore);
   const scoreGaugeStyle = {
-    background: `conic-gradient(from -90deg, #EF4444 0deg, ${scoreGaugeColor} ${clampedScore * 3.6}deg, transparent ${clampedScore * 3.6}deg 360deg)`,
+    background: `conic-gradient(#DC5A4E 0deg, ${scoreGaugeColor} ${clampedScore * 3.6}deg, transparent ${clampedScore * 3.6}deg 360deg)`,
     WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px))",
     mask: "radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px))",
     transition: "background 500ms ease, filter 500ms ease",
@@ -457,7 +445,7 @@ export default function DashboardPage() {
             </div>
             <button type="button" onClick={handleCoachMessageClick} aria-label="코치 음성 안내 준비중" title="코치 음성 안내 준비중" className="relative flex-1 rounded-2xl border border-[#BDE8CA] bg-white/92 px-3.5 py-2 text-left shadow-[0_10px_24px_rgba(31,90,58,0.16)] backdrop-blur-md transition duration-150 hover:bg-white/95 active:scale-[0.98] active:bg-white before:absolute before:left-[-6px] before:top-3.5 before:h-3 before:w-3 before:rotate-45 before:border-b before:border-l before:border-[#BDE8CA] before:bg-white/92">
               <span className="flex items-start gap-2">
-                <span className="flex-1 text-sm font-medium leading-5 text-[#173425]">{bubbleCoachEmoji} {bubbleMessageText}</span>
+                <span className="flex-1 text-sm font-medium leading-5 text-[#173425]">{bubbleMessageText}</span>
                 <Volume2 size={15} className="mt-0.5 shrink-0 text-[#4CAF6A]/55" aria-hidden="true" />
               </span>
             </button>
@@ -492,7 +480,7 @@ export default function DashboardPage() {
 
             <button type="button" onClick={() => setScoreSheetOpen(true)} className={`absolute left-[3%] top-[13.5%] flex h-36 w-36 flex-col items-center justify-center overflow-visible rounded-full border-[5px] text-center ring-2 backdrop-blur-[10px] transition active:scale-95 ${scoreCircleEffect}`} aria-label="오늘 내 점수 분석 열기">
               {clampedScore >= 100 && <span className="score-complete-wave pointer-events-none absolute -inset-3 rounded-full border border-[#86EFAC]/70" />}
-              <span className="pointer-events-none absolute -inset-[8px] rounded-full" style={scoreGaugeStyle} />
+              <span className="pointer-events-none absolute -inset-[8px] -rotate-90 rounded-full" style={scoreGaugeStyle} />
               <span className="pointer-events-none absolute inset-[7px] rounded-full border border-white/48 bg-white/28 shadow-[inset_0_1px_12px_rgba(255,255,255,0.28),0_10px_24px_rgba(31,90,58,0.12)] backdrop-blur-[14px] backdrop-saturate-150" />
               {clampedScore >= 90 && <span className="pointer-events-none absolute inset-y-[-20%] left-[-70%] w-12 rotate-12 bg-gradient-to-r from-transparent via-emerald-100/70 to-transparent blur-sm animate-[scoreShimmer_5.5s_ease-in-out_infinite]" />}
               {clampedScore >= 100 && (

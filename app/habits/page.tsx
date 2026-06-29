@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import MobileShell from "@/components/layout/MobileShell";
 import AppHeader from "@/components/layout/AppHeader";
 import BottomNav from "@/components/layout/BottomNav";
@@ -73,6 +74,7 @@ function createEmptyDailyLog(logDate: string): DailyLog {
 }
 
 export default function HabitsPage() {
+  const router = useRouter();
   const [activeType, setActiveType] = useState<HabitType>("all");
   const [form, setForm] = useState<Omit<DailyLog, "id" | "logDate">>({
     steps: sampleDailyLog.steps,
@@ -201,6 +203,11 @@ export default function HabitsPage() {
     }
 
     setSaved(true);
+    if (activeType !== "all") {
+      window.setTimeout(() => {
+        router.push("/dashboard");
+      }, 450);
+    }
   };
 
   return (
