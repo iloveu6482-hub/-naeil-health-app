@@ -33,11 +33,6 @@ import {
 
 type HabitType = "steps" | "sleep" | "water" | "meal" | "all";
 type SummaryRange = "week" | "month" | "all";
-type DailyFeedbackCoachId = "onyu" | "haru" | "kangtaeo" | "rumi";
-
-type DailyFeedbackResponse = {
-  message: string;
-};
 
 const habitTabs: Array<{ type: HabitType; label: string }> = [
   { type: "steps", label: "걸음수" },
@@ -111,19 +106,6 @@ function calculateSleepHours(bedTime: string, wakeTime: string) {
   }
 
   return Math.round(((wakeMinutes - bedMinutes) / 60) * 10) / 10;
-}
-
-function resolveDailyFeedbackCoachId(coachId?: string | null): DailyFeedbackCoachId {
-  if (coachId === "onyu" || coachId === "onyou") return "onyu";
-  if (coachId === "haru") return "haru";
-  if (coachId === "taeo" || coachId === "kangtaeo") return "kangtaeo";
-  if (coachId === "rumi" || coachId === "lumi") return "rumi";
-  return "haru";
-}
-
-function isDailyFeedbackResponse(value: unknown): value is DailyFeedbackResponse {
-  if (!value || typeof value !== "object") return false;
-  return typeof (value as Record<string, unknown>).message === "string";
 }
 
 function createEmptyDailyLog(logDate: string): DailyLog {
@@ -250,7 +232,6 @@ export default function HabitsPage() {
 
   const handleSave = async () => {
     const todayKey = getHealthDayKey();
-    const coachId = resolveDailyFeedbackCoachId(getFromStorage<string>(STORAGE_KEYS.SELECTED_AI_COACH_ID, "haru"));
     const log: DailyLog = {
       ...form,
       mealsCount: todayMealCount,
@@ -286,32 +267,6 @@ export default function HabitsPage() {
       window.dispatchEvent(new Event("pointsUpdated"));
       setEarnedPoints(totalPoints);
       setShowToast(true);
-    }
-
-    try {
-      const response = await fetch("/api/daily-feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          coachId,
-          steps: log.steps,
-          sleepHours: log.sleepHours,
-          waterCups: log.waterCups,
-          mealsCount: log.mealsCount,
-          exerciseDone: log.exerciseDone,
-          conditionScore: log.conditionScore,
-        }),
-      });
-      const result = (await response.json()) as unknown;
-      if (response.ok && isDailyFeedbackResponse(result)) {
-        saveToStorage(STORAGE_KEYS.TODAY_COACH_MESSAGE, {
-          message: result.message,
-          date: todayKey,
-          coachId,
-        });
-      }
-    } catch (error) {
-      console.error("Daily feedback save failed", error);
     }
 
     setSaved(true);

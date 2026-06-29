@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Bell, Camera, CheckCircle2, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Moon, Settings, Shirt, Sprout, Target, Utensils, Users, TrendingUp, Volume2, X } from "lucide-react";
+import { Bell, Camera, CheckCircle2, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Loader2, Moon, Settings, Shirt, Sparkles, Sprout, Target, Utensils, Users, TrendingUp, Volume2, X } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import BottomNav from "@/components/layout/BottomNav";
 import CoachMessageCard from "@/components/dashboard/CoachMessageCard";
@@ -46,8 +46,11 @@ type NudgeMessage = {
   title: string;
   message: string;
 };
+type DailyFeedbackResponse = {
+  message: string;
+};
 
-const TODAY_COACH_MESSAGE_VISIBLE_MS = 12_000;
+const FINAL_COACHING_AVAILABLE_HOUR = 21;
 const medicalDisclaimerPattern =
   /\s*[※*]*\s*이\s*코칭은\s*의료\s*진단이\s*아닌\s*건강\s*습관\s*가이드입니다\.?\s*/g;
 
@@ -193,6 +196,11 @@ function isNudgeMessage(value: unknown): value is NudgeMessage {
   return typeof record.title === "string" && typeof record.message === "string";
 }
 
+function isDailyFeedbackResponse(value: unknown): value is DailyFeedbackResponse {
+  if (!value || typeof value !== "object") return false;
+  return typeof (value as Record<string, unknown>).message === "string";
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<UserProfile>(sampleUser);
   const [checkup, setCheckup] = useState<HealthCheckup>(sampleCheckup);
@@ -206,6 +214,8 @@ export default function DashboardPage() {
   const [todayCoachMessage, setTodayCoachMessage] = useState<TodayCoachMessage | null>(null);
   const [nudgeBanner, setNudgeBanner] = useState<NudgeMessage | null>(null);
   const [scoreSheetOpen, setScoreSheetOpen] = useState(false);
+  const [finalCoachingLoading, setFinalCoachingLoading] = useState(false);
+  const [finalCoachingError, setFinalCoachingError] = useState("");
 
   useEffect(() => {
     const savedUser = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
@@ -310,16 +320,6 @@ export default function DashboardPage() {
   }, [currentHealthDayKey]);
 
   useEffect(() => {
-    if (todayCoachMessage?.date !== currentHealthDayKey || !todayCoachMessage.message) return;
-
-    const timer = window.setTimeout(() => {
-      setTodayCoachMessage(null);
-    }, TODAY_COACH_MESSAGE_VISIBLE_MS);
-
-    return () => window.clearTimeout(timer);
-  }, [currentHealthDayKey, todayCoachMessage]);
-
-  useEffect(() => {
     const timer = window.setInterval(() => {
       setCurrentTime(new Date());
     }, 60_000);
@@ -334,6 +334,54 @@ export default function DashboardPage() {
 
   const handleCoachMessageClick = () => {
     console.log("코치 음성 안내는 추후 제공될 예정입니다.");
+  };
+
+  const handleCreateFinalCoaching = async () => {
+    const confirmed = window.confirm(
+      "오늘의 코칭은 입력한 걸음, 수면, 수분, 식사 기록을 기준으로 생성돼요.\n입력을 모두 마친 뒤 코칭을 받으세요.\n\n지금 오늘의 최종 코칭을 생성할까요?"
+    );
+    if (!confirmed) return;
+
+    const coachId = resolveNudgeCoachId(selectedCoach.id);
+    setFinalCoachingLoading(true);
+    setFinalCoachingError("");
+
+    try {
+      const response = await fetch("/api/daily-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          coachId,
+          steps: dailyLog.steps,
+          sleepHours: dailyLog.sleepHours,
+          waterCups: dailyLog.waterCups,
+          mealsCount: dailyLog.mealsCount,
+          exerciseDone: dailyLog.exerciseDone,
+          conditionScore: dailyLog.conditionScore,
+          score,
+          mode: "final",
+        }),
+      });
+      const result = (await response.json()) as unknown;
+
+      if (!response.ok || !isDailyFeedbackResponse(result)) {
+        throw new Error("오늘의 최종 코칭을 만들지 못했어요.");
+      }
+
+      const nextMessage = {
+        message: cleanCoachBubbleMessage(result.message),
+        date: currentHealthDayKey,
+        coachId,
+      };
+
+      saveToStorage(STORAGE_KEYS.TODAY_COACH_MESSAGE, nextMessage);
+      setTodayCoachMessage(nextMessage);
+    } catch (error) {
+      console.error("Final daily coaching failed", error);
+      setFinalCoachingError("최종 코칭 생성에 실패했어요. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setFinalCoachingLoading(false);
+    }
   };
 
   const calories = calculateWalkingCalories(dailyLog.steps, checkup.weight);
@@ -356,7 +404,10 @@ export default function DashboardPage() {
   }, [selectedCoachId]);
   const activeTodayCoachMessage =
     todayCoachMessage?.date === today && todayCoachMessage.message ? todayCoachMessage : null;
-  const bubbleMessageText = cleanCoachBubbleMessage(activeTodayCoachMessage?.message || selectedCoachMessage.message.text);
+  const bubbleMessageText = cleanCoachBubbleMessage(selectedCoachMessage.message.text);
+  const finalCoachingText = activeTodayCoachMessage ? cleanCoachBubbleMessage(activeTodayCoachMessage.message) : "";
+  const canCreateFinalCoaching = currentTime.getHours() >= FINAL_COACHING_AVAILABLE_HOUR;
+  const hasTodayRecord = dailyLog.steps > 0 || dailyLog.sleepHours > 0 || dailyLog.waterCups > 0 || dailyLog.mealsCount > 0 || todayMeals.length > 0;
   const statusVideoUrl = `/avatars/status/avatar_${scoreStatus}.mp4`;
   const activeStatusVideoUrl = avatarViewMode === "fullbody" ? statusVideoUrl : undefined;
   const clampedScore = Math.max(0, Math.min(100, score));
@@ -547,6 +598,62 @@ export default function DashboardPage() {
             ))}
           </div>
           <p className="mt-2 text-sm font-bold text-[#1F5A3A]">예상 섭취 칼로리: {mealCalories.toLocaleString()} kcal</p>
+        </section>
+
+        <section className="px-4 pb-5">
+          <div className="rounded-3xl border border-green-100 bg-gradient-to-br from-[#EAF7EF] to-white p-4 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="flex items-center gap-1 text-xs font-black text-[#4CAF6A]">
+                  <Sparkles size={15} />
+                  하루 1회 AI 코칭
+                </p>
+                <h3 className="mt-1 text-lg font-black text-[#1F2937]">오늘의 최종 코칭</h3>
+                <p className="mt-1 text-xs leading-relaxed text-gray-500">
+                  밤 9시 이후, 오늘 입력한 습관 기록을 종합해서 코치가 하루 마무리 조언을 남겨요.
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-black text-[#1F5A3A]">21:00 이후</span>
+            </div>
+
+            {finalCoachingText ? (
+              <div className="mt-4 rounded-2xl bg-white/82 p-4 shadow-sm ring-1 ring-green-100">
+                <p className="text-sm font-bold leading-6 text-[#173425]">{finalCoachingText}</p>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-2xl bg-white/72 p-4 ring-1 ring-green-100">
+                <p className="text-sm font-bold leading-6 text-[#1F5A3A]">
+                  오늘의 걸음, 수면, 수분, 식사 기록을 모아 조금 더 긴 AI 코칭으로 정리해드릴게요. 하루를 마감할 때 한 번만 생성돼요.
+                </p>
+              </div>
+            )}
+
+            {finalCoachingError && <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-500">{finalCoachingError}</p>}
+
+            <button
+              type="button"
+              onClick={handleCreateFinalCoaching}
+              disabled={Boolean(finalCoachingText) || finalCoachingLoading || !canCreateFinalCoaching || !hasTodayRecord}
+              className={`mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-black transition ${
+                finalCoachingText
+                  ? "bg-[#DDF3E5] text-[#1F5A3A]"
+                  : canCreateFinalCoaching && hasTodayRecord
+                    ? "bg-[#4CAF6A] text-white shadow-sm active:scale-[0.98]"
+                    : "bg-gray-100 text-gray-400"
+              }`}
+            >
+              {finalCoachingLoading && <Loader2 size={17} className="animate-spin" />}
+              {finalCoachingText
+                ? "오늘 최종 코칭 완료"
+                : finalCoachingLoading
+                  ? "코칭 생성 중..."
+                  : !hasTodayRecord
+                    ? "오늘 기록 후 생성 가능"
+                    : canCreateFinalCoaching
+                      ? "오늘의 최종 코칭 받기"
+                      : "밤 9시 이후 생성 가능"}
+            </button>
+          </div>
         </section>
 
         <section className="px-4 pb-3"><CoachMessageCard title={`${selectedCoach.name}의 오늘 한마디`} message={coachMessage} style={user.avatarStyle} gender={avatarGender} imageUrl={selectedCoach.faceImageUrl || selectedCoach.imageUrl} /></section>

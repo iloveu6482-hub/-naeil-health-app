@@ -13,6 +13,8 @@ type DailyFeedbackBody = {
   mealsCount?: number;
   exerciseDone?: boolean;
   conditionScore?: number;
+  score?: number;
+  mode?: "quick" | "final";
 };
 
 type DailyFeedbackResponse = {
@@ -39,11 +41,16 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as DailyFeedbackBody;
     const coachId = body.coachId || "haru";
+    const isFinalMode = body.mode === "final";
     const systemPrompt = [
-      "You write short Korean health habit coaching feedback for the app Naeil Health.",
+      isFinalMode
+        ? "You write Korean end-of-day health habit coaching for the app Naeil Health."
+        : "You write short Korean health habit coaching feedback for the app Naeil Health.",
       `Use this coach style: ${coachToneMap[coachId]}.`,
       "Return exactly one JSON object only. Do not include markdown or text outside JSON.",
-      'The response shape must be {"message":"50-80 Korean characters of feedback"}',
+      isFinalMode
+        ? 'The response shape must be {"message":"160-230 Korean characters of end-of-day coaching. Mention one good point, one weak point, and one concrete action for tomorrow."}'
+        : 'The response shape must be {"message":"50-80 Korean characters of feedback"}',
       "Do not add a medical disclaimer sentence to the message.",
     ].join("\n");
 
@@ -56,13 +63,15 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 500,
+        max_tokens: isFinalMode ? 900 : 500,
         temperature: 0.6,
         system: systemPrompt,
         messages: [
           {
             role: "user",
-            content: `오늘 습관 기록입니다. 한국어로 코치 피드백을 작성해주세요.\n${JSON.stringify(body)}`,
+            content: isFinalMode
+              ? `오늘 하루를 마감하는 최종 코칭입니다. 아래 기록을 바탕으로 한국어로 충분히 의미 있는 코칭을 작성해주세요. 사용자가 "AI 코칭이 별거 없다"고 느끼지 않도록 구체적이고 따뜻하게 정리하되, 의료 진단처럼 말하지 마세요.\n${JSON.stringify(body)}`
+              : `오늘 습관 기록입니다. 한국어로 코치 피드백을 작성해주세요.\n${JSON.stringify(body)}`,
           },
         ],
       }),
