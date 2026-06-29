@@ -481,7 +481,7 @@ export default function DashboardPage() {
             <button type="button" onClick={() => setScoreSheetOpen(true)} className={`absolute left-[3%] top-[13.5%] flex h-36 w-36 flex-col items-center justify-center overflow-visible rounded-full border-[5px] text-center ring-2 backdrop-blur-[10px] transition active:scale-95 ${scoreCircleEffect}`} aria-label="오늘 내 점수 분석 열기">
               {clampedScore >= 100 && <span className="score-complete-wave pointer-events-none absolute -inset-3 rounded-full border border-[#86EFAC]/70" />}
               <span className="pointer-events-none absolute -inset-[8px] -rotate-90 rounded-full" style={scoreGaugeStyle} />
-              <span className="pointer-events-none absolute inset-[7px] rounded-full border border-white/48 bg-white/28 shadow-[inset_0_1px_12px_rgba(255,255,255,0.28),0_10px_24px_rgba(31,90,58,0.12)] backdrop-blur-[14px] backdrop-saturate-150" />
+              <span className="pointer-events-none absolute inset-[7px] rounded-full bg-white/28 shadow-[inset_0_1px_10px_rgba(255,255,255,0.32),inset_0_-8px_18px_rgba(31,90,58,0.08),0_10px_24px_rgba(31,90,58,0.12)] ring-1 ring-white/22 backdrop-blur-[14px] backdrop-saturate-150" />
               {clampedScore >= 90 && <span className="pointer-events-none absolute inset-y-[-20%] left-[-70%] w-12 rotate-12 bg-gradient-to-r from-transparent via-emerald-100/70 to-transparent blur-sm animate-[scoreShimmer_5.5s_ease-in-out_infinite]" />}
               {clampedScore >= 100 && (
                 <>
