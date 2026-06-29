@@ -94,11 +94,11 @@ function interpolateColor(from: string, to: string, amount: number) {
 
 function getScoreGaugeColor(score: number) {
   const stops = [
-    { score: 0, color: "#EF4444" },
-    { score: 25, color: "#FB923C" },
-    { score: 50, color: "#FACC15" },
-    { score: 75, color: "#A3E635" },
-    { score: 100, color: "#16A34A" },
+    { score: 0, color: "#DC5A4E" },
+    { score: 25, color: "#EA8B35" },
+    { score: 50, color: "#D9A900" },
+    { score: 75, color: "#6FBF3B" },
+    { score: 100, color: "#087A35" },
   ];
   const clampedScore = Math.max(0, Math.min(100, score));
 
@@ -502,7 +502,11 @@ export default function DashboardPage() {
                   <span className="absolute -right-1 top-1 rounded-full bg-[#F7C948] px-2 py-0.5 text-[10px] font-black text-white shadow-sm">완료</span>
                 </>
               )}
-              <p className="relative text-xs font-semibold text-gray-500">오늘의 건강관리</p><p className="relative text-xs text-gray-500">{clampedScore >= 100 ? "건강 루틴 완료!" : "참고 점수"}</p><p className="relative mt-1 text-5xl font-black leading-none" style={{ color: scoreGaugeColor }}>{score}</p><p className="relative text-sm text-[#4CAF6A]">/ 100</p>
+              <span className="relative mt-2 flex flex-col items-center leading-none">
+                <span className="text-[13px] font-extrabold leading-[1.15] text-[#14251B] drop-shadow-[0_1px_1px_rgba(255,255,255,0.55)]">오늘의 건강관리</span>
+                <span className="mt-0.5 text-[13px] font-bold leading-[1.15] text-[#263F31] drop-shadow-[0_1px_1px_rgba(255,255,255,0.55)]">{clampedScore >= 100 ? "루틴 완료!" : "참고 점수"}</span>
+              </span>
+              <p className="relative mt-1 text-5xl font-black leading-none drop-shadow-[0_2px_2px_rgba(255,255,255,0.42)]" style={{ color: scoreGaugeColor }}>{score}</p><p className="relative text-base font-extrabold leading-tight text-[#087A35] drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">/ 100</p>
               {clampedScore >= 100 && <p className="relative mt-1 text-[10px] font-black text-[#15803D]">오늘의 건강 루틴 완료!</p>}
             </button>
           </div>
