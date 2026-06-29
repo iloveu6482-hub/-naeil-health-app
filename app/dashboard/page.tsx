@@ -381,14 +381,14 @@ export default function DashboardPage() {
   };
   const scoreCircleEffect =
     clampedScore >= 100
-      ? "border-[#22C55E]/90 bg-white/68 shadow-[0_0_0_1px_rgba(34,197,94,0.35),0_0_34px_rgba(34,197,94,0.34),0_18px_34px_rgba(31,90,58,0.28)] ring-[#86EFAC]/80 score-health-glow"
+      ? "border-transparent bg-transparent shadow-[0_0_0_1px_rgba(34,197,94,0.22),0_0_34px_rgba(34,197,94,0.28),0_18px_34px_rgba(31,90,58,0.22)] ring-[#86EFAC]/45 score-health-glow"
       : clampedScore >= 90
-        ? "border-[#4ADE80]/85 bg-white/66 shadow-[0_0_0_1px_rgba(74,222,128,0.28),0_0_28px_rgba(74,222,128,0.28),0_16px_32px_rgba(31,90,58,0.24)] ring-[#BBF7D0]/75 score-health-glow"
+        ? "border-transparent bg-transparent shadow-[0_0_0_1px_rgba(74,222,128,0.2),0_0_28px_rgba(74,222,128,0.24),0_16px_32px_rgba(31,90,58,0.2)] ring-[#BBF7D0]/40 score-health-glow"
         : scoreStatus === "high"
-          ? "border-[#A3E635]/85 bg-white/64 shadow-[0_0_22px_rgba(163,230,53,0.24),0_14px_30px_rgba(31,90,58,0.22)] ring-[#D9F99D]/65"
+          ? "border-transparent bg-transparent shadow-[0_0_20px_rgba(163,230,53,0.18),0_14px_28px_rgba(31,90,58,0.18)] ring-white/25"
           : scoreStatus === "medium"
-            ? "border-[#FACC15]/70 bg-white/60 shadow-[0_0_22px_rgba(250,204,21,0.22),0_14px_30px_rgba(31,90,58,0.2)] ring-[#FEF3C7]/65"
-            : "border-[#FB923C]/65 bg-white/58 shadow-[0_14px_30px_rgba(31,90,58,0.22)] ring-[#FED7AA]/60";
+            ? "border-transparent bg-transparent shadow-[0_0_18px_rgba(250,204,21,0.14),0_14px_28px_rgba(31,90,58,0.18)] ring-white/24"
+            : "border-transparent bg-transparent shadow-[0_14px_28px_rgba(31,90,58,0.18)] ring-white/22";
   const dashboardMetricItems = [
     { icon: Footprints, label: "걸음 수", value: `${dailyLog.steps.toLocaleString()}보`, color: "text-[#24944E]", achieved: dailyLog.steps >= 7000, href: "/habits?type=steps" },
     { icon: Flame, label: "소모 칼로리", value: `${calories} kcal`, color: "text-[#F59E0B]", achieved: calories >= 300 },
@@ -493,7 +493,7 @@ export default function DashboardPage() {
             <button type="button" onClick={() => setScoreSheetOpen(true)} className={`absolute left-[3%] top-[13.5%] flex h-36 w-36 flex-col items-center justify-center overflow-visible rounded-full border-[5px] text-center ring-2 backdrop-blur-[10px] transition active:scale-95 ${scoreCircleEffect}`} aria-label="오늘 내 점수 분석 열기">
               {clampedScore >= 100 && <span className="score-complete-wave pointer-events-none absolute -inset-3 rounded-full border border-[#86EFAC]/70" />}
               <span className="pointer-events-none absolute -inset-[8px] rounded-full" style={scoreGaugeStyle} />
-              <span className="pointer-events-none absolute inset-[7px] rounded-full border border-white/55 bg-white/42 shadow-[inset_0_1px_10px_rgba(255,255,255,0.38),0_10px_24px_rgba(31,90,58,0.14)] backdrop-blur-[12px]" />
+              <span className="pointer-events-none absolute inset-[7px] rounded-full border border-white/48 bg-white/28 shadow-[inset_0_1px_12px_rgba(255,255,255,0.28),0_10px_24px_rgba(31,90,58,0.12)] backdrop-blur-[14px] backdrop-saturate-150" />
               {clampedScore >= 90 && <span className="pointer-events-none absolute inset-y-[-20%] left-[-70%] w-12 rotate-12 bg-gradient-to-r from-transparent via-emerald-100/70 to-transparent blur-sm animate-[scoreShimmer_5.5s_ease-in-out_infinite]" />}
               {clampedScore >= 100 && (
                 <>
