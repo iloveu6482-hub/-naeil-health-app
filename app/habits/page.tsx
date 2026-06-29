@@ -79,6 +79,17 @@ function calculateLogScore(log: DailyLog) {
   );
 }
 
+function compactLogsByDate(logs: DailyLog[]) {
+  const map = new Map<string, DailyLog>();
+  logs.forEach((log) => {
+    const previous = map.get(log.logDate);
+    if (!previous || log.id.localeCompare(previous.id) >= 0) {
+      map.set(log.logDate, log);
+    }
+  });
+  return Array.from(map.values()).sort((a, b) => b.logDate.localeCompare(a.logDate));
+}
+
 function getScoreStatus(score: number) {
   if (score >= 80) return "아주 안정적이에요";
   if (score >= 60) return "좋은 흐름이에요";
@@ -161,7 +172,7 @@ export default function HabitsPage() {
 
     const todayKey = getHealthDayKey();
     const logs = getFromStorage<DailyLog[]>(STORAGE_KEYS.DAILY_LOGS, []);
-    setDailyLogs(logs);
+    setDailyLogs(compactLogsByDate(logs));
     const latestLog = [...logs].reverse().find((log) => log.logDate === todayKey) || createEmptyDailyLog(todayKey);
     setForm({
       steps: latestLog.steps,
@@ -221,6 +232,10 @@ export default function HabitsPage() {
       averageSleep,
       averageWater,
       averageMeals,
+      activityPercent: Math.round(activityRatio * 100),
+      sleepPercent: Math.round(sleepRatio * 100),
+      waterPercent: Math.round(waterRatio * 100),
+      mealPercent: Math.round(mealRatio * 100),
       best: ratios[ratios.length - 1],
       worst: ratios[0],
     };
@@ -245,7 +260,7 @@ export default function HabitsPage() {
     const logs = getFromStorage<DailyLog[]>(STORAGE_KEYS.DAILY_LOGS, []);
     const nextLogs = [...logs.filter((item) => item.logDate !== todayKey), log];
     saveToStorage(STORAGE_KEYS.DAILY_LOGS, nextLogs);
-    setDailyLogs(nextLogs);
+    setDailyLogs(compactLogsByDate(nextLogs));
 
     let totalPoints = 0;
     const txs = getFromStorage(STORAGE_KEYS.POINT_TRANSACTIONS, []);
@@ -312,9 +327,9 @@ export default function HabitsPage() {
       <AppHeader title={isSummaryMode ? "생활습관 요약" : "생활습관 기록"} showBack backHref="/dashboard" />
       <RewardToast message="오늘의 습관 기록 완료!" points={earnedPoints} visible={showToast} onHide={() => setShowToast(false)} />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24">
-        <section className="border-b border-gray-100 bg-gradient-to-br from-[#EAF7EF] to-white px-4 py-5">
+        <section className={`border-b border-gray-100 bg-gradient-to-br from-[#EAF7EF] to-white px-4 ${isSummaryMode ? "py-3" : "py-5"}`}>
           <p className="text-sm text-gray-500">{today}</p>
-          <h1 className="mt-1 text-xl font-black text-[#1F2937]">
+          <h1 className={`${isSummaryMode ? "mt-0.5 text-lg" : "mt-1 text-xl"} font-black text-[#1F2937]`}>
             {activeType === "steps" && "걸음수 입력"}
             {activeType === "sleep" && "수면시간 입력"}
             {activeType === "water" && "수분 입력"}
@@ -322,7 +337,7 @@ export default function HabitsPage() {
             {activeType === "all" && "내 습관 기록 요약"}
           </h1>
           {isSummaryMode ? (
-            <p className="mt-2 text-sm leading-relaxed text-gray-600">
+            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-gray-600">
               홈에서 입력한 습관 기록을 기간별로 모아 현재 흐름과 다음 코칭 방향을 확인해요.
             </p>
           ) : (
@@ -344,8 +359,8 @@ export default function HabitsPage() {
         </section>
 
         {isSummaryMode ? (
-          <div className="flex flex-col gap-4 px-4 py-4">
-            <section className="grid grid-cols-3 gap-2 rounded-3xl border border-green-100 bg-white p-2 shadow-sm">
+          <div className="flex flex-col gap-3 px-3 py-3">
+            <section className="grid grid-cols-3 gap-2 rounded-2xl border border-green-100 bg-white p-1.5 shadow-sm">
               {summaryRanges.map((range) => (
                 <button
                   key={range.id}
@@ -359,60 +374,62 @@ export default function HabitsPage() {
               ))}
             </section>
 
-            <section className="rounded-3xl bg-gradient-to-br from-[#1F5A3A] to-[#4CAF6A] p-5 text-white shadow-sm">
+            <section className="rounded-3xl bg-gradient-to-br from-[#1F5A3A] to-[#4CAF6A] p-4 text-white shadow-sm">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="flex items-center gap-1 text-sm font-bold text-green-100">
                     <CalendarDays size={16} />
                     기록 {summaryLogs.length}일
                   </p>
-                  <h2 className="mt-2 text-xl font-black">현재 습관 상태</h2>
+                  <h2 className="mt-1 text-lg font-black">현재 습관 상태</h2>
                 </div>
-                <div className="rounded-2xl bg-white/15 px-4 py-3 text-center">
+                <div className="rounded-2xl bg-white/15 px-4 py-2.5 text-center">
                   <p className="text-xs text-green-100">평균 점수</p>
-                  <p className="text-3xl font-black">{summary.averageScore}</p>
+                  <p className="text-2xl font-black">{summary.averageScore}</p>
                 </div>
               </div>
-              <p className="mt-4 rounded-2xl bg-white/14 p-3 text-sm font-bold leading-relaxed">
+              <p className="mt-3 rounded-2xl bg-white/14 px-3 py-2.5 text-sm font-bold leading-relaxed">
                 {summaryLogs.length > 0
                   ? `${getScoreStatus(summary.averageScore)} 가장 좋은 흐름은 ${summary.best?.label || "기록"}이고, 다음 코칭은 ${summary.worst?.label || "습관"}을 중심으로 잡으면 좋아요.`
                   : "아직 요약할 습관 기록이 없어요. 홈에서 걸음수, 수면, 수분, 식사를 먼저 기록해보세요."}
               </p>
             </section>
 
-            <section className="grid grid-cols-2 gap-3">
+            <section className="grid grid-cols-2 gap-2.5">
               {[
                 { label: "평균 걸음", value: `${summary.averageSteps.toLocaleString()}보`, icon: Footprints, color: "text-[#24944E]" },
                 { label: "평균 수면", value: `${summary.averageSleep}시간`, icon: Moon, color: "text-[#4E66B1]" },
                 { label: "평균 수분", value: `${summary.averageWater}잔`, icon: Droplets, color: "text-[#27A9D6]" },
                 { label: "평균 식사", value: `${summary.averageMeals}회`, icon: UtensilsCrossed, color: "text-[#E58A2B]" },
               ].map(({ label, value, icon: Icon, color }) => (
-                <div key={label} className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
-                  <Icon className={color} size={22} />
-                  <p className="mt-3 text-xs font-bold text-gray-500">{label}</p>
-                  <p className="mt-1 text-xl font-black text-[#1F2937]">{value}</p>
+                <div key={label} className="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <Icon className={color} size={20} />
+                    <p className="text-xs font-bold text-gray-500">{label}</p>
+                  </div>
+                  <p className="mt-2 text-lg font-black text-[#1F2937]">{value}</p>
                 </div>
               ))}
             </section>
 
-            <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
-              <h2 className="flex items-center gap-2 text-lg font-black text-[#1F2937]">
-                <BarChart2 className="text-[#4CAF6A]" size={20} />
+            <section className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
+              <h2 className="flex items-center gap-2 text-base font-black text-[#1F2937]">
+                <BarChart2 className="text-[#4CAF6A]" size={18} />
                 항목별 흐름
               </h2>
-              <div className="mt-4 space-y-3">
+              <div className="mt-3 space-y-2.5">
                 {[
-                  { label: "걸음", value: Math.min(100, Math.round((summary.averageSteps / 7000) * 100)) },
-                  { label: "수면", value: Math.min(100, Math.round((summary.averageSleep / 7) * 100)) },
-                  { label: "수분", value: Math.min(100, Math.round((summary.averageWater / 8) * 100)) },
-                  { label: "식사", value: Math.min(100, Math.round((summary.averageMeals / 3) * 100)) },
+                  { label: "걸음", value: summary.activityPercent },
+                  { label: "수면", value: summary.sleepPercent },
+                  { label: "수분", value: summary.waterPercent },
+                  { label: "식사", value: summary.mealPercent },
                 ].map((item) => (
                   <div key={item.label}>
                     <div className="mb-1 flex items-center justify-between text-sm font-bold">
                       <span className="text-gray-600">{item.label}</span>
                       <span className="text-[#1F5A3A]">{item.value}%</span>
                     </div>
-                    <div className="h-3 overflow-hidden rounded-full bg-gray-100">
+                    <div className="h-2.5 overflow-hidden rounded-full bg-gray-100">
                       <div className="h-full rounded-full bg-[#4CAF6A] transition-all" style={{ width: `${item.value}%` }} />
                     </div>
                   </div>
@@ -420,19 +437,19 @@ export default function HabitsPage() {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-green-100 bg-[#EAF7EF] p-5 shadow-sm">
-              <h2 className="flex items-center gap-2 text-lg font-black text-[#1F2937]">
-                <Target className="text-[#4CAF6A]" size={20} />
+            <section className="rounded-3xl border border-green-100 bg-[#EAF7EF] p-4 shadow-sm">
+              <h2 className="flex items-center gap-2 text-base font-black text-[#1F2937]">
+                <Target className="text-[#4CAF6A]" size={18} />
                 앞으로의 코치 방향
               </h2>
-              <p className="mt-3 rounded-2xl bg-white/80 p-4 text-sm font-bold leading-relaxed text-[#1F5A3A]">
+              <p className="mt-2 rounded-2xl bg-white/80 px-3 py-2.5 text-sm font-bold leading-relaxed text-[#1F5A3A]">
                 {summaryLogs.length > 0
                   ? summary.worst?.guide
                   : "먼저 오늘 기록을 1개 이상 남기면 코치가 어떤 습관부터 잡으면 좋을지 정리해드릴게요."}
               </p>
               <Link
                 href="/weekly-report"
-                className="mt-3 flex min-h-12 items-center justify-between rounded-2xl bg-white px-4 text-sm font-extrabold text-[#1F5A3A]"
+                className="mt-2 flex min-h-10 items-center justify-between rounded-2xl bg-white px-4 text-sm font-extrabold text-[#1F5A3A]"
               >
                 리포트에서 더 자세히 보기
                 <ChevronRight size={18} />
@@ -441,14 +458,14 @@ export default function HabitsPage() {
 
             <Link
               href="/habits/history"
-              className="flex items-center justify-between rounded-3xl border border-gray-100 bg-white p-5 shadow-sm transition active:scale-[0.99]"
+              className="flex items-center justify-between rounded-3xl border border-gray-100 bg-white p-4 shadow-sm transition active:scale-[0.99]"
             >
               <div>
-                <h2 className="flex items-center gap-2 text-lg font-black text-[#1F2937]">
-                  <CalendarDays className="text-[#4CAF6A]" size={20} />
+                <h2 className="flex items-center gap-2 text-base font-black text-[#1F2937]">
+                  <CalendarDays className="text-[#4CAF6A]" size={18} />
                   기록 조회
                 </h2>
-                <p className="mt-1 text-sm font-bold leading-relaxed text-gray-500">
+                <p className="mt-1 text-xs font-bold leading-relaxed text-gray-500">
                   기간을 정해서 누적된 습관 기록을 따로 확인해요.
                 </p>
               </div>
