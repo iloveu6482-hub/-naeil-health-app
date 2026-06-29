@@ -24,10 +24,12 @@ import type { DailyLog } from "@/types/health";
 import { BarChart3, CalendarDays, Loader2, Target, Trophy } from "lucide-react";
 
 type WeeklyCoachId = "onyu" | "haru" | "kangtaeo" | "rumi";
+type ReportMode = "weekly" | "monthly";
 type WeekRangeType = "this" | "last";
 
-type WeekLogPayload = {
+type ReportLogPayload = {
   date: string;
+  steps: number;
   score: number;
   sleep: number;
   diet: "good" | "normal" | "bad";
@@ -36,7 +38,7 @@ type WeekLogPayload = {
   noSmoking: boolean;
 };
 
-type WeeklyReportApiResponse = {
+type ReportApiResponse = {
   weekScore: number;
   grade: "훌륭해요" | "잘하고 있어요" | "조금 더 힘내요" | "다시 시작해요";
   best: string;
@@ -45,7 +47,7 @@ type WeeklyReportApiResponse = {
   nextWeekGoal: string;
 };
 
-type WeeklyReportRecord = WeeklyReportApiResponse & {
+type WeeklyReportRecord = ReportApiResponse & {
   id: string;
   weekStart: string;
   weekEnd: string;
@@ -55,10 +57,31 @@ type WeeklyReportRecord = WeeklyReportApiResponse & {
 type CheckupRecord = {
   date?: string;
   checkupDate?: string;
+  glucose?: number;
+  fastingGlucose?: number;
+  alt?: number;
+  ggt?: number;
+  gammaGtp?: number;
+  ast?: number;
+  hdl?: number;
+  totalCholesterol?: number;
+  bmi?: number;
+  waist?: number;
+  sysBP?: number;
+  systolicBp?: number;
+  diaBP?: number;
+  diastolicBp?: number;
+  aiInsight?: {
+    items?: Array<{
+      name: string;
+      value: string;
+      status: "정상" | "주의" | "위험";
+    }>;
+  };
   [key: string]: unknown;
 };
 
-const gradeFallbacks: Array<{ min: number; grade: WeeklyReportApiResponse["grade"] }> = [
+const gradeFallbacks: Array<{ min: number; grade: ReportApiResponse["grade"] }> = [
   { min: 85, grade: "훌륭해요" },
   { min: 65, grade: "잘하고 있어요" },
   { min: 40, grade: "조금 더 힘내요" },
@@ -86,6 +109,13 @@ function getWeekRange(type: WeekRangeType) {
   return { start: toDateKey(start), end: toDateKey(end) };
 }
 
+function getMonthRange() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return { start: toDateKey(start), end: toDateKey(end) };
+}
+
 function getCoachId(id?: string | null): WeeklyCoachId {
   if (id === "onyu" || id === "onyou") return "onyu";
   if (id === "haru") return "haru";
@@ -94,8 +124,17 @@ function getCoachId(id?: string | null): WeeklyCoachId {
   return "haru";
 }
 
-function buildWeekLogs(logs: DailyLog[], start: string, end: string): WeekLogPayload[] {
-  return logs
+function compactLogsByDate(logs: DailyLog[]) {
+  const map = new Map<string, DailyLog>();
+  logs.forEach((log) => {
+    const previous = map.get(log.logDate);
+    if (!previous || log.id.localeCompare(previous.id) >= 0) map.set(log.logDate, log);
+  });
+  return Array.from(map.values());
+}
+
+function buildReportLogs(logs: DailyLog[], start: string, end: string): ReportLogPayload[] {
+  return compactLogsByDate(logs)
     .filter((log) => log.logDate >= start && log.logDate <= end)
     .sort((a, b) => a.logDate.localeCompare(b.logDate))
     .map((log) => {
@@ -111,6 +150,7 @@ function buildWeekLogs(logs: DailyLog[], start: string, end: string): WeekLogPay
 
       return {
         date: log.logDate,
+        steps: log.steps,
         score,
         sleep: log.sleepHours,
         diet: mealScore >= 25 ? "good" : mealScore >= 15 ? "normal" : "bad",
@@ -126,13 +166,13 @@ function average(values: number[]) {
   return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
 }
 
-function makeFallbackReport(weekLogs: WeekLogPayload[]): WeeklyReportApiResponse {
-  const weekScore = average(weekLogs.map((log) => log.score));
+function makeFallbackReport(reportLogs: ReportLogPayload[], mode: ReportMode): ReportApiResponse {
+  const weekScore = average(reportLogs.map((log) => log.score));
   const grade = gradeFallbacks.find((item) => weekScore >= item.min)?.grade || "다시 시작해요";
-  const sleepScore = average(weekLogs.map((log) => calculateSleepScore(log.sleep)));
-  const waterScore = average(weekLogs.map((log) => calculateWaterScore(log.water)));
-  const exerciseScore = average(weekLogs.map((log) => (log.exercise > 0 ? 35 : 0)));
-  const dietScore = average(weekLogs.map((log) => (log.diet === "good" ? 25 : log.diet === "normal" ? 15 : 5)));
+  const sleepScore = average(reportLogs.map((log) => calculateSleepScore(log.sleep)));
+  const waterScore = average(reportLogs.map((log) => calculateWaterScore(log.water)));
+  const exerciseScore = average(reportLogs.map((log) => (log.exercise > 0 ? 35 : 0)));
+  const dietScore = average(reportLogs.map((log) => (log.diet === "good" ? 25 : log.diet === "normal" ? 15 : 5)));
   const items = [
     { label: "수면", value: sleepScore },
     { label: "수분", value: waterScore },
@@ -145,12 +185,15 @@ function makeFallbackReport(weekLogs: WeekLogPayload[]): WeeklyReportApiResponse
     grade,
     best: items[0]?.label || "기록",
     worst: items[items.length - 1]?.label || "기록",
-    message: "이번 주 기록을 기준으로 생활 습관 흐름을 확인했어요. 잘된 항목은 유지하고, 아쉬운 항목은 하나만 골라 다음 주에 가볍게 보완해봐요.",
+    message:
+      mode === "monthly"
+        ? "이번 달 기록을 기준으로 습관 흐름을 정리했어요. 잘 유지된 항목은 계속 가져가고, 가장 약한 항목은 다음 달 핵심 목표로 잡아보면 좋아요."
+        : "이번 주 기록을 기준으로 생활 습관 흐름을 확인했어요. 잘된 항목은 유지하고, 아쉬운 항목은 하나만 골라 다음 주에 가볍게 보완해봐요.",
     nextWeekGoal: `${items[items.length - 1]?.label || "습관"} 기록을 3일 이상 실천하기`,
   };
 }
 
-function isWeeklyReportApiResponse(value: unknown): value is WeeklyReportApiResponse {
+function isReportApiResponse(value: unknown): value is ReportApiResponse {
   if (!value || typeof value !== "object") return false;
   const record = value as Record<string, unknown>;
   return (
@@ -163,11 +206,32 @@ function isWeeklyReportApiResponse(value: unknown): value is WeeklyReportApiResp
   );
 }
 
+function getRiskyCheckupItems(checkup: CheckupRecord | null) {
+  if (!checkup) return [];
+  if (checkup.aiInsight?.items?.length) {
+    return checkup.aiInsight.items
+      .filter((item) => item.status === "주의" || item.status === "위험")
+      .map((item) => ({ name: item.name, value: item.value, status: item.status }));
+  }
+
+  const items = [
+    { name: "공복혈당", value: String(checkup.glucose ?? checkup.fastingGlucose ?? ""), status: Number(checkup.glucose ?? checkup.fastingGlucose ?? 0) >= 100 ? "주의" : "정상" },
+    { name: "ALT", value: String(checkup.alt ?? ""), status: Number(checkup.alt ?? 0) > 40 ? "주의" : "정상" },
+    { name: "GGT", value: String(checkup.ggt ?? checkup.gammaGtp ?? ""), status: Number(checkup.ggt ?? checkup.gammaGtp ?? 0) > 60 ? "주의" : "정상" },
+    { name: "혈압", value: `${checkup.sysBP ?? checkup.systolicBp ?? ""}/${checkup.diaBP ?? checkup.diastolicBp ?? ""}`, status: Number(checkup.sysBP ?? checkup.systolicBp ?? 0) >= 130 || Number(checkup.diaBP ?? checkup.diastolicBp ?? 0) >= 85 ? "주의" : "정상" },
+  ];
+  return items.filter((item) => item.status !== "정상");
+}
+
 export default function WeeklyReportPage() {
+  const [mode, setMode] = useState<ReportMode>("weekly");
   const [rangeType, setRangeType] = useState<WeekRangeType>("this");
   const [logs, setLogs] = useState<DailyLog[]>([]);
   const [reports, setReports] = useState<WeeklyReportRecord[]>([]);
+  const [monthlyReport, setMonthlyReport] = useState<ReportApiResponse | null>(null);
+  const [monthlyInsight, setMonthlyInsight] = useState("");
   const [loading, setLoading] = useState(false);
+  const [insightLoading, setInsightLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -175,24 +239,35 @@ export default function WeeklyReportPage() {
     setReports(getFromStorage<WeeklyReportRecord[]>(STORAGE_KEYS.WEEKLY_REPORTS, []));
   }, []);
 
-  const range = useMemo(() => getWeekRange(rangeType), [rangeType]);
-  const weekLogs = useMemo(() => buildWeekLogs(logs, range.start, range.end), [logs, range.end, range.start]);
+  const range = useMemo(() => (mode === "weekly" ? getWeekRange(rangeType) : getMonthRange()), [mode, rangeType]);
+  const reportLogs = useMemo(() => buildReportLogs(logs, range.start, range.end), [logs, range.end, range.start]);
   const currentReport = reports.find((report) => report.weekStart === range.start && report.weekEnd === range.end);
-  const previewReport = currentReport || (weekLogs.length > 0 ? makeFallbackReport(weekLogs) : null);
+  const previewReport = mode === "weekly"
+    ? currentReport || (reportLogs.length > 0 ? makeFallbackReport(reportLogs, mode) : null)
+    : monthlyReport || (reportLogs.length > 0 ? makeFallbackReport(reportLogs, mode) : null);
   const chartData = useMemo(
     () => [
-      { name: "수면", value: average(weekLogs.map((log) => calculateSleepScore(log.sleep))) },
-      { name: "식단", value: average(weekLogs.map((log) => (log.diet === "good" ? 25 : log.diet === "normal" ? 15 : 5))) },
-      { name: "운동", value: average(weekLogs.map((log) => (log.exercise > 0 ? 35 : 0))) },
-      { name: "수분", value: average(weekLogs.map((log) => calculateWaterScore(log.water))) },
+      { name: "걸음", value: average(reportLogs.map((log) => calculateActivityScore(log.steps))) },
+      { name: "수면", value: average(reportLogs.map((log) => calculateSleepScore(log.sleep))) },
+      { name: "식단", value: average(reportLogs.map((log) => (log.diet === "good" ? 25 : log.diet === "normal" ? 15 : 5))) },
+      { name: "수분", value: average(reportLogs.map((log) => calculateWaterScore(log.water))) },
     ],
-    [weekLogs]
+    [reportLogs]
+  );
+  const monthlyAverages = useMemo(
+    () => ({
+      steps: average(compactLogsByDate(logs).filter((log) => log.logDate >= range.start && log.logDate <= range.end).map((log) => log.steps)),
+      sleep: average(reportLogs.map((log) => log.sleep)),
+      water: average(reportLogs.map((log) => log.water)),
+      meals: average(reportLogs.map((log) => (log.diet === "good" ? 3 : log.diet === "normal" ? 2 : 1))),
+    }),
+    [logs, range.end, range.start, reportLogs]
   );
 
   const createReport = async () => {
     setMessage("");
-    if (weekLogs.length === 0) {
-      setMessage("선택한 주차에 습관 기록이 없어요.");
+    if (reportLogs.length === 0) {
+      setMessage(mode === "weekly" ? "선택한 주차에 습관 기록이 없어요." : "이번 달 습관 기록이 없어요.");
       return;
     }
 
@@ -200,70 +275,121 @@ export default function WeeklyReportPage() {
     const coachId = getCoachId(getFromStorage<string>(STORAGE_KEYS.SELECTED_AI_COACH_ID, "haru"));
     const checkups = getFromStorage<CheckupRecord[]>(STORAGE_KEYS.HEALTH_CHECKUP_RECORDS, []);
     const recentCheckup = [...checkups]
-      .sort((a, b) => String(b.date || b.checkupDate || "").localeCompare(String(a.date || a.checkupDate || "")))
-      [0] || null;
+      .sort((a, b) => String(b.date || b.checkupDate || "").localeCompare(String(a.date || a.checkupDate || "")))[0] || null;
 
-    let apiReport: WeeklyReportApiResponse | null = null;
+    let apiReport: ReportApiResponse | null = null;
     try {
       const response = await fetch("/api/weekly-report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ weekLogs, coachId, recentCheckup }),
+        body: JSON.stringify({ weekLogs: reportLogs, coachId, recentCheckup }),
       });
       const result = (await response.json()) as unknown;
-      if (response.ok && isWeeklyReportApiResponse(result)) {
-        apiReport = result;
-      }
+      if (response.ok && isReportApiResponse(result)) apiReport = result;
     } catch (error) {
-      console.error("Weekly report request failed", error);
+      console.error("Report request failed", error);
     }
 
-    const report: WeeklyReportRecord = {
-      ...(apiReport || makeFallbackReport(weekLogs)),
-      id: globalThis.crypto?.randomUUID?.() || `weekly-${Date.now()}`,
+    const report = {
+      ...(apiReport || makeFallbackReport(reportLogs, mode)),
+      id: globalThis.crypto?.randomUUID?.() || `report-${Date.now()}`,
       weekStart: range.start,
       weekEnd: range.end,
       generatedAt: new Date().toISOString(),
     };
 
-    const nextReports = [
-      ...reports.filter((item) => !(item.weekStart === range.start && item.weekEnd === range.end)),
-      report,
-    ].sort((a, b) => b.weekStart.localeCompare(a.weekStart));
+    if (mode === "weekly") {
+      const nextReports = [
+        ...reports.filter((item) => !(item.weekStart === range.start && item.weekEnd === range.end)),
+        report,
+      ].sort((a, b) => b.weekStart.localeCompare(a.weekStart));
+      saveToStorage(STORAGE_KEYS.WEEKLY_REPORTS, nextReports);
+      setReports(nextReports);
+    } else {
+      setMonthlyReport(report);
+      await createMonthlyInsight(recentCheckup);
+    }
 
-    saveToStorage(STORAGE_KEYS.WEEKLY_REPORTS, nextReports);
-    setReports(nextReports);
     setLoading(false);
   };
 
+  const createMonthlyInsight = async (recentCheckup?: CheckupRecord | null) => {
+    const checkup = recentCheckup ?? getFromStorage<CheckupRecord[]>(STORAGE_KEYS.HEALTH_CHECKUP_RECORDS, [])
+      .sort((a, b) => String(b.date || b.checkupDate || "").localeCompare(String(a.date || a.checkupDate || "")))[0] ?? null;
+    const riskyCheckupItems = getRiskyCheckupItems(checkup);
+    if (riskyCheckupItems.length === 0) return;
+
+    setInsightLoading(true);
+    try {
+      const habitCounts = {
+        "7천보 이상 걷기": reportLogs.filter((log) => log.steps >= 7000).length,
+        "수면 7시간 이상": reportLogs.filter((log) => log.sleep >= 7).length,
+        "물 6잔 이상": reportLogs.filter((log) => log.water >= 6).length,
+        "식사 3회": reportLogs.filter((log) => log.diet === "good").length,
+      };
+      const response = await fetch("/api/monthly-insight", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ habitCounts, riskyCheckupItems }),
+      });
+      const result = (await response.json()) as { message?: string };
+      if (response.ok && result.message) setMonthlyInsight(result.message);
+    } catch (error) {
+      console.error("Monthly insight request failed", error);
+    } finally {
+      setInsightLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (mode !== "monthly" || reportLogs.length === 0 || monthlyInsight) return;
+    void createMonthlyInsight();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, reportLogs.length]);
+
   return (
     <MobileShell>
-      <AppHeader title="주간 리포트" showBack backHref="/dashboard" />
+      <AppHeader title={mode === "weekly" ? "주간 리포트" : "월간 리포트"} showBack backHref="/dashboard" />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] px-4 pb-24 pt-4">
+        <section className="mb-4 grid grid-cols-2 gap-2 rounded-3xl border border-green-100 bg-white p-2 shadow-sm">
+          {[
+            { id: "weekly", label: "주간" },
+            { id: "monthly", label: "월간" },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setMode(item.id as ReportMode)}
+              className={`min-h-10 rounded-2xl text-sm font-black transition ${mode === item.id ? "bg-[#4CAF6A] text-white" : "bg-[#F7FBF8] text-gray-500"}`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </section>
+
         <section className="rounded-3xl bg-gradient-to-br from-[#1F5A3A] to-[#4CAF6A] p-5 text-white shadow-sm">
           <div className="flex items-center gap-2 text-sm font-bold text-green-100">
             <CalendarDays size={17} />
             {range.start} ~ {range.end}
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-2 rounded-2xl bg-white/12 p-1">
-            {[
-              { id: "this", label: "이번 주" },
-              { id: "last", label: "저번 주" },
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setRangeType(item.id as WeekRangeType)}
-                className={`rounded-xl py-2 text-sm font-black transition ${
-                  rangeType === item.id ? "bg-white text-[#1F5A3A]" : "text-white/80"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+          {mode === "weekly" && (
+            <div className="mt-4 grid grid-cols-2 gap-2 rounded-2xl bg-white/12 p-1">
+              {[
+                { id: "this", label: "이번 주" },
+                { id: "last", label: "저번 주" },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setRangeType(item.id as WeekRangeType)}
+                  className={`rounded-xl py-2 text-sm font-black transition ${rangeType === item.id ? "bg-white text-[#1F5A3A]" : "text-white/80"}`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="mt-5 flex items-end justify-between">
             <div>
-              <p className="text-sm text-green-100">7일 평균 점수</p>
+              <p className="text-sm text-green-100">{mode === "weekly" ? "7일 평균 점수" : "이번 달 평균 점수"}</p>
               <p className="mt-1 text-5xl font-black">{previewReport?.weekScore ?? 0}</p>
             </div>
             <div className="rounded-2xl bg-white/16 px-4 py-3 text-right">
@@ -273,6 +399,22 @@ export default function WeeklyReportPage() {
           </div>
         </section>
 
+        {mode === "monthly" && reportLogs.length > 0 && (
+          <section className="mt-4 grid grid-cols-2 gap-3">
+            {[
+              { label: "평균 걸음", value: `${monthlyAverages.steps.toLocaleString()}보` },
+              { label: "평균 수면", value: `${monthlyAverages.sleep}시간` },
+              { label: "평균 수분", value: `${monthlyAverages.water}잔` },
+              { label: "평균 식사", value: `${monthlyAverages.meals}회` },
+            ].map((item) => (
+              <div key={item.label} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                <p className="text-xs font-bold text-gray-500">{item.label}</p>
+                <p className="mt-1 text-xl font-black text-[#1F2937]">{item.value}</p>
+              </div>
+            ))}
+          </section>
+        )}
+
         <section className="mt-4 rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -280,7 +422,7 @@ export default function WeeklyReportPage() {
                 <Trophy className="text-[#F7C948]" size={20} />
                 코치 총평
               </h2>
-              <p className="mt-1 text-xs text-gray-500">{weekLogs.length}일 기록 기준</p>
+              <p className="mt-1 text-xs text-gray-500">{reportLogs.length}일 기록 기준</p>
             </div>
             <button
               onClick={createReport}
@@ -288,7 +430,7 @@ export default function WeeklyReportPage() {
               className="flex min-h-10 items-center gap-2 rounded-full bg-[#4CAF6A] px-4 text-sm font-black text-white disabled:opacity-60"
             >
               {loading && <Loader2 className="animate-spin" size={16} />}
-              {currentReport ? "다시 생성" : "이번 주 리포트 보기"}
+              {previewReport ? "다시 생성" : mode === "weekly" ? "이번 주 리포트 보기" : "월간 리포트 보기"}
             </button>
           </div>
 
@@ -312,16 +454,16 @@ export default function WeeklyReportPage() {
             </div>
           ) : (
             <p className="mt-4 rounded-2xl bg-gray-50 p-4 text-sm font-bold text-gray-500">
-              선택한 주차에 저장된 리포트가 없어요. 습관 기록 후 리포트를 생성해주세요.
+              선택한 기간에 저장된 리포트가 없어요. 습관 기록 후 리포트를 생성해주세요.
             </p>
           )}
         </section>
 
-        {weekLogs.length > 0 && (
+        {reportLogs.length > 0 && (
           <section className="mt-4 rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
             <h2 className="flex items-center gap-2 text-lg font-black text-[#1F2937]">
               <BarChart3 className="text-[#4CAF6A]" size={20} />
-              항목별 평균
+              항목별 달성률
             </h2>
             <div className="mt-4 h-56">
               <ResponsiveContainer width="100%" height="100%">
@@ -337,11 +479,20 @@ export default function WeeklyReportPage() {
           </section>
         )}
 
+        {mode === "monthly" && (monthlyInsight || insightLoading) && (
+          <section className="mt-4 rounded-3xl border border-green-100 bg-[#EAF7EF] p-4 shadow-sm">
+            <h2 className="text-lg font-black text-[#1F2937]">검진 연계 코멘트</h2>
+            <p className="mt-3 rounded-2xl bg-white p-4 text-sm font-black leading-relaxed text-[#1F5A3A]">
+              {insightLoading ? "검진 수치와 이번 달 습관을 연결해 보고 있어요..." : monthlyInsight}
+            </p>
+          </section>
+        )}
+
         {previewReport && (
           <section className="mt-4 rounded-3xl border border-green-100 bg-[#EAF7EF] p-4 shadow-sm">
             <h2 className="flex items-center gap-2 text-lg font-black text-[#1F2937]">
               <Target className="text-[#4CAF6A]" size={20} />
-              다음 주 목표
+              {mode === "weekly" ? "다음 주 목표" : "다음 달 목표"}
             </h2>
             <p className="mt-3 rounded-2xl bg-white p-4 text-sm font-black leading-relaxed text-[#1F5A3A]">
               {previewReport.nextWeekGoal}

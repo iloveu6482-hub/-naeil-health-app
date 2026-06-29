@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   CartesianGrid,
   Legend,
@@ -24,15 +25,23 @@ import type { HealthCheckup } from "@/types/health";
 import { Activity, BarChart3, FileUp, Loader2, Save } from "lucide-react";
 
 type HealthAnalysisInsight = {
-  summary: string;
-  risks: Array<{
+  summary: {
+    정상: number;
+    주의: number;
+    위험: number;
+  };
+  items: Array<{
     name: string;
     value: string;
-    status: "danger" | "warning";
-    desc: string;
+    unit: string;
+    status: "정상" | "주의" | "위험";
+    comment: string;
   }>;
-  recommendedCoach: "onyu" | "haru" | "kangtaeo" | "rumi";
-  coachReason: string;
+  recommended_challenges: Array<{
+    title: string;
+    reason: string;
+  }>;
+  overall_comment: string;
 };
 
 type HealthTrendInsight = {
@@ -67,14 +76,15 @@ function isHealthAnalysisInsight(value: unknown): value is HealthAnalysisInsight
   if (!value || typeof value !== "object") return false;
 
   const record = value as Record<string, unknown>;
+  const summary = record.summary as Record<string, unknown> | undefined;
   return (
-    typeof record.summary === "string" &&
-    Array.isArray(record.risks) &&
-    (record.recommendedCoach === "onyu" ||
-      record.recommendedCoach === "haru" ||
-      record.recommendedCoach === "kangtaeo" ||
-      record.recommendedCoach === "rumi") &&
-    typeof record.coachReason === "string"
+    Boolean(summary) &&
+    typeof summary?.정상 === "number" &&
+    typeof summary?.주의 === "number" &&
+    typeof summary?.위험 === "number" &&
+    Array.isArray(record.items) &&
+    Array.isArray(record.recommended_challenges) &&
+    typeof record.overall_comment === "string"
   );
 }
 
@@ -225,6 +235,7 @@ function toLegacyCheckup(record: HealthCheckupRecord): HealthCheckup {
 }
 
 export default function CheckupPage() {
+  const router = useRouter();
   const [form, setForm] = useState<FormState>(initialForm);
   const [records, setRecords] = useState<HealthCheckupRecord[]>([]);
   const [activeChart, setActiveChart] = useState<(typeof chartTabs)[number]["id"]>("glucose");
@@ -266,7 +277,7 @@ export default function CheckupPage() {
 
     let aiInsight: HealthAnalysisInsight | undefined;
     try {
-      const response = await fetch("/api/health-analysis", {
+      const response = await fetch("/api/analyze-health", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -284,10 +295,12 @@ export default function CheckupPage() {
       });
 
       const result = (await response.json()) as unknown;
-      if (!response.ok || !isHealthAnalysisInsight(result)) throw new Error("검진 AI 분석을 완료하지 못했어요.");
+      if (!response.ok || !isHealthAnalysisInsight(result)) throw new Error("분석에 실패했어요. 다시 시도해주세요.");
       aiInsight = result;
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "검진 AI 분석 중 오류가 발생했어요.");
+      setLoadingAnalysis(false);
+      setMessage(error instanceof Error ? error.message : "분석에 실패했어요. 다시 시도해주세요.");
+      return;
     }
 
     const record: HealthCheckupRecord = {
@@ -301,6 +314,7 @@ export default function CheckupPage() {
     saveToStorage(STORAGE_KEYS.HEALTH_CHECKUP_RECORDS, nextRecords);
     saveToStorage(STORAGE_KEYS.HEALTH_CHECKUP, latestLegacy);
     saveToStorage(STORAGE_KEYS.CHECKUP_INSIGHTS, createCheckupInsights(latestLegacy));
+    saveToStorage("latestHealthAnalysisResult", aiInsight);
     setRecords(nextRecords);
 
     const txs = getFromStorage(STORAGE_KEYS.POINT_TRANSACTIONS, []);
@@ -311,7 +325,7 @@ export default function CheckupPage() {
     }
 
     setLoadingAnalysis(false);
-    setMessage(aiInsight ? "검진 기록과 AI 분석을 저장했어요." : "검진 기록을 저장했어요. AI 분석은 나중에 다시 시도해주세요.");
+    router.push("/checkup/result");
   };
 
   const analyzeTrend = async () => {
@@ -383,7 +397,7 @@ export default function CheckupPage() {
 
           <button onClick={saveRecord} disabled={loadingAnalysis} className="mt-4 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#4CAF6A] text-lg font-black text-white shadow-lg disabled:opacity-60">
             {loadingAnalysis ? <Loader2 className="animate-spin" size={21} /> : <Save size={21} />}
-            {loadingAnalysis ? "AI 분석 중..." : "저장하고 AI 분석"}
+            {loadingAnalysis ? "AI가 검진 결과를 분석 중이에요..." : "저장하고 AI 분석"}
           </button>
         </section>
 
@@ -400,7 +414,7 @@ export default function CheckupPage() {
                     <span className="text-xs font-bold text-[#4CAF6A]">{record.institution || "검진기관 미입력"}</span>
                   </div>
                   <p className="mt-1 text-sm text-gray-600">혈당 {record.glucose} · 혈압 {record.sysBP}/{record.diaBP} · BMI {record.bmi}</p>
-                  {record.aiInsight && <p className="mt-2 rounded-xl bg-white p-3 text-sm font-bold text-[#1F5A3A]">{record.aiInsight.summary}</p>}
+                  {record.aiInsight && <p className="mt-2 rounded-xl bg-white p-3 text-sm font-bold text-[#1F5A3A]">{record.aiInsight.overall_comment}</p>}
                 </article>
               ))}
             </div>
