@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ClipboardList, BookOpen, Trophy, BarChart2, UsersRound } from "lucide-react";
+import { Home, ClipboardList, BookOpen, BarChart2, UsersRound, UserRound } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "홈" },
@@ -10,7 +10,7 @@ const navItems = [
   { href: "/habits", icon: BookOpen, label: "습관" },
   { href: "/weekly-report", icon: BarChart2, label: "리포트" },
   { href: "/community", icon: UsersRound, label: "커뮤니티" },
-  { href: "/challenges", icon: Trophy, label: "챌린지" },
+  { href: "/my", icon: UserRound, label: "나의" },
 ];
 
 export default function BottomNav() {
