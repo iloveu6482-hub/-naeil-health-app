@@ -91,10 +91,211 @@ function extractText(result: { content?: Array<{ type?: string; text?: string }>
   return result.content?.find((item) => item.type === "text")?.text?.trim();
 }
 
+function extractJson(text: string) {
+  const trimmed = text.trim();
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) return trimmed;
+
+  const codeBlock = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (codeBlock?.[1]) return codeBlock[1].trim();
+
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    return trimmed.slice(firstBrace, lastBrace + 1);
+  }
+
+  return trimmed;
+}
+
+function normalizeStatus(status: unknown): "정상" | "주의" | "위험" {
+  const value = String(status || "").toLowerCase();
+  if (value.includes("위험") || value.includes("danger") || value.includes("high") || value.includes("bad")) return "위험";
+  if (value.includes("주의") || value.includes("warning") || value.includes("border") || value.includes("경계")) return "주의";
+  return "정상";
+}
+
+function normalizeAnalysisResponse(value: unknown): AnalyzeHealthResponse | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  const rawItems = Array.isArray(record.items) ? record.items : [];
+  const items = rawItems
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const raw = item as Record<string, unknown>;
+      const name = typeof raw.name === "string" ? raw.name : typeof raw.item === "string" ? raw.item : "";
+      const valueText = raw.value === undefined || raw.value === null ? "" : String(raw.value);
+      const unit = raw.unit === undefined || raw.unit === null ? "" : String(raw.unit);
+      const comment =
+        typeof raw.comment === "string"
+          ? raw.comment
+          : typeof raw.desc === "string"
+            ? raw.desc
+            : typeof raw.description === "string"
+              ? raw.description
+              : "";
+      if (!name || !valueText || !comment) return null;
+      return {
+        name,
+        value: valueText,
+        unit,
+        status: normalizeStatus(raw.status),
+        comment,
+      };
+    })
+    .filter((item): item is AnalyzeHealthResponse["items"][number] => Boolean(item));
+
+  if (items.length === 0) return null;
+
+  const summary = {
+    정상: items.filter((item) => item.status === "정상").length,
+    주의: items.filter((item) => item.status === "주의").length,
+    위험: items.filter((item) => item.status === "위험").length,
+  };
+
+  const rawSummary = record.summary as Record<string, unknown> | undefined;
+  if (rawSummary) {
+    summary.정상 = Number(rawSummary.정상 ?? rawSummary.normal ?? summary.정상) || summary.정상;
+    summary.주의 = Number(rawSummary.주의 ?? rawSummary.warning ?? summary.주의) || summary.주의;
+    summary.위험 = Number(rawSummary.위험 ?? rawSummary.danger ?? summary.위험) || summary.위험;
+  }
+
+  const rawChallenges = Array.isArray(record.recommended_challenges)
+    ? record.recommended_challenges
+    : Array.isArray(record.recommendedChallenges)
+      ? record.recommendedChallenges
+      : [];
+  const recommended_challenges = rawChallenges
+    .map((challenge) => {
+      if (!challenge || typeof challenge !== "object") return null;
+      const raw = challenge as Record<string, unknown>;
+      const title = typeof raw.title === "string" ? raw.title : "";
+      const reason = typeof raw.reason === "string" ? raw.reason : "";
+      if (!title || !reason) return null;
+      return { title, reason };
+    })
+    .filter((challenge): challenge is AnalyzeHealthResponse["recommended_challenges"][number] => Boolean(challenge))
+    .slice(0, 2);
+
+  return {
+    summary,
+    items,
+    recommended_challenges:
+      recommended_challenges.length > 0
+        ? recommended_challenges
+        : [{ title: "식후 20분 걷기", reason: "혈당과 간수치 관리에 함께 도움이 되는 기본 습관이에요." }],
+    overall_comment:
+      typeof record.overall_comment === "string"
+        ? record.overall_comment
+        : typeof record.overallComment === "string"
+          ? record.overallComment
+          : "현재 수치는 전반적으로 안정적인 편이지만, 생활 습관을 꾸준히 기록하며 다음 검진까지 흐름을 확인해보세요.",
+  };
+}
+
+function getStatusFromRange(value: number, warning: (value: number) => boolean, danger: (value: number) => boolean) {
+  if (danger(value)) return "위험";
+  if (warning(value)) return "주의";
+  return "정상";
+}
+
+function createFallbackAnalysis(body: AnalyzeHealthRequest): AnalyzeHealthResponse {
+  const items: AnalyzeHealthResponse["items"] = [
+    {
+      name: "공복혈당",
+      value: String(body.glucose),
+      unit: "mg/dL",
+      status: getStatusFromRange(body.glucose, (value) => value >= 100, (value) => value >= 126),
+      comment: body.glucose >= 100 ? "식후 걷기와 야식 줄이기를 우선 관리하면 좋아요." : "현재 공복혈당은 일반적인 정상 범위에 가까워요.",
+    },
+    {
+      name: "ALT",
+      value: String(body.alt),
+      unit: "U/L",
+      status: getStatusFromRange(body.alt, (value) => value > 40, (value) => value >= 80),
+      comment: body.alt > 40 ? "간 피로 신호일 수 있어 음주와 야식을 줄이는 습관이 중요해요." : "ALT는 안정적인 범위로 보입니다.",
+    },
+    {
+      name: "GGT",
+      value: String(body.ggt),
+      unit: "U/L",
+      status: getStatusFromRange(body.ggt, (value) => value > 60, (value) => value >= 100),
+      comment: body.ggt > 60 ? "지방간, 음주, 야식 습관과 함께 관리하면 좋아요." : "GGT는 큰 위험 신호가 두드러지지 않아요.",
+    },
+    {
+      name: "AST",
+      value: String(body.ast),
+      unit: "U/L",
+      status: getStatusFromRange(body.ast, (value) => value > 40, (value) => value >= 80),
+      comment: body.ast > 40 ? "간수치 흐름을 함께 보며 무리한 음주와 과식을 줄여보세요." : "AST는 안정적인 범위로 보입니다.",
+    },
+    {
+      name: "HDL 콜레스테롤",
+      value: String(body.hdl),
+      unit: "mg/dL",
+      status: getStatusFromRange(body.hdl, (value) => value < 50, (value) => value < 40),
+      comment: body.hdl < 50 ? "꾸준한 걷기와 체중 관리가 좋은 콜레스테롤 개선에 도움이 돼요." : "HDL은 비교적 좋은 흐름입니다.",
+    },
+    {
+      name: "총콜레스테롤",
+      value: String(body.totalCholesterol),
+      unit: "mg/dL",
+      status: getStatusFromRange(body.totalCholesterol, (value) => value >= 200, (value) => value >= 240),
+      comment: body.totalCholesterol >= 200 ? "기름진 식사와 야식 빈도를 줄이는 방향이 좋아요." : "총콜레스테롤은 정상 범위에 가까워요.",
+    },
+    {
+      name: "BMI",
+      value: String(body.bmi),
+      unit: "",
+      status: getStatusFromRange(body.bmi, (value) => value >= 23, (value) => value >= 25),
+      comment: body.bmi >= 23 ? "체중 관리가 혈당과 간수치 관리에도 함께 도움이 돼요." : "BMI는 안정적인 편입니다.",
+    },
+    {
+      name: "허리둘레",
+      value: String(body.waist),
+      unit: "cm",
+      status: getStatusFromRange(body.waist, (value) => value >= 85, (value) => value >= 90),
+      comment: body.waist >= 85 ? "복부 지방 관리를 위해 식후 걷기와 야식 줄이기를 추천해요." : "허리둘레는 관리가 잘 되고 있어요.",
+    },
+    {
+      name: "수축기 혈압",
+      value: String(body.sysBP),
+      unit: "mmHg",
+      status: getStatusFromRange(body.sysBP, (value) => value >= 120, (value) => value >= 140),
+      comment: body.sysBP >= 120 ? "염분 섭취와 수면 리듬을 함께 챙겨보면 좋아요." : "수축기 혈압은 안정적인 편입니다.",
+    },
+    {
+      name: "이완기 혈압",
+      value: String(body.diaBP),
+      unit: "mmHg",
+      status: getStatusFromRange(body.diaBP, (value) => value >= 80, (value) => value >= 90),
+      comment: body.diaBP >= 80 ? "수면, 스트레스, 짠 음식 섭취를 같이 관리해보세요." : "이완기 혈압은 안정적인 편입니다.",
+    },
+  ];
+
+  return {
+    summary: {
+      정상: items.filter((item) => item.status === "정상").length,
+      주의: items.filter((item) => item.status === "주의").length,
+      위험: items.filter((item) => item.status === "위험").length,
+    },
+    items,
+    recommended_challenges: [
+      { title: "식후 20분 걷기", reason: "혈당, 체중, 간수치 관리에 모두 연결되는 기본 챌린지예요." },
+      { title: "야식 줄이기", reason: "복부둘레와 간수치 흐름을 안정시키는 데 도움이 돼요." },
+    ],
+    overall_comment:
+      "현재 검진 수치는 생활 습관과 함께 관리하면 좋아지는 항목들이 보입니다. 오늘부터 식후 걷기, 수분 섭취, 야식 줄이기처럼 실천 가능한 습관을 꾸준히 쌓아보세요.",
+  };
+}
+
 export async function POST(request: Request) {
   try {
     if (!process.env.ANTHROPIC_API_KEY) {
-      return NextResponse.json({ error: "Claude API 설정이 필요합니다." }, { status: 503 });
+      const body = await request.json();
+      if (!isAnalyzeHealthRequest(body)) {
+        return NextResponse.json({ error: "검진 수치 입력값을 확인해주세요." }, { status: 400 });
+      }
+      return NextResponse.json(createFallbackAnalysis(body));
     }
 
     const body = await request.json();
@@ -150,28 +351,29 @@ BMI: ${body.bmi}
 
     if (!response.ok) {
       console.error("Analyze health failed", response.status, result.error?.message);
-      return NextResponse.json({ error: "분석에 실패했어요. 다시 시도해주세요." }, { status: 502 });
+      return NextResponse.json(createFallbackAnalysis(body));
     }
 
     const text = extractText(result);
     if (!text) {
-      return NextResponse.json({ error: "분석에 실패했어요. 다시 시도해주세요." }, { status: 502 });
+      return NextResponse.json(createFallbackAnalysis(body));
     }
 
     let parsed: unknown;
     try {
-      parsed = JSON.parse(text);
+      parsed = JSON.parse(extractJson(text));
     } catch {
       console.error("Analyze health JSON parse failed", text);
-      return NextResponse.json({ error: "분석에 실패했어요. 다시 시도해주세요." }, { status: 502 });
+      return NextResponse.json(createFallbackAnalysis(body));
     }
 
-    if (!isAnalyzeHealthResponse(parsed)) {
+    const normalized = normalizeAnalysisResponse(parsed);
+    if (!normalized || !isAnalyzeHealthResponse(normalized)) {
       console.error("Analyze health schema mismatch", parsed);
-      return NextResponse.json({ error: "분석에 실패했어요. 다시 시도해주세요." }, { status: 502 });
+      return NextResponse.json(createFallbackAnalysis(body));
     }
 
-    return NextResponse.json(parsed);
+    return NextResponse.json(normalized);
   } catch (error) {
     console.error("Analyze health error", error);
     return NextResponse.json({ error: "분석에 실패했어요. 다시 시도해주세요." }, { status: 500 });
