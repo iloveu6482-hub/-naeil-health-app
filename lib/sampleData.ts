@@ -195,7 +195,7 @@ export const sampleAvatarItems: AvatarItem[] = [
     category: "theme",
     price: 0,
     description: "차분한 가을 건강 산책 분위기의 가을 시즌 한정 테마입니다.",
-    imageUrl: "/avatars/themes/shop/theme-autumn.png",
+    imageUrl: "/avatars/themes/shop/theme-autumn.jpg",
     isOwned: false,
     isEquipped: false,
   },

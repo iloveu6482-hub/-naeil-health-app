@@ -40,6 +40,7 @@ type TodayCoachMessage = {
   message: string;
   date: string;
   coachId: string;
+  visibleUntil?: number;
 };
 type NudgeCoachId = "onyu" | "haru" | "kangtaeo" | "rumi";
 type NudgeMessage = {
@@ -51,7 +52,7 @@ type DailyFeedbackResponse = {
 };
 
 const FINAL_COACHING_AVAILABLE_HOUR = 21;
-const PRIORITY_AI_COACHING_VISIBLE_MS = 5 * 60 * 1000;
+const PRIORITY_AI_COACHING_VISIBLE_MS = 60 * 1000;
 const medicalDisclaimerPattern =
   /\s*[※*]*\s*이\s*코칭은\s*의료\s*진단이\s*아닌\s*건강\s*습관\s*가이드입니다\.?\s*/g;
 
@@ -133,6 +134,15 @@ function isTodayCoachMessage(value: unknown): value is TodayCoachMessage {
   if (!value || typeof value !== "object") return false;
   const record = value as Record<string, unknown>;
   return typeof record.message === "string" && typeof record.date === "string" && typeof record.coachId === "string";
+}
+
+function isPriorityCoachMessageVisible(message: TodayCoachMessage | null, healthDayKey: string) {
+  return Boolean(
+    message?.message &&
+    message.date === healthDayKey &&
+    typeof message.visibleUntil === "number" &&
+    message.visibleUntil > Date.now()
+  );
 }
 
 function cleanCoachBubbleMessage(message: string) {
@@ -238,7 +248,7 @@ export default function DashboardPage() {
     const savedTodayCoachMessage = getFromStorage<unknown>(STORAGE_KEYS.TODAY_COACH_MESSAGE, null);
     if (isTodayCoachMessage(savedTodayCoachMessage)) {
       setTodayCoachMessage(savedTodayCoachMessage);
-      setShowPriorityCoachMessage(savedTodayCoachMessage.date === healthDayKey);
+      setShowPriorityCoachMessage(isPriorityCoachMessageVisible(savedTodayCoachMessage, healthDayKey));
     }
 
     const requestNotificationPermission = async () => {
@@ -328,9 +338,19 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!showPriorityCoachMessage || todayCoachMessage?.date !== currentHealthDayKey || !todayCoachMessage.message) return;
 
+    const remainingMs =
+      typeof todayCoachMessage.visibleUntil === "number"
+        ? todayCoachMessage.visibleUntil - Date.now()
+        : PRIORITY_AI_COACHING_VISIBLE_MS;
+
+    if (remainingMs <= 0) {
+      setShowPriorityCoachMessage(false);
+      return;
+    }
+
     const timer = window.setTimeout(() => {
       setShowPriorityCoachMessage(false);
-    }, PRIORITY_AI_COACHING_VISIBLE_MS);
+    }, remainingMs);
 
     return () => window.clearTimeout(timer);
   }, [currentHealthDayKey, showPriorityCoachMessage, todayCoachMessage]);
@@ -389,6 +409,7 @@ export default function DashboardPage() {
         message: cleanCoachBubbleMessage(result.message),
         date: currentHealthDayKey,
         coachId,
+        visibleUntil: Date.now() + PRIORITY_AI_COACHING_VISIBLE_MS,
       };
 
       saveToStorage(STORAGE_KEYS.TODAY_COACH_MESSAGE, nextMessage);
