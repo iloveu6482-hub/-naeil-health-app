@@ -8,8 +8,8 @@ const navItems = [
   { href: "/dashboard", icon: Home, label: "홈" },
   { href: "/checkup", icon: ClipboardList, label: "검진" },
   { href: "/habits", icon: BookOpen, label: "습관" },
-  { href: "/challenges", icon: Trophy, label: "챌린지" },
   { href: "/weekly-report", icon: BarChart2, label: "리포트" },
+  { href: "/challenges", icon: Trophy, label: "챌린지" },
 ];
 
 export default function BottomNav() {
