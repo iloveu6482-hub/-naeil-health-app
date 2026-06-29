@@ -13,6 +13,7 @@ import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { calculateLifestyleScore } from "@/lib/lifestyleScore";
 import { calculateWalkingCalories } from "@/lib/activity";
 import { calculatePointBalance } from "@/lib/rewards";
+import { getHealthDayKey } from "@/lib/healthDay";
 import { getCustomAvatarSource, getHeaderAvatarSource } from "@/lib/avatarProfile";
 import { defaultAiCoach, getAiCoachById } from "@/lib/coachData";
 import { sampleUser, sampleCheckup, sampleDailyLog } from "@/lib/sampleData";
@@ -98,6 +99,25 @@ function cleanCoachBubbleMessage(message: string) {
   return message.replace(medicalDisclaimerPattern, " ").replace(/\s{2,}/g, " ").trim();
 }
 
+function createEmptyDailyLog(logDate: string): DailyLog {
+  return {
+    id: `daily-empty-${logDate}`,
+    logDate,
+    steps: 0,
+    sleepHours: 0,
+    waterCups: 0,
+    mealsCount: 0,
+    medicationTaken: false,
+    exerciseDone: false,
+    conditionScore: 0,
+    memo: "",
+  };
+}
+
+function getDailyLogForHealthDay(logs: DailyLog[], healthDayKey: string) {
+  return [...logs].reverse().find((log) => log.logDate === healthDayKey) || createEmptyDailyLog(healthDayKey);
+}
+
 function getLocalDateKey(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -156,7 +176,8 @@ export default function DashboardPage() {
     const savedUser = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
     const savedCheckup = getFromStorage<HealthCheckup>(STORAGE_KEYS.HEALTH_CHECKUP, sampleCheckup);
     const logs = getFromStorage<DailyLog[]>(STORAGE_KEYS.DAILY_LOGS, []);
-    const latestLog = logs[logs.length - 1] || sampleDailyLog;
+    const healthDayKey = getHealthDayKey();
+    const latestLog = getDailyLogForHealthDay(logs, healthDayKey);
     const savedCoachId = getFromStorage<string>(STORAGE_KEYS.SELECTED_AI_COACH_ID, defaultAiCoach.id);
     setUser(savedUser);
     setCheckup(savedCheckup);
@@ -241,15 +262,27 @@ export default function DashboardPage() {
     setNudgeBanner(null);
   };
 
+  const currentHealthDayKey = getHealthDayKey(currentTime);
+
   useEffect(() => {
-    if (todayCoachMessage?.date !== getLocalDateKey() || !todayCoachMessage.message) return;
+    const logs = getFromStorage<DailyLog[]>(STORAGE_KEYS.DAILY_LOGS, []);
+    const savedMeals = getFromStorage<MealAnalysis[]>(STORAGE_KEYS.MEAL_RECORDS, []);
+    const currentLog = getDailyLogForHealthDay(logs, currentHealthDayKey);
+
+    setDailyLog(currentLog);
+    setMeals(savedMeals);
+    setScore(calculateLifestyleScore(currentLog, savedMeals));
+  }, [currentHealthDayKey]);
+
+  useEffect(() => {
+    if (todayCoachMessage?.date !== currentHealthDayKey || !todayCoachMessage.message) return;
 
     const timer = window.setTimeout(() => {
       setTodayCoachMessage(null);
     }, TODAY_COACH_MESSAGE_VISIBLE_MS);
 
     return () => window.clearTimeout(timer);
-  }, [todayCoachMessage]);
+  }, [currentHealthDayKey, todayCoachMessage]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -277,7 +310,7 @@ export default function DashboardPage() {
     hour: "2-digit",
     minute: "2-digit",
   });
-  const today = getLocalDateKey(currentTime);
+  const today = currentHealthDayKey;
   const todayMeals = meals.filter((meal) => meal.mealDate === today);
   const mealCalories = todayMeals.reduce((sum, meal) => sum + meal.estimatedCalories, 0);
   const scoreStatus = getScoreStatus(score);

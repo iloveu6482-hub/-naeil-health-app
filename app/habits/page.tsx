@@ -8,6 +8,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import RewardToast from "@/components/common/RewardToast";
 import { saveToStorage, getFromStorage, STORAGE_KEYS } from "@/lib/storage";
 import { createEarnTransaction, hasEarnedTodayForReason, addPointTransaction } from "@/lib/rewards";
+import { getHealthDayKey } from "@/lib/healthDay";
 import { sampleDailyLog } from "@/lib/sampleData";
 import type { DailyLog } from "@/types/health";
 import type { MealAnalysis } from "@/types/meal";
@@ -56,6 +57,21 @@ function isDailyFeedbackResponse(value: unknown): value is DailyFeedbackResponse
   return typeof (value as Record<string, unknown>).message === "string";
 }
 
+function createEmptyDailyLog(logDate: string): DailyLog {
+  return {
+    id: `daily-empty-${logDate}`,
+    logDate,
+    steps: 0,
+    sleepHours: 0,
+    waterCups: 0,
+    mealsCount: 0,
+    medicationTaken: false,
+    exerciseDone: false,
+    conditionScore: 0,
+    memo: "",
+  };
+}
+
 export default function HabitsPage() {
   const [activeType, setActiveType] = useState<HabitType>("all");
   const [form, setForm] = useState<Omit<DailyLog, "id" | "logDate">>({
@@ -82,9 +98,9 @@ export default function HabitsPage() {
       setActiveType(type);
     }
 
-    const todayKey = new Date().toISOString().slice(0, 10);
+    const todayKey = getHealthDayKey();
     const logs = getFromStorage<DailyLog[]>(STORAGE_KEYS.DAILY_LOGS, []);
-    const latestLog = logs[logs.length - 1] || sampleDailyLog;
+    const latestLog = [...logs].reverse().find((log) => log.logDate === todayKey) || createEmptyDailyLog(todayKey);
     setForm({
       steps: latestLog.steps,
       sleepHours: latestLog.sleepHours,
@@ -120,7 +136,7 @@ export default function HabitsPage() {
   };
 
   const handleSave = async () => {
-    const todayKey = new Date().toISOString().split("T")[0];
+    const todayKey = getHealthDayKey();
     const coachId = resolveDailyFeedbackCoachId(getFromStorage<string>(STORAGE_KEYS.SELECTED_AI_COACH_ID, "haru"));
     const log: DailyLog = {
       ...form,
