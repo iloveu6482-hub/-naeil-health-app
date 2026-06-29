@@ -39,8 +39,10 @@ export default function AvatarShopPage() {
   const [filterCat, setFilterCat] = useState<AvatarItem["category"] | "all">("all");
   const [viewMode, setViewMode] = useState<AvatarViewMode>("fullbody");
   const [message, setMessage] = useState("");
+  const [fromMy, setFromMy] = useState(false);
 
   useEffect(() => {
+    setFromMy(new URLSearchParams(window.location.search).get("from") === "my");
     const profile = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
     setUser(profile);
     setViewMode(getFromStorage<AvatarViewMode>(STORAGE_KEYS.AVATAR_VIEW_MODE, "fullbody"));
@@ -86,7 +88,7 @@ export default function AvatarShopPage() {
   const filtered = filterCat === "all" ? items : items.filter((item) => item.category === filterCat);
   const categories: (AvatarItem["category"] | "all")[] = ["all", "theme", "outfit"];
 
-  return <MobileShell><AppHeader title="마이 아바타" showBack backHref="/dashboard" /><main className="flex-1 bg-[#F7FBF8] pb-24">
+  return <MobileShell><AppHeader title="마이 아바타" showBack backHref={fromMy ? "/my" : "/dashboard"} /><main className="flex-1 bg-[#F7FBF8] pb-24">
     <section className="px-4 pt-4"><div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-[#1F5A3A] to-[#4CAF6A] p-4 text-white"><div><p className="text-sm text-green-100">{displayName}님의 마이 아바타</p><p className="mt-1 text-lg font-black">Lv. 3 건강 루틴러</p></div><div className="text-right"><p className="text-xs text-green-100">보유 헬스포인트</p><p className="text-2xl font-black">{balance.toLocaleString()}P</p></div></div></section>
     <section className="mx-4 mt-4 overflow-hidden rounded-3xl border border-green-100 bg-gradient-to-b from-[#EAF7EF] to-white shadow-sm"><div className="relative h-[460px]"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={viewMode} mood="cheer" customImageUrl={customImage} size="xl" showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} /></div><div className="border-t border-green-100 bg-white/90 px-4 py-2"><div className="mx-auto flex w-fit rounded-full border border-gray-100 bg-[#F7FBF8] p-1"><button onClick={() => changeViewMode("portrait")} className={`rounded-full px-5 py-2 text-xs font-bold ${viewMode === "portrait" ? "bg-[#4CAF6A] text-white" : "text-gray-500"}`}>상반신 보기</button><button onClick={() => changeViewMode("fullbody")} className={`rounded-full px-5 py-2 text-xs font-bold ${viewMode === "fullbody" ? "bg-[#4CAF6A] text-white" : "text-gray-500"}`}>전신 보기</button></div></div></section>
     {message && <p className="mx-4 mt-3 rounded-xl bg-white p-3 text-center text-sm font-bold text-[#1F5A3A] shadow-sm">{message}</p>}

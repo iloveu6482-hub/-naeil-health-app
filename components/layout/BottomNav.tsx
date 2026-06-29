@@ -10,7 +10,7 @@ const navItems = [
   { href: "/habits", icon: BookOpen, label: "습관" },
   { href: "/weekly-report", icon: BarChart2, label: "분석" },
   { href: "/community", icon: UsersRound, label: "커뮤니티" },
-  { href: "/my", icon: UserRound, label: "나의" },
+  { href: "/my", icon: UserRound, label: "MY" },
 ];
 
 export default function BottomNav() {

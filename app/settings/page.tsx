@@ -34,6 +34,7 @@ function calculateBmi(height?: number, weight?: number) {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const [fromMy, setFromMy] = useState(false);
   const [user, setUser] = useState<UserProfile>(sampleUser);
   const [equippedItems, setEquippedItems] = useState<AvatarItem[]>([]);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -45,6 +46,7 @@ export default function SettingsPage() {
   const [bodyMessage, setBodyMessage] = useState("");
 
   useEffect(() => {
+    setFromMy(new URLSearchParams(window.location.search).get("from") === "my");
     const saved = getFromStorage<UserProfile | null>(STORAGE_KEYS.USER_PROFILE, null);
     if (saved) {
       setUser(saved);
@@ -126,7 +128,7 @@ export default function SettingsPage() {
 
   return (
     <MobileShell>
-      <AppHeader title="나의 페이지" />
+      <AppHeader title="나의 페이지" showBack={fromMy} backHref="/my" />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] pb-24 px-4 py-4">
         {/* Profile Card */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4">

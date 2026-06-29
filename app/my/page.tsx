@@ -15,10 +15,10 @@ import type { UserProfile } from "@/types/user";
 import type { PointTransaction } from "@/types/reward";
 
 const myMenuItems = [
-  { href: "/settings", icon: Settings, title: "내 정보·설정", desc: "프로필, 키·몸무게, BMI를 관리해요." },
-  { href: "/health-change", icon: TrendingUp, title: "나의 변화도", desc: "몸무게와 건강 습관 변화를 확인해요." },
-  { href: "/avatar-shop", icon: Shirt, title: "아바타 꾸미기", desc: "테마와 의상을 골라 건강이를 꾸며요." },
-  { href: "/checkup/insights", icon: HeartPulse, title: "검진 관리", desc: "검진 수치와 관리 방향을 살펴봐요." },
+  { href: "/settings?from=my", icon: Settings, title: "내 정보·설정", desc: "프로필, 키·몸무게, BMI를 관리해요." },
+  { href: "/health-change?from=my", icon: TrendingUp, title: "나의 변화도", desc: "몸무게와 건강 습관 변화를 확인해요." },
+  { href: "/avatar-shop?from=my", icon: Shirt, title: "아바타 꾸미기", desc: "테마와 의상을 골라 건강이를 꾸며요." },
+  { href: "/checkup/insights?from=my", icon: HeartPulse, title: "검진 관리", desc: "검진 수치와 관리 방향을 살펴봐요." },
 ];
 
 export default function MyPage() {
@@ -36,7 +36,7 @@ export default function MyPage() {
 
   return (
     <MobileShell>
-      <AppHeader title="나의" />
+      <AppHeader title="MY" />
       <main className="flex-1 overflow-y-auto bg-[#F7FBF8] px-4 pb-24 pt-4">
         <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
           <div className="flex items-center gap-4">
