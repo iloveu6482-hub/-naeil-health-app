@@ -46,7 +46,7 @@ export default function AvatarShopPage() {
     setViewMode(getFromStorage<AvatarViewMode>(STORAGE_KEYS.AVATAR_VIEW_MODE, "fullbody"));
     const shopSamples = sampleAvatarItems.filter((item) => visibleShopCategories.has(item.category));
     const saved = getFromStorage<AvatarItem[]>(STORAGE_KEYS.AVATAR_ITEMS, []).filter((item) => visibleShopCategories.has(item.category));
-    const merged = [...shopSamples.map((sample) => ({ ...(saved.find((item) => item.id === sample.id) || sample), name: sample.name, description: sample.description, price: sample.price })), ...saved.filter((item) => !shopSamples.some((sample) => sample.id === item.id))];
+    const merged = [...shopSamples.map((sample) => ({ ...(saved.find((item) => item.id === sample.id) || sample), name: sample.name, description: sample.description, price: sample.price, imageUrl: sample.imageUrl, themeKey: sample.themeKey, resetTheme: sample.resetTheme })), ...saved.filter((item) => !shopSamples.some((sample) => sample.id === item.id))];
     const activeTheme = getFromStorage<string | null>(STORAGE_KEYS.AVATAR_THEME, null);
     setItems(merged.map((item) => item.category === "theme" ? { ...item, isEquipped: item.resetTheme ? !activeTheme : item.themeKey === activeTheme } : item));
     const txs = getFromStorage<PointTransaction[]>(STORAGE_KEYS.POINT_TRANSACTIONS, samplePointTransactions);
