@@ -28,7 +28,6 @@ import {
   Footprints,
   Moon,
   Target,
-  TrendingUp,
   UtensilsCrossed,
 } from "lucide-react";
 
@@ -440,28 +439,21 @@ export default function HabitsPage() {
               </Link>
             </section>
 
-            <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
-              <h2 className="flex items-center gap-2 text-lg font-black text-[#1F2937]">
-                <TrendingUp className="text-[#4CAF6A]" size={20} />
-                최근 기록
-              </h2>
-              <div className="mt-3 space-y-2">
-                {summaryLogs.slice(0, 5).map((log) => (
-                  <div key={log.id} className="flex items-center justify-between rounded-2xl bg-[#F7FBF8] px-4 py-3">
-                    <div>
-                      <p className="text-sm font-black text-[#1F2937]">{log.logDate}</p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        {log.steps.toLocaleString()}보 · {log.sleepHours}시간 · 물 {log.waterCups}잔
-                      </p>
-                    </div>
-                    <span className="text-lg font-black text-[#4CAF6A]">{calculateLogScore(log)}</span>
-                  </div>
-                ))}
-                {summaryLogs.length === 0 && (
-                  <p className="rounded-2xl bg-gray-50 p-4 text-sm font-bold text-gray-500">아직 저장된 습관 기록이 없어요.</p>
-                )}
+            <Link
+              href="/habits/history"
+              className="flex items-center justify-between rounded-3xl border border-gray-100 bg-white p-5 shadow-sm transition active:scale-[0.99]"
+            >
+              <div>
+                <h2 className="flex items-center gap-2 text-lg font-black text-[#1F2937]">
+                  <CalendarDays className="text-[#4CAF6A]" size={20} />
+                  기록 조회
+                </h2>
+                <p className="mt-1 text-sm font-bold leading-relaxed text-gray-500">
+                  기간을 정해서 누적된 습관 기록을 따로 확인해요.
+                </p>
               </div>
-            </section>
+              <ChevronRight className="text-gray-400" size={22} />
+            </Link>
           </div>
         ) : (
         <div className="flex flex-col gap-3 px-4 py-4">
