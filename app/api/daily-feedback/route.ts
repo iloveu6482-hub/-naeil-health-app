@@ -14,6 +14,18 @@ type DailyFeedbackBody = {
   exerciseDone?: boolean;
   conditionScore?: number;
   score?: number;
+  healthCheckup?: {
+    bmi?: number;
+    waist?: number;
+    systolicBp?: number;
+    diastolicBp?: number;
+    fastingGlucose?: number;
+    totalCholesterol?: number;
+    hdl?: number;
+    ast?: number;
+    alt?: number;
+    gammaGtp?: number;
+  };
   currentHour?: number;
   mode?: "quick" | "final";
 };
@@ -55,7 +67,7 @@ export async function POST(request: Request) {
       `Current local hour is ${currentHour}.`,
       "Return exactly one JSON object only. Do not include markdown or text outside JSON.",
       isFinalMode
-        ? 'The response shape must be {"message":"160-230 Korean characters of end-of-day coaching. Mention one praise point from today, one weak point, and one concrete action for tomorrow."}'
+        ? 'The response shape must be {"message":"180-260 Korean characters of end-of-day coaching. Mention one praise point from today, one weak point, and one concrete action for tomorrow. If healthCheckup values are provided, connect them to habit guidance without diagnosing."}'
         : 'The response shape must be {"message":"90-140 Korean characters of in-progress coaching. Encourage the user and suggest what they can still do today based on the current time. Do not say what to do tomorrow."}',
       "Do not add a medical disclaimer sentence to the message.",
     ].join("\n");
@@ -76,7 +88,7 @@ export async function POST(request: Request) {
           {
             role: "user",
             content: isFinalMode
-              ? `오늘 하루를 마감하는 최종 코칭입니다. 아래 기록을 바탕으로 한국어로 충분히 의미 있는 코칭을 작성해주세요. 오늘 잘한 점을 먼저 인정하고, 부족한 부분을 짚은 뒤, 내일을 위한 구체적인 행동 1가지를 제안하세요. 의료 진단처럼 말하지 마세요.\n${JSON.stringify(body)}`
+              ? `오늘 하루를 마감하는 최종 코칭입니다. 아래 기록을 바탕으로 한국어로 충분히 의미 있는 코칭을 작성해주세요. 오늘 잘한 점을 먼저 인정하고, 부족한 부분을 짚은 뒤, 내일을 위한 구체적인 행동 1가지를 제안하세요. healthCheckup 수치가 있으면 혈당, 혈압, BMI, 허리둘레, 간수치 같은 건강관리 관점과 오늘 습관을 연결하되 의료 진단처럼 말하지 마세요.\n${JSON.stringify(body)}`
               : `오늘 진행 중 코칭입니다. 현재 시간이 ${currentHour}시이므로 내일 이야기를 앞세우지 말고, 남은 오늘 시간 안에 추가로 할 수 있는 구체적인 행동을 제안하세요. 점수가 낮아도 부담을 주기보다 다시 움직이게 응원하세요.\n${JSON.stringify(body)}`,
           },
         ],

@@ -374,7 +374,7 @@ export default function DashboardPage() {
 
   const handleCreateFinalCoaching = async () => {
     const confirmed = window.confirm(
-      "오늘의 코칭은 입력한 걸음, 수면, 수분, 식사 기록을 기준으로 생성돼요.\n입력을 모두 마친 뒤 코칭을 받으세요.\n\n지금 오늘의 최종 코칭을 생성할까요?"
+      "오늘의 코칭은 입력한 걸음, 수면, 수분, 식사 기록을 기준으로 생성돼요.\n건강상태나 검진 수치가 입력되어 있다면 함께 참고해요.\n입력을 모두 마친 뒤 코칭을 받으세요.\n\n지금 오늘의 최종 코칭을 생성할까요?"
     );
     if (!confirmed) return;
 
@@ -395,6 +395,18 @@ export default function DashboardPage() {
           exerciseDone: dailyLog.exerciseDone,
           conditionScore: dailyLog.conditionScore,
           score,
+          healthCheckup: {
+            bmi: checkup.bmi,
+            waist: checkup.waist,
+            systolicBp: checkup.systolicBp,
+            diastolicBp: checkup.diastolicBp,
+            fastingGlucose: checkup.fastingGlucose,
+            totalCholesterol: checkup.totalCholesterol,
+            hdl: checkup.hdl,
+            ast: checkup.ast,
+            alt: checkup.alt,
+            gammaGtp: checkup.gammaGtp,
+          },
           currentHour: currentTime.getHours(),
           mode: "final",
         }),
@@ -447,6 +459,7 @@ export default function DashboardPage() {
     showPriorityCoachMessage && activeTodayCoachMessage ? activeTodayCoachMessage.message : selectedCoachMessage.message.text
   );
   const finalCoachingText = activeTodayCoachMessage ? cleanCoachBubbleMessage(activeTodayCoachMessage.message) : "";
+  const finalCoachingDisclaimer = "※ 이 코칭은 의료 진단이 아닌 건강 습관 가이드입니다.";
   const canCreateFinalCoaching = currentTime.getHours() >= FINAL_COACHING_AVAILABLE_HOUR;
   const hasTodayRecord = dailyLog.steps > 0 || dailyLog.sleepHours > 0 || dailyLog.waterCups > 0 || dailyLog.mealsCount > 0 || todayMeals.length > 0;
   const statusVideoUrl = `/avatars/status/avatar_${scoreStatus}.mp4`;
@@ -551,7 +564,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="absolute inset-0 z-20">
-            <div className="absolute left-[3%] top-[46.5%] space-y-1.5">
+            <div className="absolute left-[3%] top-[52.5%] space-y-1.5">
               {dashboardMetricItems.map(({ icon: Icon, label, value, color, achieved, href }) => {
                 const metricClassName = `relative block h-14 w-[142px] rounded-[18px] border px-3 shadow-[0_12px_30px_rgba(10,66,40,0.18)] backdrop-blur-[9px] ${href ? "transition active:scale-[0.98]" : ""} ${achieved ? "border-[#BDE8CA] bg-[#EAF7EF]/62 ring-1 ring-[#9BE7C5]/60" : "border-white/65 bg-white/38"}`;
                 const metricContent = (
@@ -573,7 +586,37 @@ export default function DashboardPage() {
               })}
             </div>
 
-            <div className="absolute left-[3%] top-[37%] flex h-14 w-[142px] flex-col justify-center rounded-xl rounded-bl-sm border border-white/65 bg-white/48 px-3 shadow-[0_8px_20px_rgba(31,90,58,0.13)] backdrop-blur-[9px]">
+            <button
+              type="button"
+              onClick={() => {
+                if (finalCoachingText) {
+                  document.getElementById("today-final-coaching")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  return;
+                }
+                void handleCreateFinalCoaching();
+              }}
+              disabled={finalCoachingLoading || (!finalCoachingText && (!canCreateFinalCoaching || !hasTodayRecord))}
+              className={`absolute left-[3%] top-[34%] flex h-14 w-[142px] flex-col justify-center rounded-xl rounded-bl-sm border px-3 text-left shadow-[0_8px_20px_rgba(31,90,58,0.13)] backdrop-blur-[9px] transition active:scale-[0.98] ${
+                finalCoachingText
+                  ? "border-[#BDE8CA] bg-[#EAF7EF]/70"
+                  : canCreateFinalCoaching && hasTodayRecord
+                    ? "border-white/70 bg-white/56"
+                    : "border-white/55 bg-white/34"
+              }`}
+            >
+              <p className="text-xs font-bold text-[#16743B]">✨ 오늘의 코칭</p>
+              <p className="mt-0.5 whitespace-nowrap text-[12px] font-extrabold text-[#163D29]">
+                {finalCoachingText
+                  ? "오늘 코칭 완료"
+                  : finalCoachingLoading
+                    ? "생성 중..."
+                    : canCreateFinalCoaching && hasTodayRecord
+                      ? "결과 코칭 받기"
+                      : "밤 9시 이후 가능"}
+              </p>
+            </button>
+
+            <div className="absolute left-[3%] top-[43%] flex h-14 w-[142px] flex-col justify-center rounded-xl rounded-bl-sm border border-white/65 bg-white/48 px-3 shadow-[0_8px_20px_rgba(31,90,58,0.13)] backdrop-blur-[9px]">
               <p className="text-xs font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-0.5 whitespace-nowrap text-[13px] font-extrabold text-[#163D29]">내일의 나를 만듭니다!</p>
             </div>
 
@@ -602,8 +645,12 @@ export default function DashboardPage() {
                 <span className="mt-0.5 text-[13px] font-bold leading-[1.15] text-[#263F31] drop-shadow-[0_1px_1px_rgba(255,255,255,0.55)]">{clampedScore >= 110 ? "완벽 달성!" : clampedScore >= 100 ? "루틴 완료!" : "참고 점수"}</span>
               </span>
               <p className="relative mt-1 text-5xl font-black leading-none drop-shadow-[0_2px_2px_rgba(255,255,255,0.42)]" style={{ color: scoreGaugeColor }}>{score}</p><p className="relative text-base font-extrabold leading-tight text-[#087A35] drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">/ 110</p>
-              {clampedScore >= 100 && <p className="relative mt-1 text-[10px] font-black text-[#15803D]">{clampedScore >= 110 ? "오늘의 건강 루틴 완벽 달성!" : "오늘의 건강 루틴 완료!"}</p>}
             </button>
+            {clampedScore >= 100 && (
+              <p className="absolute left-[3%] top-[calc(13.5%+9.35rem)] w-36 rounded-full bg-white/50 px-2 py-1 text-center text-[10px] font-black text-[#15803D] shadow-sm backdrop-blur-[7px]">
+                {clampedScore >= 110 ? "오늘의 건강 루틴 완벽 달성!" : "오늘의 건강 루틴 완료!"}
+              </p>
+            )}
           </div>
         </section>
 
@@ -652,7 +699,7 @@ export default function DashboardPage() {
           <p className="mt-2 text-sm font-bold text-[#1F5A3A]">예상 섭취 칼로리: {mealCalories.toLocaleString()} kcal</p>
         </section>
 
-        <section className="px-4 pb-5">
+        <section id="today-final-coaching" className="scroll-mt-20 px-4 pb-5">
           <div className="rounded-3xl border border-green-100 bg-gradient-to-br from-[#EAF7EF] to-white p-4 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -671,6 +718,7 @@ export default function DashboardPage() {
             {finalCoachingText ? (
               <div className="mt-4 rounded-2xl bg-white/82 p-4 shadow-sm ring-1 ring-green-100">
                 <p className="text-sm font-bold leading-6 text-[#173425]">{finalCoachingText}</p>
+                <p className="mt-3 border-t border-green-100 pt-3 text-xs font-bold leading-5 text-gray-500">{finalCoachingDisclaimer}</p>
               </div>
             ) : (
               <div className="mt-4 rounded-2xl bg-white/72 p-4 ring-1 ring-green-100">
