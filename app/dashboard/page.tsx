@@ -646,11 +646,6 @@ export default function DashboardPage() {
               </span>
               <p className="relative mt-1 text-5xl font-black leading-none drop-shadow-[0_2px_2px_rgba(255,255,255,0.42)]" style={{ color: scoreGaugeColor }}>{score}</p><p className="relative text-base font-extrabold leading-tight text-[#087A35] drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">/ 110</p>
             </button>
-            {clampedScore >= 100 && (
-              <p className="absolute left-[3%] top-[calc(13.5%+9.35rem)] w-36 rounded-full bg-white/50 px-2 py-1 text-center text-[10px] font-black text-[#15803D] shadow-sm backdrop-blur-[7px]">
-                {clampedScore >= 110 ? "오늘의 건강 루틴 완벽 달성!" : "오늘의 건강 루틴 완료!"}
-              </p>
-            )}
           </div>
         </section>
 

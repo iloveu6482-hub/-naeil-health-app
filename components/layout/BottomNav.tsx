@@ -6,9 +6,9 @@ import { Home, ClipboardList, BookOpen, BarChart2, UsersRound, UserRound } from 
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "홈" },
-  { href: "/checkup", icon: ClipboardList, label: "검진" },
+  { href: "/checkup", icon: ClipboardList, label: "건강기록" },
   { href: "/habits", icon: BookOpen, label: "습관" },
-  { href: "/weekly-report", icon: BarChart2, label: "리포트" },
+  { href: "/weekly-report", icon: BarChart2, label: "분석" },
   { href: "/community", icon: UsersRound, label: "커뮤니티" },
   { href: "/my", icon: UserRound, label: "나의" },
 ];

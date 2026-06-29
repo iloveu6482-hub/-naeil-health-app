@@ -349,7 +349,7 @@ export default function WeeklyReportPage() {
 
   return (
     <MobileShell>
-      <AppHeader title={mode === "weekly" ? "주간 리포트" : "월간 리포트"} showBack backHref="/dashboard" />
+      <AppHeader title="분석" showBack backHref="/dashboard" />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] px-4 pb-24 pt-4">
         <section className="mb-4 grid grid-cols-2 gap-2 rounded-3xl border border-green-100 bg-white p-2 shadow-sm">
           {[

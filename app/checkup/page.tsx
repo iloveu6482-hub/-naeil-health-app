@@ -351,7 +351,7 @@ export default function CheckupPage() {
 
   return (
     <MobileShell>
-      <AppHeader title="건강검진 입력" showBack backHref="/dashboard" />
+      <AppHeader title="건강기록" showBack backHref="/dashboard" />
       <RewardToast message="건강검진 결과 입력 완료!" points={50} visible={showToast} onHide={() => setShowToast(false)} />
       <main className="flex-1 overflow-y-auto bg-[#FAFCFA] px-4 pb-24 pt-4">
         <section className="rounded-3xl bg-gradient-to-br from-[#EAF7EF] to-white p-5 ring-1 ring-green-100">
