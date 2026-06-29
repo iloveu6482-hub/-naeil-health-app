@@ -16,9 +16,9 @@ import type { AvatarItem } from "@/types/reward";
 import type { PointTransaction } from "@/types/reward";
 import type { Challenge } from "@/types/challenge";
 import { calculatePointBalance } from "@/lib/rewards";
-import { User, RefreshCw, AlertTriangle, Bell, FileText, Shirt } from "lucide-react";
+import { User, RefreshCw, AlertTriangle, Bell, FileText, Shirt, Ruler, Scale, TrendingUp } from "lucide-react";
 import { signOutLocal } from "@/lib/auth";
-import type { AvatarGrowthMode } from "@/types/v3";
+import type { AvatarGrowthMode, HealthChangeSnapshot } from "@/types/v3";
 
 const avatarStyleLabels = {
   "3d": "나만의 AI 건강이",
@@ -26,6 +26,11 @@ const avatarStyleLabels = {
   webtoon: "웹툰 히어로형",
   senior: "시니어 친화형",
 };
+
+function calculateBmi(height?: number, weight?: number) {
+  if (!height || !weight || height <= 0 || weight <= 0) return undefined;
+  return Number((weight / (height / 100) ** 2).toFixed(1));
+}
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -35,10 +40,17 @@ export default function SettingsPage() {
   const [balance, setBalance] = useState(0);
   const [completedChallenges, setCompletedChallenges] = useState(0);
   const [growthMode, setGrowthMode] = useState<AvatarGrowthMode>("routineGrowth");
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
+  const [bodyMessage, setBodyMessage] = useState("");
 
   useEffect(() => {
     const saved = getFromStorage<UserProfile | null>(STORAGE_KEYS.USER_PROFILE, null);
-    if (saved) setUser(saved);
+    if (saved) {
+      setUser(saved);
+      if (saved.height) setHeight(String(saved.height));
+      if (saved.weight) setWeight(String(saved.weight));
+    }
     const items = getFromStorage<AvatarItem[]>(STORAGE_KEYS.AVATAR_ITEMS, []);
     setEquippedItems(items.filter((i) => i.isEquipped));
     setBalance(calculatePointBalance(getFromStorage<PointTransaction[]>(STORAGE_KEYS.POINT_TRANSACTIONS, [])));
@@ -59,6 +71,58 @@ export default function SettingsPage() {
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
   const customImage = getCustomAvatarSource(user, "fullbody");
   const profileAvatar = getHeaderAvatarSource(user, avatarGender);
+  const heightValue = Number(height);
+  const weightValue = Number(weight);
+  const calculatedBmi = calculateBmi(heightValue, weightValue);
+
+  const handleSaveBodyMetrics = () => {
+    if (!calculatedBmi) {
+      setBodyMessage("키와 몸무게를 올바르게 입력해주세요.");
+      return;
+    }
+
+    const nextUser = {
+      ...user,
+      height: Number(heightValue.toFixed(1)),
+      weight: Number(weightValue.toFixed(1)),
+      bmi: calculatedBmi,
+    };
+    const today = new Date().toISOString().slice(0, 10);
+    const snapshots = getFromStorage<HealthChangeSnapshot[]>(STORAGE_KEYS.HEALTH_CHANGE_SNAPSHOTS, []);
+    const baseSnapshot: HealthChangeSnapshot = {
+      id: "profile-current",
+      label: "current",
+      date: today,
+      averageSteps: 0,
+      averageSleepHours: 0,
+      waterDays: 0,
+      mealRecordCount: 0,
+      exerciseDays: 0,
+      healthScore: 0,
+    };
+    const previousCurrent = snapshots.find((snapshot) => snapshot.label === "current");
+    const nextCurrent: HealthChangeSnapshot = {
+      ...(previousCurrent || baseSnapshot),
+      id: previousCurrent?.id || baseSnapshot.id,
+      label: "current",
+      date: today,
+      weight: nextUser.weight,
+      bmi: calculatedBmi,
+    };
+    const nextSnapshots = snapshots.length
+      ? snapshots.some((snapshot) => snapshot.label === "current")
+        ? snapshots.map((snapshot) => (snapshot.label === "current" ? nextCurrent : snapshot))
+        : [...snapshots, nextCurrent]
+      : [
+          { ...nextCurrent, id: "profile-start", label: "start" as const },
+          nextCurrent,
+        ];
+
+    setUser(nextUser);
+    saveToStorage(STORAGE_KEYS.USER_PROFILE, nextUser);
+    saveToStorage(STORAGE_KEYS.HEALTH_CHANGE_SNAPSHOTS, nextSnapshots);
+    setBodyMessage("키, 몸무게, BMI를 저장했어요. 나의 건강 변화에도 반영됩니다.");
+  };
 
   return (
     <MobileShell>
@@ -86,6 +150,47 @@ export default function SettingsPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="mb-4 rounded-2xl border border-green-100 bg-white p-4 shadow-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="flex items-center gap-2 font-black text-[#1F2937]">
+                <Scale size={18} className="text-[#4CAF6A]" />
+                몸 변화 관리
+              </h3>
+              <p className="mt-1 text-xs leading-relaxed text-gray-500">키와 몸무게를 저장하면 BMI가 자동 계산되고 변화도에 기록돼요.</p>
+            </div>
+            <button onClick={() => router.push("/health-change")} className="shrink-0 rounded-full bg-[#EAF7EF] px-3 py-2 text-xs font-black text-[#1F5A3A]">
+              변화도 보기
+            </button>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <label className="rounded-2xl bg-[#F7FBF8] p-3">
+              <span className="flex items-center gap-1 text-xs font-bold text-gray-500"><Ruler size={14} />키</span>
+              <div className="mt-2 flex items-end gap-1">
+                <input value={height} onChange={(event) => setHeight(event.target.value)} inputMode="decimal" type="number" step="0.1" min="80" max="230" placeholder="168.1" className="w-full bg-transparent text-xl font-black text-[#1F2937] outline-none" />
+                <span className="pb-1 text-xs font-bold text-gray-400">cm</span>
+              </div>
+            </label>
+            <label className="rounded-2xl bg-[#F7FBF8] p-3">
+              <span className="flex items-center gap-1 text-xs font-bold text-gray-500"><Scale size={14} />몸무게</span>
+              <div className="mt-2 flex items-end gap-1">
+                <input value={weight} onChange={(event) => setWeight(event.target.value)} inputMode="decimal" type="number" step="0.1" min="20" max="250" placeholder="72.8" className="w-full bg-transparent text-xl font-black text-[#1F2937] outline-none" />
+                <span className="pb-1 text-xs font-bold text-gray-400">kg</span>
+              </div>
+            </label>
+          </div>
+          <div className="mt-3 flex items-center justify-between rounded-2xl bg-[#EAF7EF] p-4">
+            <div>
+              <p className="text-xs font-bold text-[#4CAF6A]">자동 계산 BMI</p>
+              <p className="mt-1 text-2xl font-black text-[#1F5A3A]">{calculatedBmi ?? user.bmi ?? "-"}</p>
+            </div>
+            <button onClick={handleSaveBodyMetrics} className="rounded-2xl bg-[#4CAF6A] px-4 py-3 text-sm font-black text-white transition active:scale-95">
+              저장
+            </button>
+          </div>
+          {bodyMessage && <p className="mt-3 rounded-xl bg-green-50 p-3 text-sm font-bold text-[#1F5A3A]">{bodyMessage}</p>}
         </div>
 
         <div className="mb-4 overflow-hidden rounded-3xl border border-green-100 bg-gradient-to-b from-[#EAF7EF] to-white shadow-sm">
@@ -125,6 +230,13 @@ export default function SettingsPage() {
 
         {/* Actions */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-4">
+          <button
+            onClick={() => router.push("/health-change")}
+            className="w-full flex items-center justify-between px-4 py-4 border-b border-gray-50 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+          >
+            <span className="flex items-center gap-2 font-medium text-[#1F2937]"><TrendingUp size={18} className="text-[#4CAF6A]" />나의 변화도</span>
+            <span className="text-gray-400">→</span>
+          </button>
           <button
             onClick={() => router.push("/avatar")}
             className="w-full flex items-center justify-between px-4 py-4 border-b border-gray-50 hover:bg-gray-50 active:bg-gray-100 transition-colors"

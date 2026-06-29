@@ -7,6 +7,9 @@ export type UserProfile = {
   birthYear: number;
   gender: "male" | "female" | "other";
   avatarStyle: AvatarStyle;
+  height?: number;
+  weight?: number;
+  bmi?: number;
   avatarImage?: string;
   avatarPortraitImage?: string;
   avatarFullbodyImage?: string;
