@@ -265,7 +265,7 @@ export const sampleAvatarItems: AvatarItem[] = [
   },
   {
     id: "outfit-casual1",
-    name: "캐주얼 1",
+    name: "데일리 민트룩",
     category: "outfit",
     outfitKey: "casual1",
     price: 300,
@@ -275,7 +275,7 @@ export const sampleAvatarItems: AvatarItem[] = [
   },
   {
     id: "outfit-casual2",
-    name: "캐주얼 2",
+    name: "액티브 산책룩",
     category: "outfit",
     outfitKey: "casual2",
     price: 450,
@@ -285,7 +285,7 @@ export const sampleAvatarItems: AvatarItem[] = [
   },
   {
     id: "outfit-suit",
-    name: "정장",
+    name: "클린 코치룩",
     category: "outfit",
     outfitKey: "suit",
     price: 700,
