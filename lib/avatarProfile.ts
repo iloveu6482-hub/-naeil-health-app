@@ -13,7 +13,7 @@ export function getCustomAvatarSource(user: UserProfile, viewMode: AvatarViewMod
   if (user.avatarEffect !== "illustrated") return undefined;
 
   if (viewMode === "fullbody") {
-    return user.avatarFullbodyImage || user.avatarPortraitImage || user.avatarImage;
+    return user.avatarFullbodyImage;
   }
 
   return user.avatarPortraitImage || user.avatarImage;
