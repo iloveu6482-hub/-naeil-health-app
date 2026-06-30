@@ -635,7 +635,7 @@ export default function DashboardPage() {
           >
             <div className="absolute left-[3%] top-[52.5%] space-y-1.5">
               {dashboardMetricItems.map(({ icon: Icon, label, value, color, achieved, href }) => {
-                const metricClassName = `relative block h-14 w-[142px] overflow-hidden rounded-[21px] border px-3 shadow-[0_14px_34px_rgba(10,66,40,0.14),inset_0_1px_0_rgba(255,255,255,0.72),inset_0_-12px_22px_rgba(31,90,58,0.08)] backdrop-blur-[18px] backdrop-saturate-150 ${href ? "transition active:scale-[0.98]" : ""} ${achieved ? "border-white/70 bg-[#EAF7EF]/36 ring-1 ring-white/45" : "border-white/58 bg-white/24 ring-1 ring-white/25"}`;
+                const metricClassName = `relative block h-14 w-[142px] overflow-hidden rounded-[21px] border px-3 shadow-[0_14px_34px_rgba(10,66,40,0.14),inset_0_1px_0_rgba(255,255,255,0.72),inset_0_-12px_22px_rgba(31,90,58,0.08)] backdrop-blur-[18px] backdrop-saturate-150 ${href ? "transition duration-150 active:scale-[0.98] active:border-[#86EFAC] active:shadow-[0_0_0_2px_rgba(134,239,172,0.46),0_0_24px_rgba(74,222,128,0.38),0_14px_34px_rgba(10,66,40,0.14),inset_0_1px_0_rgba(255,255,255,0.78)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#86EFAC]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent" : ""} ${achieved ? "border-white/70 bg-[#EAF7EF]/36 ring-1 ring-white/45" : "border-white/58 bg-white/24 ring-1 ring-white/25"}`;
                 const metricContent = (
                   <>
                     {achieved && <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#4CAF6A] text-white"><CheckCircle2 size={11} /></span>}

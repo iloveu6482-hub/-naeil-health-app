@@ -13,6 +13,29 @@ const likenessPrompts = {
 
 type LikenessLevel = keyof typeof likenessPrompts;
 
+function getAvatarGenerationErrorMessage(status: number, apiMessage?: string) {
+  const normalizedMessage = apiMessage?.toLowerCase() || "";
+
+  if (status === 401 || status === 403) {
+    return "OpenAI API 키 또는 이미지 생성 권한을 확인해주세요.";
+  }
+
+  if (
+    status === 429 ||
+    normalizedMessage.includes("quota") ||
+    normalizedMessage.includes("billing") ||
+    normalizedMessage.includes("credit")
+  ) {
+    return "OpenAI 이미지 생성 한도 또는 크레딧을 확인해주세요.";
+  }
+
+  if (status === 400) {
+    return "사진 또는 아바타 템플릿을 이미지 API가 처리하지 못했어요. 다른 JPG/PNG 사진으로 다시 시도해주세요.";
+  }
+
+  return "AI 아바타 생성 서버 응답이 불안정해요. 잠시 후 다시 시도해주세요.";
+}
+
 function parseImageData(value?: string) {
   const match = value?.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
   if (!match || !ALLOWED_IMAGE_TYPES.has(match[1])) return null;
@@ -68,8 +91,8 @@ export async function POST(request: Request) {
     const formData = new FormData();
     formData.append("model", process.env.OPENAI_IMAGE_MODEL || "gpt-image-1");
     if (templateImage) {
-      formData.append("image[]", new Blob([userImage.bytes], { type: userImage.type }), "user-reference.jpg");
-      formData.append("image[]", new Blob([templateImage.bytes], { type: templateImage.type }), "avatar-template.jpg");
+      formData.append("image", new Blob([userImage.bytes], { type: userImage.type }), "user-reference.jpg");
+      formData.append("image", new Blob([templateImage.bytes], { type: templateImage.type }), "avatar-template.jpg");
     } else {
       formData.append("image", new Blob([userImage.bytes], { type: userImage.type }), "avatar-reference.jpg");
     }
@@ -92,9 +115,12 @@ export async function POST(request: Request) {
     };
 
     if (!response.ok || !result.data?.[0]?.b64_json) {
-      console.error("Avatar generation failed", response.status, result.error?.message);
+      console.error("Avatar generation failed", {
+        status: response.status,
+        message: result.error?.message,
+      });
       return NextResponse.json(
-        { error: "AI 아바타를 생성하지 못했습니다. 잠시 후 다시 시도해주세요." },
+        { error: getAvatarGenerationErrorMessage(response.status, result.error?.message) },
         { status: response.status >= 400 && response.status < 500 ? 400 : 502 }
       );
     }
