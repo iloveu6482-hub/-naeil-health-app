@@ -493,7 +493,9 @@ export default function DashboardPage() {
   };
   const scoreGlassStyle = {
     background:
-      "radial-gradient(circle at 38% 24%, rgba(255,255,255,0.46), rgba(255,255,255,0.2) 34%, rgba(76,175,106,0.18) 72%, rgba(31,90,58,0.08) 100%)",
+      "radial-gradient(circle at 34% 18%, rgba(255,255,255,0.46), rgba(255,255,255,0.18) 30%, rgba(186,255,220,0.13) 58%, rgba(31,90,58,0.1) 100%)",
+    boxShadow:
+      "inset 0 1px 0 rgba(255,255,255,0.72), inset 0 18px 34px rgba(255,255,255,0.16), inset 0 -18px 28px rgba(31,90,58,0.11), 0 16px 36px rgba(10,66,40,0.16)",
   };
   const scoreCircleEffect =
     clampedScore >= 110
@@ -584,11 +586,13 @@ export default function DashboardPage() {
           <div className="absolute inset-0 z-20">
             <div className="absolute left-[3%] top-[52.5%] space-y-1.5">
               {dashboardMetricItems.map(({ icon: Icon, label, value, color, achieved, href }) => {
-                const metricClassName = `relative block h-14 w-[142px] rounded-[18px] border px-3 shadow-[0_12px_30px_rgba(10,66,40,0.18)] backdrop-blur-[9px] ${href ? "transition active:scale-[0.98]" : ""} ${achieved ? "border-[#BDE8CA] bg-[#EAF7EF]/62 ring-1 ring-[#9BE7C5]/60" : "border-white/65 bg-white/38"}`;
+                const metricClassName = `relative block h-14 w-[142px] overflow-hidden rounded-[21px] border px-3 shadow-[0_14px_34px_rgba(10,66,40,0.14),inset_0_1px_0_rgba(255,255,255,0.72),inset_0_-12px_22px_rgba(31,90,58,0.08)] backdrop-blur-[18px] backdrop-saturate-150 ${href ? "transition active:scale-[0.98]" : ""} ${achieved ? "border-white/70 bg-[#EAF7EF]/36 ring-1 ring-white/45" : "border-white/58 bg-white/24 ring-1 ring-white/25"}`;
                 const metricContent = (
                   <>
                     {achieved && <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#4CAF6A] text-white"><CheckCircle2 size={11} /></span>}
-                    <div className="flex h-full items-center gap-2.5"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/70"><Icon size={20} className={color} /></span><div><p className="whitespace-nowrap text-[11px] font-semibold text-[#1F2937]/70">{label}</p><p className="whitespace-nowrap text-base font-black leading-5 text-[#102D20]">{value}</p></div></div>
+                    <span className="pointer-events-none absolute inset-x-3 top-1 h-px bg-white/70" />
+                    <span className="pointer-events-none absolute -right-6 -top-8 h-16 w-16 rounded-full bg-white/18 blur-xl" />
+                    <div className="flex h-full items-center gap-2.5"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/58 shadow-[inset_0_1px_0_rgba(255,255,255,0.86)]"><Icon size={20} className={color} /></span><div><p className="whitespace-nowrap text-[11px] font-semibold text-[#1F2937]/70">{label}</p><p className="whitespace-nowrap text-base font-black leading-5 text-[#102D20]">{value}</p></div></div>
                   </>
                 );
 
@@ -614,14 +618,16 @@ export default function DashboardPage() {
                 void handleCreateFinalCoaching();
               }}
               disabled={finalCoachingLoading || (!finalCoachingText && (!canCreateFinalCoaching || !hasTodayRecord))}
-              className={`absolute left-[3%] top-[34%] flex h-14 w-[142px] flex-col justify-center rounded-xl rounded-bl-sm border px-3 text-left shadow-[0_8px_20px_rgba(31,90,58,0.13)] backdrop-blur-[9px] transition active:scale-[0.98] ${
+              className={`absolute left-[3%] top-[34%] flex h-14 w-[142px] flex-col justify-center overflow-hidden rounded-[21px] rounded-bl-md border px-3 text-left shadow-[0_14px_34px_rgba(10,66,40,0.14),inset_0_1px_0_rgba(255,255,255,0.72),inset_0_-12px_22px_rgba(31,90,58,0.08)] backdrop-blur-[18px] backdrop-saturate-150 transition active:scale-[0.98] ${
                 finalCoachingText
-                  ? "border-[#BDE8CA] bg-[#EAF7EF]/70"
+                  ? "border-white/70 bg-[#EAF7EF]/38 ring-1 ring-white/45"
                   : canCreateFinalCoaching && hasTodayRecord
-                    ? "border-white/70 bg-white/56"
-                    : "border-white/55 bg-white/34"
+                    ? "border-white/64 bg-white/28 ring-1 ring-white/30"
+                    : "border-white/50 bg-white/18 ring-1 ring-white/20"
               }`}
             >
+              <span className="pointer-events-none absolute inset-x-3 top-1 h-px bg-white/70" />
+              <span className="pointer-events-none absolute -right-6 -top-8 h-16 w-16 rounded-full bg-white/18 blur-xl" />
               <p className="text-xs font-bold text-[#16743B]">✨ 오늘의 코칭</p>
               <p className="mt-0.5 whitespace-nowrap text-[12px] font-extrabold text-[#163D29]">
                 {finalCoachingText
@@ -634,15 +640,18 @@ export default function DashboardPage() {
               </p>
             </button>
 
-            <div className="absolute left-[3%] top-[43%] flex h-14 w-[142px] flex-col justify-center rounded-xl rounded-bl-sm border border-white/65 bg-white/48 px-3 shadow-[0_8px_20px_rgba(31,90,58,0.13)] backdrop-blur-[9px]">
+            <div className="absolute left-[3%] top-[43%] flex h-14 w-[142px] flex-col justify-center overflow-hidden rounded-[21px] rounded-bl-md border border-white/62 bg-white/25 px-3 shadow-[0_14px_34px_rgba(10,66,40,0.14),inset_0_1px_0_rgba(255,255,255,0.72),inset_0_-12px_22px_rgba(31,90,58,0.08)] ring-1 ring-white/25 backdrop-blur-[18px] backdrop-saturate-150">
+              <span className="pointer-events-none absolute inset-x-3 top-1 h-px bg-white/70" />
+              <span className="pointer-events-none absolute -right-6 -top-8 h-16 w-16 rounded-full bg-white/18 blur-xl" />
               <p className="text-xs font-bold text-[#16743B]">🌿 건강한 습관이</p><p className="mt-0.5 whitespace-nowrap text-[13px] font-extrabold text-[#163D29]">내일의 나를 만듭니다!</p>
             </div>
 
-            <button type="button" onClick={() => setScoreSheetOpen(true)} className={`absolute left-[3%] top-[13.5%] flex h-36 w-36 flex-col items-center justify-center overflow-visible rounded-full border-[5px] text-center ring-2 backdrop-blur-[10px] transition active:scale-95 ${scoreCircleEffect}`} aria-label="오늘 내 점수 분석 열기">
+            <button type="button" onClick={() => setScoreSheetOpen(true)} className={`absolute left-[3%] top-[13.5%] flex h-36 w-36 flex-col items-center justify-center overflow-visible rounded-full border-[5px] text-center ring-2 backdrop-blur-[18px] backdrop-saturate-150 transition active:scale-95 ${scoreCircleEffect}`} aria-label="오늘 내 점수 분석 열기">
               {clampedScore >= 100 && <span className="score-complete-wave pointer-events-none absolute -inset-3 rounded-full border border-[#86EFAC]/70" />}
               {clampedScore >= 110 && <span className="score-celebration-wave pointer-events-none absolute -inset-5 rounded-full border border-[#FDE68A]/70" />}
               <span className="pointer-events-none absolute -inset-[8px] rounded-full" style={scoreGaugeStyle} />
-              <span className="pointer-events-none absolute inset-0 rounded-full border border-white/18 shadow-[inset_0_1px_14px_rgba(255,255,255,0.34),inset_0_-12px_22px_rgba(31,90,58,0.1),0_10px_24px_rgba(31,90,58,0.12)] backdrop-blur-[14px] backdrop-saturate-150" style={scoreGlassStyle} />
+              <span className="pointer-events-none absolute inset-0 rounded-full border border-white/30 backdrop-blur-[20px] backdrop-saturate-150" style={scoreGlassStyle} />
+              <span className="pointer-events-none absolute inset-[10px] rounded-full border border-white/20 bg-white/5 shadow-[inset_0_1px_14px_rgba(255,255,255,0.18)]" />
               {clampedScore >= 90 && <span className="pointer-events-none absolute inset-y-[-20%] left-[-70%] w-12 rotate-12 bg-gradient-to-r from-transparent via-emerald-100/70 to-transparent blur-sm animate-[scoreShimmer_5.5s_ease-in-out_infinite]" />}
               {clampedScore >= 100 && (
                 <>
