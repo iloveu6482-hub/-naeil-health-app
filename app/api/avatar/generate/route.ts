@@ -30,6 +30,10 @@ function getAvatarGenerationErrorMessage(status: number, apiMessage?: string) {
   }
 
   if (status === 400) {
+    if (apiMessage) {
+      return `이미지 생성 요청이 거절됐어요: ${apiMessage}`;
+    }
+
     return "사진 또는 아바타 템플릿을 이미지 API가 처리하지 못했어요. 다른 JPG/PNG 사진으로 다시 시도해주세요.";
   }
 
@@ -91,8 +95,8 @@ export async function POST(request: Request) {
     const formData = new FormData();
     formData.append("model", process.env.OPENAI_IMAGE_MODEL || "gpt-image-1");
     if (templateImage) {
-      formData.append("image", new Blob([userImage.bytes], { type: userImage.type }), "user-reference.jpg");
-      formData.append("image", new Blob([templateImage.bytes], { type: templateImage.type }), "avatar-template.jpg");
+      formData.append("image[]", new Blob([userImage.bytes], { type: userImage.type }), "user-reference.jpg");
+      formData.append("image[]", new Blob([templateImage.bytes], { type: templateImage.type }), "avatar-template.jpg");
     } else {
       formData.append("image", new Blob([userImage.bytes], { type: userImage.type }), "avatar-reference.jpg");
     }
