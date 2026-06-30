@@ -8,6 +8,8 @@ import BottomNav from "@/components/layout/BottomNav";
 import { getFromStorage } from "@/lib/storage";
 import { AlertCircle, CheckCircle2, ChevronRight, Loader2, Target, TriangleAlert } from "lucide-react";
 
+type CheckupStatus = "정상" | "주의" | "위험";
+
 type AnalyzeHealthResult = {
   summary: {
     정상: number;
@@ -18,7 +20,7 @@ type AnalyzeHealthResult = {
     name: string;
     value: string;
     unit: string;
-    status: "정상" | "주의" | "위험";
+    status: CheckupStatus;
     comment: string;
   }>;
   recommended_challenges: Array<{
@@ -57,12 +59,19 @@ function isAnalyzeHealthResult(value: unknown): value is AnalyzeHealthResult {
 export default function CheckupResultPage() {
   const [result, setResult] = useState<AnalyzeHealthResult | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<CheckupStatus | null>(null);
 
   useEffect(() => {
     const saved = getFromStorage<unknown>(resultStorageKey, null);
     setResult(isAnalyzeHealthResult(saved) ? saved : null);
     setLoaded(true);
   }, []);
+
+  const filteredItems = result
+    ? selectedStatus
+      ? result.items.filter((item) => item.status === selectedStatus)
+      : result.items
+    : [];
 
   return (
     <MobileShell>
@@ -93,18 +102,44 @@ export default function CheckupResultPage() {
               <h1 className="mt-1 text-xl font-black">검진 결과 상태</h1>
               <div className="mt-4 grid grid-cols-3 gap-2">
                 {(["정상", "주의", "위험"] as const).map((status) => (
-                  <div key={status} className="rounded-2xl bg-white/16 p-3 text-center">
-                    <p className="text-xs text-green-100">{status}</p>
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => setSelectedStatus((current) => (current === status ? null : status))}
+                    aria-pressed={selectedStatus === status}
+                    className={`rounded-2xl p-3 text-center transition active:scale-[0.98] ${
+                      selectedStatus === status
+                        ? "bg-white text-[#1F5A3A] shadow-sm"
+                        : "bg-white/16 text-white hover:bg-white/22"
+                    }`}
+                  >
+                    <p className={`text-xs ${selectedStatus === status ? "text-[#1F5A3A]/75" : "text-green-100"}`}>{status}</p>
                     <p className="mt-1 text-3xl font-black">{result.summary[status]}</p>
-                  </div>
+                  </button>
                 ))}
               </div>
+              <p className="mt-3 text-xs font-bold text-green-100">
+                {selectedStatus ? `${selectedStatus} 항목만 보고 있어요. 다시 누르면 전체가 보여요.` : "상태 카드를 누르면 해당 항목만 모아볼 수 있어요."}
+              </p>
             </section>
 
             <section className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
-              <h2 className="text-lg font-black text-[#1F2937]">수치별 해설</h2>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-lg font-black text-[#1F2937]">
+                  {selectedStatus ? `${selectedStatus} 항목` : "수치별 해설"}
+                </h2>
+                {selectedStatus && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedStatus(null)}
+                    className="shrink-0 rounded-full bg-[#EAF7EF] px-3 py-1 text-xs font-black text-[#1F5A3A]"
+                  >
+                    전체 보기
+                  </button>
+                )}
+              </div>
               <div className="mt-3 divide-y divide-gray-50 overflow-hidden rounded-2xl border border-gray-100">
-                {result.items.map((item) => (
+                {filteredItems.map((item) => (
                   <article key={item.name} className="bg-white p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -122,6 +157,11 @@ export default function CheckupResultPage() {
                     </p>
                   </article>
                 ))}
+                {filteredItems.length === 0 && (
+                  <div className="bg-white p-5 text-center text-sm font-bold text-gray-500">
+                    해당 상태의 검진 항목이 없어요.
+                  </div>
+                )}
               </div>
             </section>
 

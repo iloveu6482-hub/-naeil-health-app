@@ -617,6 +617,17 @@ export default function DashboardPage() {
             </button>
           </div>
 
+          <Link
+            href="/challenges"
+            aria-label="챌린지로 이동"
+            className={`absolute right-3 top-[15%] z-30 flex items-center gap-1.5 rounded-full border border-white/68 bg-white/30 px-3 py-2 text-xs font-black text-[#1F5A3A] shadow-[0_12px_28px_rgba(10,66,40,0.16),inset_0_1px_0_rgba(255,255,255,0.74)] ring-1 ring-white/25 backdrop-blur-[18px] backdrop-saturate-150 transition active:scale-95 ${
+              avatarFocusMode ? "pointer-events-none translate-x-5 opacity-0" : "translate-x-0 opacity-100"
+            }`}
+          >
+            <Target size={15} className="text-[#4CAF6A]" />
+            챌린지
+          </Link>
+
           <div
             className={`absolute inset-0 z-20 transition-all duration-300 ease-out ${
               avatarFocusMode ? "pointer-events-none -translate-x-[172px] opacity-0" : "translate-x-0 opacity-100"
