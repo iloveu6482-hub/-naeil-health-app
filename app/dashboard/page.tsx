@@ -36,7 +36,7 @@ import type { PointTransaction } from "@/types/reward";
 const quickMenus = [
   { href: "/avatar", icon: Camera, label: "내 사진·아바타\n변경" },
   { href: "/avatar-shop", icon: Shirt, label: "아바타\n꾸미기" },
-  { href: "/meals", icon: Utensils, label: "식단 사진\n기록" },
+  { href: "/meals", icon: Utensils, label: "식사\n기록" },
   { href: "/report", icon: FileText, label: "건강\n리포트" },
 ];
 
@@ -205,6 +205,50 @@ function resolveNotificationCoachIcon(coachId?: string | null) {
           : coachId;
   const coach = getAiCoachById(normalizedCoachId);
   return coach.faceImageUrl || coach.imageUrl || "/icons/icon-192x192.png";
+}
+
+function getMealReminderForTime(date: Date) {
+  const hour = date.getHours();
+
+  if (hour >= 6 && hour <= 10) {
+    return {
+      title: "아침을 챙길 시간이에요",
+      message: "아침 메뉴와 채소 포함 여부를 가볍게 기록해보세요.",
+    };
+  }
+
+  if (hour >= 11 && hour <= 13) {
+    return {
+      title: "점심 기록을 남겨볼까요",
+      message: "오늘 점심 메뉴와 식사 상태를 간단히 기록해보세요.",
+    };
+  }
+
+  if (hour >= 14 && hour <= 16) {
+    return {
+      title: "오후 식사 흐름을 확인해요",
+      message: "간식이나 점심 이후 식사 흐름을 짧게 남겨보세요.",
+    };
+  }
+
+  if (hour >= 17 && hour <= 20) {
+    return {
+      title: "저녁 식사를 기록해요",
+      message: "저녁 메뉴와 과식 여부를 체크하면 분석이 더 좋아져요.",
+    };
+  }
+
+  if (hour >= 21 || hour <= 4) {
+    return {
+      title: "오늘 식사 흐름을 정리해요",
+      message: "야식 여부와 오늘 먹은 메뉴를 정리해보세요.",
+    };
+  }
+
+  return {
+    title: "식사 기록을 가볍게 남겨요",
+    message: "오늘 먹은 메뉴와 채소 포함 여부를 기록해 건강 흐름을 확인해보세요.",
+  };
 }
 
 function isDailyFeedbackResponse(value: unknown): value is DailyFeedbackResponse {
@@ -435,6 +479,7 @@ export default function DashboardPage() {
   const finalCoachingDisclaimer = "※ 이 코칭은 의료 진단이 아닌 건강 습관 가이드입니다.";
   const canCreateFinalCoaching = currentTime.getHours() >= FINAL_COACHING_AVAILABLE_HOUR;
   const hasTodayRecord = dailyLog.steps > 0 || dailyLog.sleepHours > 0 || dailyLog.waterCups > 0 || dailyLog.mealsCount > 0 || todayMeals.length > 0;
+  const mealReminder = getMealReminderForTime(currentTime);
   const statusVideoUrl = `/avatars/status/avatar_${scoreStatus}.mp4`;
   const activeStatusVideoUrl = avatarViewMode === "fullbody" ? statusVideoUrl : undefined;
   const clampedScore = Math.max(0, Math.min(110, score));
@@ -649,7 +694,7 @@ export default function DashboardPage() {
         <section className="px-4 pt-6">
           <div className="mb-3 flex items-center justify-between"><h3 className="flex items-center gap-2 text-xl font-extrabold text-[#1F2937]"><Target className="text-[#4CAF6A]" />건강이의 오늘 미션</h3><Link href="/notifications" className="flex items-center gap-1 text-sm font-bold text-gray-500"><Bell size={16} />알림 설정</Link></div>
           <div className="space-y-3">{[
-            { title: "점심 식단 기록하기", desc: "사진 한 장으로 예상 칼로리를 확인해보세요.", reward: "5P", href: "/meals/new", icon: "🍽️" },
+            { title: "점심 식사 기록하기", desc: "메뉴와 채소 포함 여부를 가볍게 남겨보세요.", reward: "5P", href: "/meals/new", icon: "🍽️" },
             { title: "목표 걸음 수 채우기", desc: dailyLog.steps >= 7000 ? "오늘의 걷기 목표를 달성했어요!" : `${(7000 - dailyLog.steps).toLocaleString()}보만 더 걸으면 목표 달성이에요.`, reward: "20P", href: "/habits", icon: "👟" },
             { title: "물 2잔 더 마시기", desc: dailyLog.waterCups >= 6 ? "오늘의 수분 목표를 달성했어요!" : "오늘 수분 목표까지 조금 남았어요.", reward: "10P", href: "/habits", icon: "💧" },
           ].map((mission) => <article key={mission.title} className="flex items-center gap-3 rounded-2xl border border-green-100 bg-white p-4 shadow-sm"><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#EAF7EF] text-2xl">{mission.icon}</span><div className="min-w-0 flex-1"><p className="font-extrabold text-[#1F2937]">{mission.title}</p><p className="mt-0.5 text-xs leading-relaxed text-gray-500">{mission.desc}</p><p className="mt-1 text-xs font-bold text-[#4CAF6A]">보상: 헬스포인트 {mission.reward}</p></div><Link href={mission.href} aria-label={`${mission.title} 바로 실행하기`} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#4CAF6A] text-white"><ChevronRight /></Link></article>)}</div>
@@ -725,7 +770,7 @@ export default function DashboardPage() {
         </section>
 
         <section className="px-4 pb-3"><CoachMessageCard title={`${selectedCoach.name}의 오늘 한마디`} message={coachMessage} style={user.avatarStyle} gender={avatarGender} imageUrl={selectedCoach.faceImageUrl || selectedCoach.imageUrl} /></section>
-        <section className="px-4 pb-6"><Link href="/notifications" className="block rounded-2xl border border-green-100 bg-[#EAF7EF] p-4"><p className="flex items-center gap-2 font-extrabold text-[#1F5A3A]"><Bell size={18} />점심시간이에요</p><p className="mt-1 text-sm text-gray-600">식사 전 사진 한 장으로 오늘의 식단을 기록해보세요.</p></Link></section>
+        <section className="px-4 pb-6"><Link href="/meals/new" className="block rounded-2xl border border-green-100 bg-[#EAF7EF] p-4"><p className="flex items-center gap-2 font-extrabold text-[#1F5A3A]"><Bell size={18} />{mealReminder.title}</p><p className="mt-1 text-sm text-gray-600">{mealReminder.message}</p></Link></section>
       </main>
       <HealthScoreSheet open={scoreSheetOpen} onClose={() => setScoreSheetOpen(false)} totalScore={score} dailyLog={dailyLog} meals={meals} />
       <BottomNav />

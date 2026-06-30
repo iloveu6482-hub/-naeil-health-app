@@ -116,8 +116,8 @@ export const sampleChallenges: Challenge[] = [
   },
   {
     id: "challenge-006",
-    title: "7일 식단 사진 기록 챌린지",
-    description: "매일 한 끼 이상 식단 사진을 기록하며 함께 완주해보세요.",
+    title: "7일 식사 메뉴 기록 챌린지",
+    description: "매일 한 끼 이상 메뉴와 채소 포함 여부를 기록하며 함께 완주해보세요.",
     targetType: "meal",
     targetValue: 7,
     currentValue: 2,

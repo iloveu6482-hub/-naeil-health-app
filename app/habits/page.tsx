@@ -597,7 +597,7 @@ export default function HabitsPage() {
                 ))}
               </div>
               <Link href="/meals/new" className="mt-3 flex min-h-12 items-center justify-between rounded-2xl bg-[#FFF6E9] px-4 text-sm font-extrabold text-[#B96B13]">
-                식단 사진으로 자세히 기록하기
+                메뉴 선택으로 식사 기록하기
                 <ChevronRight size={18} />
               </Link>
             </section>
