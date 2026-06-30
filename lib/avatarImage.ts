@@ -49,7 +49,7 @@ export async function prepareAvatarSource(file: File) {
 }
 
 export async function compressGeneratedAvatar(imageData: string) {
-  return renderPortrait(imageData, 768, 1152, 0.86);
+  return renderPortrait(imageData, 768, 1024, 0.86);
 }
 
 export async function prepareDirectAvatarMedia(file: File, viewMode: "portrait" | "fullbody") {

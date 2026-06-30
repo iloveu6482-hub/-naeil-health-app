@@ -9,11 +9,11 @@ const AVATAR_GENERATION_TOTAL_LIMIT = Number.MAX_SAFE_INTEGER;
 
 const likenessPrompts = {
   soft:
-    "Very subtle likeness: keep the selected avatar's attractive, polished face dominant. Add only a light hint of the user's hairstyle, eyewear, age impression, and gentle facial cues.",
+    "Very subtle reference: only add a very light hint of the user's hairstyle direction and eyewear shape. Keep the original avatar face fully dominant.",
   balanced:
-    "Balanced likeness: blend the user's recognizable impression with the selected avatar's polished face. The result should feel naturally similar to the user, but still handsome or beautiful as a wellness app character.",
+    "Balanced reference: reflect the user's hairstyle silhouette and glasses shape moderately, but do not change the avatar's face shape, eyes, nose, mouth, jaw, skin texture, or expression.",
   strong:
-    "Strong likeness: reflect more of the user's face shape, eyes, nose, mouth, hairstyle, eyewear, and facial identity, while keeping the final face flattering, clean, and app-avatar friendly.",
+    "Strong style reference: make the hairstyle and eyewear feel more inspired by the user, but still preserve the original avatar's facial structure and all facial features.",
 } as const;
 
 type LikenessLevel = keyof typeof likenessPrompts;
@@ -152,9 +152,9 @@ function createFaceMaskPng(width: number, height: number) {
   const raw = Buffer.alloc((width * 4 + 1) * height);
   const isSquare = Math.abs(width / height - 1) < 0.08;
   const centerX = width * 0.5;
-  const centerY = height * (isSquare ? 0.38 : 0.29);
-  const radiusX = width * (isSquare ? 0.2 : 0.17);
-  const radiusY = height * (isSquare ? 0.24 : 0.13);
+  const centerY = height * (isSquare ? 0.33 : 0.24);
+  const radiusX = width * (isSquare ? 0.18 : 0.14);
+  const radiusY = height * (isSquare ? 0.16 : 0.09);
 
   for (let y = 0; y < height; y += 1) {
     const rowStart = y * (width * 4 + 1);
@@ -231,17 +231,20 @@ export async function POST(request: Request) {
         ? "Edit the FIRST image, which is the fixed avatar template. Use the SECOND image only as the user's face identity reference."
         : "Use the uploaded person's face as identity reference.",
       templateImage
-        ? "A transparent mask is provided. Only the transparent masked face area may change. Preserve every pixel outside the mask as much as possible."
+        ? "A transparent mask is provided. Only the transparent masked upper-face, glasses, and hairline area may change. Preserve every pixel outside the mask as much as possible."
         : "Create a polished health-hero avatar with a stable portrait composition.",
       templateImage
         ? "Do not redraw the body, clothing, shoulders, hands, background, lighting, framing, camera distance, or app-safe empty space."
         : "Only regenerate the face and nearby hair details enough to reflect the user naturally.",
+      "Keep the original avatar character's illustration style and atmosphere 100% intact.",
+      "From the user photo, reference only the glasses shape and hairstyle feeling. Do not copy the user's face.",
+      "Do not change the original avatar's face shape, facial features, eyes, nose, mouth, jawline, skin texture, expression, body size, or head size.",
       "Do not zoom in, do not crop the head or body, do not create a new close-up portrait, and do not replace the template with a new character.",
-      "Keep the original template's face angle, head size, eye line, neck position, and body position.",
+      "Keep the original template's face angle, head size, eye line, neck position, shoulder position, and body position.",
       likenessPrompts[likenessLevel],
       charmDirection,
       `Template style: ${body.templateStyle || "health avatar"}, template gender: ${body.templateGender || "unspecified"}.`,
-      "The result should look like the same selected wellness avatar template with only a gently customized, flattering face.",
+      "The result should look like the same selected wellness avatar template with only small style elements added, not a newly generated person.",
       "Preserve the template illustration style and blend skin tone, shadows, and lighting so the edit does not look pasted on.",
       "Warm Korean wellness app aesthetic, natural proportions, refined character illustration, clean face, no captions, no UI text, no watermark.",
     ].join(" ");
