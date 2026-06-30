@@ -34,5 +34,18 @@ export function getAvatarOutfitImagePath({ style, gender, viewMode, outfit }: { 
 }
 
 export function getAvatarThemeImagePath({ style, gender, viewMode, theme }: { style: AvatarStyle; gender: AvatarGender; viewMode: AvatarViewMode; theme: AvatarTheme }) {
+  const summerVideoPortraits = new Set([
+    "emotional-female",
+    "emotional-male",
+    "senior-female",
+    "senior-male",
+    "webtoon-female",
+    "webtoon-male",
+  ]);
+
+  if (theme === "summer" && viewMode === "portrait" && summerVideoPortraits.has(`${style}-${gender}`)) {
+    return `/avatars/themes/${theme}/${viewMode}/avatar-${style}-${gender}.mp4`;
+  }
+
   return `/avatars/themes/${theme}/${viewMode}/avatar-${style}-${gender}.png`;
 }
