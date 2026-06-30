@@ -133,7 +133,7 @@ export default function AvatarPage() {
     setMessage(isFirstGeneration ? "선택한 건강이 템플릿에 내 얼굴 느낌을 반영하고 있어요. 약 20~60초 정도 걸릴 수 있어요." : "헬스포인트는 생성 성공 후에만 차감돼요. 건강이 템플릿에 내 얼굴 느낌을 반영하고 있어요.");
     try {
       const selectedTemplate = getDefaultAvatars(avatarGender).find((avatar) => avatar.style === selected);
-      const templateImageData = selectedTemplate ? await readTemplateImageData(selectedTemplate.previewImageUrl) : undefined;
+      const templateImageData = selectedTemplate ? await readTemplateImageData(selectedTemplate.imageUrl) : undefined;
       const response = await fetch("/api/avatar/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -421,7 +421,17 @@ export default function AvatarPage() {
                     <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1 h-5 w-5 accent-[#4CAF6A]" />
                     <span>본인 사진이 AI 아바타 생성을 위해 OpenAI 이미지 API로 전송되는 것에 동의합니다. 내일의건강 앱 서버에는 별도 저장하지 않습니다.</span>
                   </label>
-                  <button onClick={handleGenerateAvatar} disabled={!consent || generating} className="mt-4 flex min-h-13 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#1F5A3A] to-[#4CAF6A] text-lg font-extrabold text-white shadow-lg disabled:opacity-45"><Sparkles size={21} />{generating ? "AI 건강이 생성 중..." : "AI 건강이 무료 생성"}</button>
+                  <button
+                    onClick={handleGenerateAvatar}
+                    disabled={!consent || generating}
+                    className={`relative mt-4 flex min-h-13 w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-gradient-to-r from-[#1F5A3A] to-[#4CAF6A] text-lg font-extrabold text-white shadow-lg disabled:opacity-45 ${generating ? "avatar-generate-wave" : ""}`}
+                  >
+                    {generating && <span className="avatar-generate-wave-layer pointer-events-none absolute inset-y-0 left-0" />}
+                    <span className="relative z-10 flex items-center gap-2">
+                      <Sparkles size={21} className={generating ? "animate-pulse" : undefined} />
+                      {generating ? "AI 건강이 생성 중..." : "AI 건강이 무료 생성"}
+                    </span>
+                  </button>
                 </div>
               )}
 

@@ -97,3 +97,30 @@ body {
   .avatar-sway, .avatar-leaf, .avatar-wind-line, .avatar-sparkle, .avatar-viewer-glow, .avatar-reward-pop { animation: none !important; }
   .avatar-sway { transform: none !important; }
 }
+
+@keyframes avatarGenerateGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes avatarGenerateWave {
+  0% { transform: translateX(-130%) skewX(-18deg); opacity: .18; }
+  45% { opacity: .7; }
+  100% { transform: translateX(260%) skewX(-18deg); opacity: .16; }
+}
+
+.avatar-generate-wave {
+  background-size: 180% 180%;
+  animation: avatarGenerateGradient 2.2s ease-in-out infinite;
+}
+
+.avatar-generate-wave-layer {
+  width: 42%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .55), transparent);
+  filter: blur(1px);
+  animation: avatarGenerateWave 1.55s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar-generate-wave, .avatar-generate-wave-layer { animation: none !important; }
+}
