@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Bell, Camera, CheckCircle2, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Loader2, Moon, Settings, Shirt, Sparkles, Sprout, Target, Utensils, Users, TrendingUp, Volume2, X } from "lucide-react";
+import { Bell, Camera, CheckCircle2, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Loader2, Moon, Settings, Shirt, Sparkles, Sprout, Target, Trophy, Utensils, Users, TrendingUp, Volume2, X } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import BottomNav from "@/components/layout/BottomNav";
 import CoachMessageCard from "@/components/dashboard/CoachMessageCard";
@@ -21,7 +21,7 @@ import {
   resolveNudgeCoachId,
   type NudgeMessage,
 } from "@/lib/nudgeMessages";
-import { sampleUser, sampleCheckup, sampleDailyLog } from "@/lib/sampleData";
+import { sampleUser, sampleCheckup, sampleDailyLog, sampleChallenges } from "@/lib/sampleData";
 import {
   getRandomCoachMessage,
   type CoachId,
@@ -32,6 +32,7 @@ import type { MealAnalysis } from "@/types/meal";
 import type { AvatarViewMode } from "@/types/avatar";
 import type { AiCoach } from "@/types/coach";
 import type { PointTransaction } from "@/types/reward";
+import type { Challenge } from "@/types/challenge";
 
 const quickMenus = [
   { href: "/avatar", icon: Camera, label: "내 사진·아바타\n변경" },
@@ -256,6 +257,18 @@ function isDailyFeedbackResponse(value: unknown): value is DailyFeedbackResponse
   return typeof (value as Record<string, unknown>).message === "string";
 }
 
+function getChallengeBadgeProgress(challenges: Challenge[]) {
+  if (!challenges.length) return 0;
+
+  return Math.max(
+    ...challenges.map((challenge) => {
+      if (challenge.status === "completed") return 100;
+      if (!challenge.targetValue) return 0;
+      return Math.min(100, Math.round((challenge.currentValue / challenge.targetValue) * 100));
+    })
+  );
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<UserProfile>(sampleUser);
   const [checkup, setCheckup] = useState<HealthCheckup>(sampleCheckup);
@@ -275,6 +288,7 @@ export default function DashboardPage() {
   const [avatarFocusMode, setAvatarFocusMode] = useState(false);
   const [avatarDragX, setAvatarDragX] = useState(0);
   const [isAvatarDragging, setIsAvatarDragging] = useState(false);
+  const [challengeBadgeProgress, setChallengeBadgeProgress] = useState(0);
   const avatarSwipeStartX = useRef<number | null>(null);
   const avatarSwipeStartY = useRef<number | null>(null);
 
@@ -282,6 +296,7 @@ export default function DashboardPage() {
     const savedUser = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
     const savedCheckup = getFromStorage<HealthCheckup>(STORAGE_KEYS.HEALTH_CHECKUP, sampleCheckup);
     const logs = getFromStorage<DailyLog[]>(STORAGE_KEYS.DAILY_LOGS, []);
+    const savedChallenges = getFromStorage<Challenge[]>(STORAGE_KEYS.CHALLENGES, sampleChallenges);
     const healthDayKey = getHealthDayKey();
     const latestLog = getDailyLogForHealthDay(logs, healthDayKey);
     const savedCoachId = getFromStorage<string>(STORAGE_KEYS.SELECTED_AI_COACH_ID, defaultAiCoach.id);
@@ -291,6 +306,7 @@ export default function DashboardPage() {
     setDailyLog(latestLog);
     setScore(calculateLifestyleScore(latestLog, savedMeals));
     setMeals(savedMeals);
+    setChallengeBadgeProgress(getChallengeBadgeProgress(savedChallenges));
     setAvatarViewMode(getFromStorage<AvatarViewMode>(STORAGE_KEYS.AVATAR_VIEW_MODE, "portrait"));
     setSelectedCoach(getAiCoachById(savedCoachId));
     const savedTodayCoachMessage = getFromStorage<unknown>(STORAGE_KEYS.TODAY_COACH_MESSAGE, null);
@@ -553,6 +569,11 @@ export default function DashboardPage() {
     transition: isAvatarDragging ? "none" : "transform 280ms ease-out, opacity 280ms ease-out",
     pointerEvents: avatarPanelProgress > 0.96 ? "none" : "auto",
   } as const;
+  const challengeBadgePercent = Math.max(0, Math.min(100, challengeBadgeProgress));
+  const challengeBadgeComplete = challengeBadgePercent >= 100;
+  const challengeBadgeFillStyle = {
+    height: `${challengeBadgePercent}%`,
+  };
   const gaugePercent = Math.min(1, clampedScore / 110);
   const scoreGaugeColor = getScoreGaugeColor(clampedScore);
   const scoreGaugeStyle = {
@@ -665,11 +686,19 @@ export default function DashboardPage() {
           <Link
             href="/challenges"
             aria-label="챌린지로 이동"
-            className="absolute right-3 top-[15%] z-30 flex items-center gap-1.5 rounded-full border border-white/68 bg-white/30 px-3 py-2 text-xs font-black text-[#1F5A3A] shadow-[0_12px_28px_rgba(10,66,40,0.16),inset_0_1px_0_rgba(255,255,255,0.74)] ring-1 ring-white/25 backdrop-blur-[18px] backdrop-saturate-150 active:scale-95"
+            title={`챌린지 진행률 ${challengeBadgePercent}%`}
+            className={`absolute right-3 top-[12%] z-30 flex items-center gap-2 rounded-full border px-2.5 py-1.5 text-xs font-black text-[#1F5A3A] shadow-[0_12px_28px_rgba(10,66,40,0.16),inset_0_1px_0_rgba(255,255,255,0.76)] ring-1 backdrop-blur-[18px] backdrop-saturate-150 transition active:scale-95 ${challengeBadgeComplete ? "border-yellow-100/90 bg-[#FEF9C3]/56 ring-yellow-100/70 shadow-[0_0_22px_rgba(250,204,21,0.32),0_12px_28px_rgba(10,66,40,0.16),inset_0_1px_0_rgba(255,255,255,0.84)]" : "border-white/68 bg-white/30 ring-white/25"}`}
             style={avatarChallengeStyle}
           >
-            <Target size={15} className="text-[#4CAF6A]" />
-            챌린지
+            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/80 bg-white/46 shadow-[inset_0_1px_0_rgba(255,255,255,0.88)]">
+              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#FACC15] via-[#D9F99D] to-[#86EFAC] transition-all duration-500" style={challengeBadgeFillStyle} />
+              {challengeBadgeComplete && <span className="absolute inset-0 animate-ping rounded-full bg-yellow-200/30" />}
+              <Trophy size={17} className={`relative z-10 ${challengeBadgeComplete ? "text-[#B7791F]" : "text-[#4CAF6A]"}`} />
+            </span>
+            <span className="text-xs leading-tight">
+              챌린지
+              <span className="block text-[10px] font-extrabold text-[#1F5A3A]/70">{challengeBadgePercent}%</span>
+            </span>
           </Link>
 
           <div
