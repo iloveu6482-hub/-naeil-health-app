@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Bell, Camera, CheckCircle2, ChevronRight, Droplets, FileText, Flame, Footprints, HeartPulse, Loader2, Moon, Settings, Shirt, Sparkles, Sprout, Target, Utensils, Users, TrendingUp, Volume2, X } from "lucide-react";
@@ -272,6 +272,9 @@ export default function DashboardPage() {
   const [scoreSheetOpen, setScoreSheetOpen] = useState(false);
   const [finalCoachingLoading, setFinalCoachingLoading] = useState(false);
   const [finalCoachingError, setFinalCoachingError] = useState("");
+  const [avatarFocusMode, setAvatarFocusMode] = useState(false);
+  const avatarSwipeStartX = useRef<number | null>(null);
+  const avatarSwipeStartY = useRef<number | null>(null);
 
   useEffect(() => {
     const savedUser = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
@@ -383,6 +386,28 @@ export default function DashboardPage() {
   const changeAvatarViewMode = (mode: AvatarViewMode) => {
     setAvatarViewMode(mode);
     saveToStorage(STORAGE_KEYS.AVATAR_VIEW_MODE, mode);
+  };
+
+  const handleAvatarSwipeStart = (event: PointerEvent<HTMLElement>) => {
+    avatarSwipeStartX.current = event.clientX;
+    avatarSwipeStartY.current = event.clientY;
+  };
+
+  const resetAvatarSwipe = () => {
+    avatarSwipeStartX.current = null;
+    avatarSwipeStartY.current = null;
+  };
+
+  const handleAvatarSwipeEnd = (event: PointerEvent<HTMLElement>) => {
+    if (avatarSwipeStartX.current === null || avatarSwipeStartY.current === null) return;
+
+    const deltaX = event.clientX - avatarSwipeStartX.current;
+    const deltaY = event.clientY - avatarSwipeStartY.current;
+    resetAvatarSwipe();
+
+    if (Math.abs(deltaX) < 70 || Math.abs(deltaY) > 70) return;
+
+    setAvatarFocusMode(deltaX < 0);
   };
 
   const handleCoachMessageClick = () => {
@@ -566,12 +591,21 @@ export default function DashboardPage() {
             </div>
           </section>
         )}
-        <section className="relative h-[clamp(700px,178vw,760px)] overflow-hidden bg-[#1F5A3A]">
+        <section
+          className="relative h-[clamp(700px,178vw,760px)] overflow-hidden bg-[#1F5A3A] touch-pan-y"
+          onPointerDown={handleAvatarSwipeStart}
+          onPointerUp={handleAvatarSwipeEnd}
+          onPointerCancel={resetAvatarSwipe}
+        >
           <div className="absolute inset-0"><AvatarViewer style={user.avatarStyle} gender={avatarGender} viewMode={avatarViewMode} mood={dailyLog.steps >= 7000 ? "happy" : "idle"} customImageUrl={customAvatarImage} statusVideoUrl={activeStatusVideoUrl} fill cover priority showWindEffect showLeaves showLightTrails alt={`${displayName}님의 마이 아바타`} /></div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/18 via-transparent to-transparent" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
-          <div className="absolute left-2 right-2 top-2 z-30 flex items-start gap-2">
+          <div
+            className={`absolute left-2 right-2 top-2 z-30 flex items-start gap-2 transition-all duration-300 ease-out ${
+              avatarFocusMode ? "pointer-events-none -translate-y-5 opacity-0" : "translate-y-0 opacity-100"
+            }`}
+          >
             <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-white bg-[#EAF7EF] shadow-md ring-1 ring-[#BDE8CA]">
               <Image src={selectedCoach.faceImageUrl || selectedCoach.imageUrl} alt={`${selectedCoach.name} 코치`} fill className="object-cover" />
             </div>
@@ -583,7 +617,11 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          <div className="absolute inset-0 z-20">
+          <div
+            className={`absolute inset-0 z-20 transition-all duration-300 ease-out ${
+              avatarFocusMode ? "pointer-events-none -translate-x-[172px] opacity-0" : "translate-x-0 opacity-100"
+            }`}
+          >
             <div className="absolute left-[3%] top-[52.5%] space-y-1.5">
               {dashboardMetricItems.map(({ icon: Icon, label, value, color, achieved, href }) => {
                 const metricClassName = `relative block h-14 w-[142px] overflow-hidden rounded-[21px] border px-3 shadow-[0_14px_34px_rgba(10,66,40,0.14),inset_0_1px_0_rgba(255,255,255,0.72),inset_0_-12px_22px_rgba(31,90,58,0.08)] backdrop-blur-[18px] backdrop-saturate-150 ${href ? "transition active:scale-[0.98]" : ""} ${achieved ? "border-white/70 bg-[#EAF7EF]/36 ring-1 ring-white/45" : "border-white/58 bg-white/24 ring-1 ring-white/25"}`;
@@ -674,6 +712,16 @@ export default function DashboardPage() {
               <p className="relative mt-1 text-5xl font-black leading-none drop-shadow-[0_2px_2px_rgba(255,255,255,0.42)]" style={{ color: scoreGaugeColor }}>{score}</p><p className="relative text-base font-extrabold leading-tight text-[#087A35] drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">/ 110</p>
             </button>
           </div>
+          {avatarFocusMode && (
+            <button
+              type="button"
+              onClick={() => setAvatarFocusMode(false)}
+              aria-label="대시보드 UI 다시 보기"
+              className="absolute left-2 top-[46%] z-30 flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-white/28 text-[#1F5A3A] shadow-[0_12px_28px_rgba(10,66,40,0.18),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-[18px] backdrop-saturate-150 transition active:scale-95"
+            >
+              <ChevronRight size={22} />
+            </button>
+          )}
         </section>
 
         <section className="relative z-30 px-4 pt-3">
