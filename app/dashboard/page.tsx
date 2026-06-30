@@ -16,6 +16,11 @@ import { calculatePointBalance } from "@/lib/rewards";
 import { getHealthDayKey } from "@/lib/healthDay";
 import { getCustomAvatarSource, getHeaderAvatarSource } from "@/lib/avatarProfile";
 import { defaultAiCoach, getAiCoachById } from "@/lib/coachData";
+import {
+  getLocalNudgeMessage,
+  resolveNudgeCoachId,
+  type NudgeMessage,
+} from "@/lib/nudgeMessages";
 import { sampleUser, sampleCheckup, sampleDailyLog } from "@/lib/sampleData";
 import {
   getRandomCoachMessage,
@@ -41,11 +46,6 @@ type TodayCoachMessage = {
   date: string;
   coachId: string;
   visibleUntil?: number;
-};
-type NudgeCoachId = "onyu" | "haru" | "kangtaeo" | "rumi";
-type NudgeMessage = {
-  title: string;
-  message: string;
 };
 type DailyFeedbackResponse = {
   message: string;
@@ -194,18 +194,17 @@ function countConsecutiveMissedDays(logs: DailyLog[]) {
   return missed;
 }
 
-function resolveNudgeCoachId(coachId?: string | null): NudgeCoachId {
-  if (coachId === "onyu" || coachId === "onyou") return "onyu";
-  if (coachId === "haru") return "haru";
-  if (coachId === "taeo" || coachId === "kangtaeo") return "kangtaeo";
-  if (coachId === "rumi" || coachId === "lumi") return "rumi";
-  return "haru";
-}
-
-function isNudgeMessage(value: unknown): value is NudgeMessage {
-  if (!value || typeof value !== "object") return false;
-  const record = value as Record<string, unknown>;
-  return typeof record.title === "string" && typeof record.message === "string";
+function resolveNotificationCoachIcon(coachId?: string | null) {
+  const normalizedCoachId =
+    coachId === "onyu"
+      ? "onyou"
+      : coachId === "rumi"
+        ? "lumi"
+        : coachId === "kangtaeo"
+          ? "taeo"
+          : coachId;
+  const coach = getAiCoachById(normalizedCoachId);
+  return coach.faceImageUrl || coach.imageUrl || "/icons/icon-192x192.png";
 }
 
 function isDailyFeedbackResponse(value: unknown): value is DailyFeedbackResponse {
@@ -251,19 +250,6 @@ export default function DashboardPage() {
       setShowPriorityCoachMessage(isPriorityCoachMessageVisible(savedTodayCoachMessage, healthDayKey));
     }
 
-    const requestNotificationPermission = async () => {
-      const savedPermission = getFromStorage<string | null>(STORAGE_KEYS.NOTIFICATION_PERMISSION, null);
-      if (savedPermission) return;
-
-      if (!("Notification" in window)) {
-        saveToStorage(STORAGE_KEYS.NOTIFICATION_PERMISSION, "unsupported");
-        return;
-      }
-
-      const permission = await Notification.requestPermission();
-      saveToStorage(STORAGE_KEYS.NOTIFICATION_PERMISSION, permission);
-    };
-
     const checkNudge = async () => {
       const todayKey = getLocalDateKey();
       const dismissedDate = getFromStorage<string | null>(STORAGE_KEYS.LAST_NUDGE_BANNER_DISMISSED, null);
@@ -272,35 +258,22 @@ export default function DashboardPage() {
 
       if (daysMissed < 3 || dismissedDate === todayKey || lastSentDate === todayKey) return;
 
-      try {
-        const response = await fetch("/api/nudge", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            coachId: resolveNudgeCoachId(savedCoachId),
-            daysMissed,
-          }),
-        });
-        const result = (await response.json()) as unknown;
-        if (!response.ok || !isNudgeMessage(result)) return;
+      const result = getLocalNudgeMessage(savedCoachId, daysMissed);
 
-        if ("Notification" in window && Notification.permission === "granted") {
-          new Notification(result.title, {
-            body: result.message,
-            icon: "/icons/icon-192x192.png",
-          });
-          saveToStorage(STORAGE_KEYS.LAST_NUDGE_SENT, todayKey);
-        } else {
-          setNudgeBanner(result);
-        }
-      } catch (error) {
-        console.error("Nudge check failed", error);
+      if ("Notification" in window && Notification.permission === "granted") {
+        const coachIcon = resolveNotificationCoachIcon(savedCoachId);
+        new Notification(result.title, {
+          body: result.message,
+          icon: new URL(coachIcon, window.location.origin).toString(),
+          badge: "/icons/icon-192x192.png",
+        });
+        saveToStorage(STORAGE_KEYS.LAST_NUDGE_SENT, todayKey);
+      } else {
+        setNudgeBanner(result);
       }
     };
 
-    void requestNotificationPermission().finally(() => {
-      void checkNudge();
-    });
+    void checkNudge();
 
     const updatePoints = () => {
       const txs = getFromStorage<PointTransaction[]>(
