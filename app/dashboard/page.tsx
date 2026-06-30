@@ -273,6 +273,8 @@ export default function DashboardPage() {
   const [finalCoachingLoading, setFinalCoachingLoading] = useState(false);
   const [finalCoachingError, setFinalCoachingError] = useState("");
   const [avatarFocusMode, setAvatarFocusMode] = useState(false);
+  const [avatarDragX, setAvatarDragX] = useState(0);
+  const [isAvatarDragging, setIsAvatarDragging] = useState(false);
   const avatarSwipeStartX = useRef<number | null>(null);
   const avatarSwipeStartY = useRef<number | null>(null);
 
@@ -391,11 +393,30 @@ export default function DashboardPage() {
   const handleAvatarSwipeStart = (event: PointerEvent<HTMLElement>) => {
     avatarSwipeStartX.current = event.clientX;
     avatarSwipeStartY.current = event.clientY;
+    setIsAvatarDragging(true);
+    setAvatarDragX(0);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
   };
 
   const resetAvatarSwipe = () => {
     avatarSwipeStartX.current = null;
     avatarSwipeStartY.current = null;
+    setIsAvatarDragging(false);
+    setAvatarDragX(0);
+  };
+
+  const handleAvatarSwipeMove = (event: PointerEvent<HTMLElement>) => {
+    if (avatarSwipeStartX.current === null || avatarSwipeStartY.current === null) return;
+
+    const deltaX = event.clientX - avatarSwipeStartX.current;
+    const deltaY = event.clientY - avatarSwipeStartY.current;
+    if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 18) {
+      resetAvatarSwipe();
+      return;
+    }
+
+    const boundedDelta = Math.max(-172, Math.min(172, deltaX));
+    setAvatarDragX(boundedDelta);
   };
 
   const handleAvatarSwipeEnd = (event: PointerEvent<HTMLElement>) => {
@@ -405,7 +426,9 @@ export default function DashboardPage() {
     const deltaY = event.clientY - avatarSwipeStartY.current;
     resetAvatarSwipe();
 
-    if (Math.abs(deltaX) < 70 || Math.abs(deltaY) > 70) return;
+    if (Math.abs(deltaX) < 70 || Math.abs(deltaY) > 70) {
+      return;
+    }
 
     setAvatarFocusMode(deltaX < 0);
   };
@@ -508,6 +531,28 @@ export default function DashboardPage() {
   const statusVideoUrl = `/avatars/status/avatar_${scoreStatus}.mp4`;
   const activeStatusVideoUrl = avatarViewMode === "fullbody" ? statusVideoUrl : undefined;
   const clampedScore = Math.max(0, Math.min(110, score));
+  const avatarFocusOffset = avatarFocusMode ? -172 : 0;
+  const avatarDragOffset = isAvatarDragging ? Math.max(-172, Math.min(172, avatarDragX)) : 0;
+  const avatarPanelX = Math.max(-172, Math.min(0, avatarFocusOffset + avatarDragOffset));
+  const avatarPanelProgress = Math.min(1, Math.abs(avatarPanelX) / 172);
+  const avatarPanelStyle = {
+    transform: `translateX(${avatarPanelX}px)`,
+    opacity: 1 - avatarPanelProgress,
+    transition: isAvatarDragging ? "none" : "transform 280ms ease-out, opacity 280ms ease-out",
+    pointerEvents: avatarPanelProgress > 0.96 ? "none" : "auto",
+  } as const;
+  const avatarTopUiStyle = {
+    transform: `translateY(${-20 * avatarPanelProgress}px)`,
+    opacity: 1 - avatarPanelProgress,
+    transition: isAvatarDragging ? "none" : "transform 280ms ease-out, opacity 280ms ease-out",
+    pointerEvents: avatarPanelProgress > 0.96 ? "none" : "auto",
+  } as const;
+  const avatarChallengeStyle = {
+    transform: `translateX(${20 * avatarPanelProgress}px)`,
+    opacity: 1 - avatarPanelProgress,
+    transition: isAvatarDragging ? "none" : "transform 280ms ease-out, opacity 280ms ease-out",
+    pointerEvents: avatarPanelProgress > 0.96 ? "none" : "auto",
+  } as const;
   const gaugePercent = Math.min(1, clampedScore / 110);
   const scoreGaugeColor = getScoreGaugeColor(clampedScore);
   const scoreGaugeStyle = {
@@ -594,6 +639,7 @@ export default function DashboardPage() {
         <section
           className="relative h-[clamp(700px,178vw,760px)] overflow-hidden bg-[#1F5A3A] touch-pan-y"
           onPointerDown={handleAvatarSwipeStart}
+          onPointerMove={handleAvatarSwipeMove}
           onPointerUp={handleAvatarSwipeEnd}
           onPointerCancel={resetAvatarSwipe}
         >
@@ -602,9 +648,8 @@ export default function DashboardPage() {
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/55 to-transparent" />
 
           <div
-            className={`absolute left-2 right-2 top-2 z-30 flex items-start gap-2 transition-all duration-300 ease-out ${
-              avatarFocusMode ? "pointer-events-none -translate-y-5 opacity-0" : "translate-y-0 opacity-100"
-            }`}
+            className="absolute left-2 right-2 top-2 z-30 flex items-start gap-2"
+            style={avatarTopUiStyle}
           >
             <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-white bg-[#EAF7EF] shadow-md ring-1 ring-[#BDE8CA]">
               <Image src={selectedCoach.faceImageUrl || selectedCoach.imageUrl} alt={`${selectedCoach.name} 코치`} fill className="object-cover" />
@@ -620,18 +665,16 @@ export default function DashboardPage() {
           <Link
             href="/challenges"
             aria-label="챌린지로 이동"
-            className={`absolute right-3 top-[15%] z-30 flex items-center gap-1.5 rounded-full border border-white/68 bg-white/30 px-3 py-2 text-xs font-black text-[#1F5A3A] shadow-[0_12px_28px_rgba(10,66,40,0.16),inset_0_1px_0_rgba(255,255,255,0.74)] ring-1 ring-white/25 backdrop-blur-[18px] backdrop-saturate-150 transition active:scale-95 ${
-              avatarFocusMode ? "pointer-events-none translate-x-5 opacity-0" : "translate-x-0 opacity-100"
-            }`}
+            className="absolute right-3 top-[15%] z-30 flex items-center gap-1.5 rounded-full border border-white/68 bg-white/30 px-3 py-2 text-xs font-black text-[#1F5A3A] shadow-[0_12px_28px_rgba(10,66,40,0.16),inset_0_1px_0_rgba(255,255,255,0.74)] ring-1 ring-white/25 backdrop-blur-[18px] backdrop-saturate-150 active:scale-95"
+            style={avatarChallengeStyle}
           >
             <Target size={15} className="text-[#4CAF6A]" />
             챌린지
           </Link>
 
           <div
-            className={`absolute inset-0 z-20 transition-all duration-300 ease-out ${
-              avatarFocusMode ? "pointer-events-none -translate-x-[172px] opacity-0" : "translate-x-0 opacity-100"
-            }`}
+            className="absolute inset-0 z-20"
+            style={avatarPanelStyle}
           >
             <div className="absolute left-[3%] top-[52.5%] space-y-1.5">
               {dashboardMetricItems.map(({ icon: Icon, label, value, color, achieved, href }) => {
@@ -723,7 +766,7 @@ export default function DashboardPage() {
               <p className="relative mt-1 text-5xl font-black leading-none drop-shadow-[0_2px_2px_rgba(255,255,255,0.42)]" style={{ color: scoreGaugeColor }}>{score}</p><p className="relative text-base font-extrabold leading-tight text-[#087A35] drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">/ 110</p>
             </button>
           </div>
-          {avatarFocusMode && (
+          {avatarPanelProgress > 0.92 && (
             <button
               type="button"
               onClick={() => setAvatarFocusMode(false)}
