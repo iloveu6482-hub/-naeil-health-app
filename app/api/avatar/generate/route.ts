@@ -4,7 +4,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const AVATAR_GENERATION_TOTAL_LIMIT = 3;
+const AVATAR_GENERATION_TOTAL_LIMIT = Number.MAX_SAFE_INTEGER;
 const likenessPrompts = {
   soft: "Very subtle likeness: keep the template avatar face and expression dominant. Only lightly adapt hairstyle, eyewear, age impression, and a few gentle facial cues from the user.",
   balanced: "Balanced likeness: blend some user facial traits into the existing template face, but the final image must still clearly look like the same app health avatar template.",

@@ -16,9 +16,9 @@ import type { DefaultAvatar } from "@/lib/defaultAvatars";
 import type { AvatarGender, AvatarStyle, UserProfile } from "@/types/user";
 import type { PointTransaction } from "@/types/reward";
 
-const AVATAR_REGENERATION_COST = 1500;
-const MONTHLY_REGENERATION_LIMIT = 1;
-const AVATAR_GENERATION_TOTAL_LIMIT = 3;
+const AVATAR_REGENERATION_COST = 0;
+const MONTHLY_REGENERATION_LIMIT = Number.MAX_SAFE_INTEGER;
+const AVATAR_GENERATION_TOTAL_LIMIT = Number.MAX_SAFE_INTEGER;
 const likenessOptions = [
   { value: "soft", label: "은은하게", desc: "건강이 스타일을 더 살려요" },
   { value: "balanced", label: "중간", desc: "나와 건강이의 균형" },
@@ -412,16 +412,16 @@ export default function AvatarPage() {
                     </div>
                   </div>
                   <div className="mb-3 rounded-xl bg-white p-3 shadow-sm">
-                    <div className="flex items-center justify-between gap-3"><span className="text-sm font-bold text-[#1F2937]">{isFirstGeneration ? "첫 AI 건강이" : "AI 건강이 재생성"}</span><span className={`rounded-full px-3 py-1 text-sm font-extrabold ${isFirstGeneration ? "bg-[#EAF7EF] text-[#1F5A3A]" : "bg-amber-50 text-amber-700"}`}>{generationLimitReached ? "생성 제한 완료" : isFirstGeneration ? "최초 1회 무료" : `${AVATAR_REGENERATION_COST.toLocaleString()}P`}</span></div>
-                    <p className="mt-2 text-xs leading-relaxed text-gray-500">{generationLimitReached ? `AI 생성은 최대 ${AVATAR_GENERATION_TOTAL_LIMIT}회까지 가능해요. 직접 만든 파일은 계속 넣을 수 있습니다.` : isFirstGeneration ? `회원당 첫 생성은 무료로 제공됩니다. 전체 생성 가능 횟수는 ${AVATAR_GENERATION_TOTAL_LIMIT}회입니다.` : `재생성은 월 ${MONTHLY_REGENERATION_LIMIT}회, 전체 최대 ${AVATAR_GENERATION_TOTAL_LIMIT}회까지 가능하며 생성 성공 후에만 포인트가 차감됩니다.`}</p>
-                    <p className="mt-1 text-xs font-semibold text-[#4CAF6A]">AI 생성 사용: {Math.min(generationCount, AVATAR_GENERATION_TOTAL_LIMIT)} / {AVATAR_GENERATION_TOTAL_LIMIT}회</p>
+                    <div className="flex items-center justify-between gap-3"><span className="text-sm font-bold text-[#1F2937]">AI 건강이 테스트 생성</span><span className="rounded-full bg-[#EAF7EF] px-3 py-1 text-sm font-extrabold text-[#1F5A3A]">테스트 무료</span></div>
+                    <p className="mt-2 text-xs leading-relaxed text-gray-500">테스트 기간에는 포인트 차감 없이 자유롭게 생성할 수 있어요. 생성 결과를 비교해보면서 가장 자연스러운 건강이를 골라주세요.</p>
+                    <p className="mt-1 text-xs font-semibold text-[#4CAF6A]">AI 생성 사용: {generationCount.toLocaleString()}회</p>
                     <p className="mt-1 text-xs font-semibold text-[#4CAF6A]">현재 보유: {pointBalance.toLocaleString()}P</p>
                   </div>
                   <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-gray-600">
                     <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1 h-5 w-5 accent-[#4CAF6A]" />
                     <span>본인 사진이 AI 아바타 생성을 위해 OpenAI 이미지 API로 전송되는 것에 동의합니다. 내일의건강 앱 서버에는 별도 저장하지 않습니다.</span>
                   </label>
-                  <button onClick={handleGenerateAvatar} disabled={!consent || generating || generationLimitReached || monthlyLimitReached || insufficientPoints} className="mt-4 flex min-h-13 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#1F5A3A] to-[#4CAF6A] text-lg font-extrabold text-white shadow-lg disabled:opacity-45"><Sparkles size={21} />{generating ? "AI 건강이 생성 중..." : generationLimitReached ? "AI 생성 3회 완료" : monthlyLimitReached ? "이번 달 재생성 완료" : insufficientPoints ? `${AVATAR_REGENERATION_COST.toLocaleString()}P 필요` : isFirstGeneration ? "첫 AI 건강이 무료 생성" : `${AVATAR_REGENERATION_COST.toLocaleString()}P로 재생성`}</button>
+                  <button onClick={handleGenerateAvatar} disabled={!consent || generating} className="mt-4 flex min-h-13 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#1F5A3A] to-[#4CAF6A] text-lg font-extrabold text-white shadow-lg disabled:opacity-45"><Sparkles size={21} />{generating ? "AI 건강이 생성 중..." : "AI 건강이 무료 생성"}</button>
                 </div>
               )}
 
