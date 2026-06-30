@@ -363,8 +363,8 @@ export default function AvatarPage() {
                   </div>
                 </div>
                 <div className="w-full max-w-[230px] overflow-hidden rounded-3xl bg-white shadow-sm">
-                  <div className="relative h-[124px] bg-[#EAF7EF]">
-                    {displayImage && <Image src={displayImage} alt={displayCardName} fill sizes="230px" className="object-cover object-top" />}
+                  <div className="relative h-[180px] bg-[#EAF7EF]">
+                    {displayImage && <Image src={displayImage} alt={displayCardName} fill sizes="230px" className="object-contain object-center p-1" />}
                     <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-extrabold text-[#1F5A3A] shadow-sm">{displayCardName}</span>
                   </div>
                 </div>

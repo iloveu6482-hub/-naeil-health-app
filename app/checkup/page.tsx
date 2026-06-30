@@ -72,6 +72,28 @@ type HealthCheckupRecord = {
 
 type FormState = Omit<HealthCheckupRecord, "id" | "aiInsight">;
 
+type CheckupOcrResult = Partial<FormState>;
+
+function readFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("파일을 읽지 못했어요."));
+    };
+    reader.onerror = () => reject(new Error("파일을 읽지 못했어요."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function isCheckupOcrResult(value: unknown): value is CheckupOcrResult {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  return ["glucose", "alt", "ggt", "ast", "hdl", "totalCholesterol", "bmi", "waist", "sysBP", "diaBP"].some(
+    (key) => typeof record[key] === "number"
+  );
+}
+
 function isHealthAnalysisInsight(value: unknown): value is HealthAnalysisInsight {
   if (!value || typeof value !== "object") return false;
 
@@ -240,6 +262,7 @@ export default function CheckupPage() {
   const [records, setRecords] = useState<HealthCheckupRecord[]>([]);
   const [activeChart, setActiveChart] = useState<(typeof chartTabs)[number]["id"]>("glucose");
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
+  const [loadingOcr, setLoadingOcr] = useState(false);
   const [trendLoading, setTrendLoading] = useState(false);
   const [trendInsight, setTrendInsight] = useState<HealthTrendInsight>();
   const [message, setMessage] = useState("");
@@ -258,6 +281,52 @@ export default function CheckupPage() {
 
   const updateNumber = (key: keyof Omit<FormState, "date" | "institution" | "uploadedFileName">, value: string) => {
     setForm((prev) => ({ ...prev, [key]: Number(value) || 0 }));
+  };
+
+  const handleUploadWithOcr = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setForm((prev) => ({
+      ...prev,
+      uploadedFileName: file.name,
+    }));
+    setLoadingOcr(true);
+    setMessage("검진표를 읽는 중이에요. 수치가 확인되면 아래 입력칸에 자동 반영됩니다.");
+
+    try {
+      const fileData = await readFileAsDataUrl(file);
+      const response = await fetch("/api/checkup-ocr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileData,
+          fileName: file.name,
+          mimeType: file.type,
+        }),
+      });
+      const result = (await response.json()) as unknown;
+
+      if (!response.ok || !isCheckupOcrResult(result)) {
+        const errorMessage =
+          result && typeof result === "object" && typeof (result as Record<string, unknown>).error === "string"
+            ? String((result as Record<string, unknown>).error)
+            : "검진표 수치를 자동으로 읽지 못했어요. 직접 입력해주세요.";
+        throw new Error(errorMessage);
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        ...result,
+        uploadedFileName: file.name,
+      }));
+      setMessage("검진표 수치를 자동으로 불러왔어요. 값이 맞는지 확인한 뒤 저장해주세요.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "검진표 수치를 자동으로 읽지 못했어요. 직접 입력해주세요.");
+    } finally {
+      setLoadingOcr(false);
+      event.target.value = "";
+    }
   };
 
   const handleUpload = (event: ChangeEvent<HTMLInputElement>) => {
@@ -361,7 +430,7 @@ export default function CheckupPage() {
           <label className="mt-4 flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#4CAF6A] bg-white text-sm font-extrabold text-[#1F5A3A]">
             <FileUp size={18} />
             PDF/이미지 선택
-            <input type="file" accept="application/pdf,image/*" className="hidden" onChange={handleUpload} />
+            <input type="file" accept="application/pdf,image/*" className="hidden" onChange={handleUploadWithOcr} disabled={loadingOcr} />
           </label>
           {form.uploadedFileName && (
             <div className="mt-3 rounded-2xl bg-white/80 p-3">

@@ -6,9 +6,9 @@ export const maxDuration = 60;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const AVATAR_GENERATION_TOTAL_LIMIT = 3;
 const likenessPrompts = {
-  soft: "Subtle likeness: preserve the template character face mostly, and only gently reflect the user's hairstyle, eyewear, age impression, and overall mood.",
-  balanced: "Balanced likeness: blend the user's facial traits with the template character so it feels like the user, while still clearly remaining the app's health avatar.",
-  strong: "Strong likeness: reflect the user's face shape, eyes, nose, mouth, hairstyle, eyewear, and facial identity more strongly, while still preserving the template pose and layout.",
+  soft: "Very subtle likeness: keep the template avatar face and expression dominant. Only lightly adapt hairstyle, eyewear, age impression, and a few gentle facial cues from the user.",
+  balanced: "Balanced likeness: blend some user facial traits into the existing template face, but the final image must still clearly look like the same app health avatar template.",
+  strong: "Strong likeness: reflect more of the user's face shape, eyes, nose, mouth, hairstyle, eyewear, and facial identity, while still preserving the exact template body, pose, crop, and layout.",
 } as const;
 
 type LikenessLevel = keyof typeof likenessPrompts;
@@ -82,11 +82,15 @@ export async function POST(request: Request) {
         ? "Use the first image as the user's face identity reference and the second image as the fixed avatar template."
         : "Use the uploaded person's face as identity reference.",
       templateImage
-        ? "Keep the template avatar's body, clothing, background, framing, composition, pose, camera angle, and safe layout almost exactly the same."
+        ? "CRITICAL: Treat the second image as the target canvas. Preserve its exact full-image composition, crop, aspect ratio, body size, pose, clothing, background, lighting, camera distance, and UI-safe empty space."
         : "Create a polished health-hero avatar with a stable portrait composition.",
-      "Only regenerate the face and nearby hair details enough to reflect the user naturally.",
+      templateImage
+        ? "Only edit the face region and adjacent hair. Keep the shoulders, torso, hands, outfit, body proportions, background, and all non-face areas unchanged."
+        : "Only regenerate the face and nearby hair details enough to reflect the user naturally.",
+      "Do not zoom in, do not crop the head or body, do not create a new close-up portrait, and do not replace the template with a new character.",
       likenessPrompts[likenessLevel],
       `Template style: ${body.templateStyle || "health avatar"}, template gender: ${body.templateGender || "unspecified"}.`,
+      "The result should look like the same selected template image with a gently customized face, not like a newly generated avatar scene.",
       "Do not change the green wellness app atmosphere, mint outfit tone, or UI-safe body position.",
       "Warm, trustworthy Korean wellness app aesthetic, natural proportions, highly refined character illustration, realistic 3D volume but not photorealistic.",
       "Clean face, no captions, no UI text, no watermark, no medical symbols.",
