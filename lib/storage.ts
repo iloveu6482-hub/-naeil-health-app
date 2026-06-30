@@ -63,6 +63,7 @@ export const STORAGE_KEYS = {
   SELECTED_AI_COACH_ID: "selectedAiCoachId",
   TODAY_COACH_MESSAGE: "todayCoachMessage",
   WEEKLY_REPORTS: "weeklyReports",
+  SAVED_CUSTOM_AVATARS: "savedCustomAvatars",
   NOTIFICATION_PERMISSION: "notificationPermission",
   LAST_NUDGE_SENT: "lastNudgeSent",
   LAST_NUDGE_BANNER_DISMISSED: "lastNudgeBannerDismissed",

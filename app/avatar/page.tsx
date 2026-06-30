@@ -3,7 +3,7 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Camera, Check, ImagePlus, RefreshCw, Sparkles, Trash2, Upload } from "lucide-react";
+import { Camera, Check, ImagePlus, Images, RefreshCw, Sparkles, Trash2, Upload } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import CameraCapture from "@/components/avatar/CameraCapture";
 import { compressGeneratedAvatar, prepareAvatarSource, prepareDirectAvatarMedia } from "@/lib/avatarImage";
@@ -19,6 +19,7 @@ import type { PointTransaction } from "@/types/reward";
 const AVATAR_REGENERATION_COST = 0;
 const MONTHLY_REGENERATION_LIMIT = Number.MAX_SAFE_INTEGER;
 const AVATAR_GENERATION_TOTAL_LIMIT = Number.MAX_SAFE_INTEGER;
+const SAVED_CUSTOM_AVATAR_LIMIT = 8;
 const likenessOptions = [
   { value: "soft", label: "은은하게", desc: "건강이 스타일을 더 살려요" },
   { value: "balanced", label: "중간", desc: "나와 건강이의 균형" },
@@ -26,6 +27,17 @@ const likenessOptions = [
 ] as const;
 
 type LikenessLevel = (typeof likenessOptions)[number]["value"];
+
+type SavedCustomAvatar = {
+  id: string;
+  label: string;
+  createdAt: string;
+  portraitImage?: string;
+  fullbodyImage?: string;
+  style: AvatarStyle;
+  gender: AvatarGender;
+  origin: "ai" | "direct";
+};
 
 export default function AvatarPage() {
   const router = useRouter();
@@ -48,6 +60,7 @@ export default function AvatarPage() {
   const [message, setMessage] = useState("");
   const [showCamera, setShowCamera] = useState(false);
   const [pointBalance, setPointBalance] = useState(0);
+  const [savedCustomAvatars, setSavedCustomAvatars] = useState<SavedCustomAvatar[]>([]);
   const displayName = profile.name?.trim() || "사용자";
 
   useEffect(() => {
@@ -61,9 +74,67 @@ export default function AvatarPage() {
     setAvatarImage(saved.avatarImage);
     setAvatarPortraitImage(saved.avatarPortraitImage);
     setAvatarFullbodyImage(saved.avatarFullbodyImage);
+    const savedCustomList = getFromStorage<SavedCustomAvatar[]>(STORAGE_KEYS.SAVED_CUSTOM_AVATARS, []);
+    const currentCustomImage = saved.avatarPortraitImage || saved.avatarImage;
+    setSavedCustomAvatars(
+      savedCustomList.length || !saved.avatarEffect || !currentCustomImage
+        ? savedCustomList
+        : [
+            {
+              id: saved.lastAvatarGeneratedAt || `custom-${Date.now()}`,
+              label: "현재 사용 중인 건강이",
+              createdAt: saved.lastAvatarGeneratedAt || new Date().toISOString(),
+              portraitImage: currentCustomImage,
+              fullbodyImage: saved.avatarFullbodyImage,
+              style: initialStyle,
+              gender: saved.defaultAvatarGender || (saved.gender === "male" ? "male" : "female"),
+              origin: "ai",
+            },
+          ],
+    );
     const transactions = getFromStorage<PointTransaction[]>(STORAGE_KEYS.POINT_TRANSACTIONS, samplePointTransactions);
     setPointBalance(calculatePointBalance(transactions));
   }, []);
+
+  const rememberCustomAvatar = (avatar: Omit<SavedCustomAvatar, "id" | "label" | "createdAt" | "style" | "gender"> & { style?: AvatarStyle; gender?: AvatarGender }) => {
+    if (!avatar.portraitImage && !avatar.fullbodyImage) return;
+
+    const now = new Date();
+    const createdAt = now.toISOString();
+    const labelDate = now.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" });
+    const nextAvatar: SavedCustomAvatar = {
+      id: `custom-${now.getTime()}`,
+      label: `${displayName}님의 건강이 ${labelDate}`,
+      createdAt,
+      portraitImage: avatar.portraitImage,
+      fullbodyImage: avatar.fullbodyImage,
+      style: avatar.style || selected,
+      gender: avatar.gender || avatarGender,
+      origin: avatar.origin,
+    };
+
+    setSavedCustomAvatars((current) => {
+      const withoutDuplicate = current.filter(
+        (item) => item.portraitImage !== nextAvatar.portraitImage || item.fullbodyImage !== nextAvatar.fullbodyImage,
+      );
+      const next = [nextAvatar, ...withoutDuplicate].slice(0, SAVED_CUSTOM_AVATAR_LIMIT);
+      saveToStorage(STORAGE_KEYS.SAVED_CUSTOM_AVATARS, next);
+      return next;
+    });
+  };
+
+  const loadCustomAvatar = (avatar: SavedCustomAvatar) => {
+    setAiAvatarSelected(true);
+    setSelectedDefaultId(undefined);
+    setSelected(avatar.style);
+    setAvatarGender(avatar.gender);
+    setAvatarImage(avatar.portraitImage);
+    setAvatarPortraitImage(avatar.portraitImage);
+    setAvatarFullbodyImage(avatar.fullbodyImage);
+    setSourceImage(undefined);
+    setConsent(false);
+    setMessage(`${avatar.label}를 불러왔어요. 아래 다음 버튼을 누르면 적용됩니다.`);
+  };
 
   const processImage = async (file: File) => {
     setProcessing(true);
@@ -179,6 +250,7 @@ export default function AvatarPage() {
       setProfile(nextProfile);
       setAvatarImage(generatedImage);
       setAvatarPortraitImage(generatedImage);
+      rememberCustomAvatar({ portraitImage: generatedImage, fullbodyImage: avatarFullbodyImage, origin: "ai" });
       setMessage(generationCost > 0 ? `AI 건강이가 완성됐어요. ${generationCost.toLocaleString()}P가 차감되어 ${nextBalance.toLocaleString()}P가 남았어요.` : "첫 AI 건강이가 무료로 완성됐어요. 마음에 들면 저장해주세요.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "AI 아바타를 생성하지 못했습니다.");
@@ -209,6 +281,11 @@ export default function AvatarPage() {
       setAvatarImage(viewMode === "portrait" ? mediaData : avatarImage);
       if (viewMode === "portrait") setAvatarPortraitImage(mediaData);
       if (viewMode === "fullbody") setAvatarFullbodyImage(mediaData);
+      rememberCustomAvatar({
+        portraitImage: viewMode === "portrait" ? mediaData : avatarPortraitImage || avatarImage,
+        fullbodyImage: viewMode === "fullbody" ? mediaData : avatarFullbodyImage,
+        origin: "direct",
+      });
       setSourceImage(undefined);
       setConsent(false);
       setMessage(viewMode === "portrait" ? "상반신 건강이를 직접 넣었어요. 전신도 따로 넣을 수 있어요." : "전신 건강이를 직접 넣었어요. 상반신도 따로 넣을 수 있어요.");
@@ -378,6 +455,50 @@ export default function AvatarPage() {
                 <button onClick={() => fileInputRef.current?.click()} disabled={processing || generating} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#4CAF6A] px-3 font-bold text-white disabled:opacity-60">{sourceImage ? <RefreshCw size={18} /> : <ImagePlus size={18} />}{processing ? "준비 중..." : "사진 업로드"}</button>
                 <button onClick={() => setShowCamera(true)} disabled={processing || generating} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#1F5A3A] px-3 font-bold text-white disabled:opacity-60"><Camera size={18} />바로 촬영</button>
               </div>
+
+              <div className="mt-3 rounded-2xl border border-green-100 bg-[#F7FBF8] p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Images size={17} className="text-[#4CAF6A]" />
+                    <p className="text-sm font-extrabold text-[#1F2937]">나만의 건강이 불러오기</p>
+                  </div>
+                  <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#4CAF6A]">
+                    최근 {savedCustomAvatars.length}개
+                  </span>
+                </div>
+                {savedCustomAvatars.length ? (
+                  <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1">
+                    {savedCustomAvatars.map((avatar) => (
+                      <button
+                        key={avatar.id}
+                        onClick={() => loadCustomAvatar(avatar)}
+                        className="w-[92px] shrink-0 overflow-hidden rounded-2xl border border-white bg-white text-left shadow-sm transition active:scale-95"
+                      >
+                        <div className="relative h-[92px] bg-[#EAF7EF]">
+                          {avatar.portraitImage ? (
+                            <Image src={avatar.portraitImage} alt={`${avatar.label} 미리보기`} fill sizes="92px" className="object-cover object-top" />
+                          ) : (
+                            <div className="flex h-full items-center justify-center text-[#4CAF6A]">
+                              <Images size={24} />
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-2">
+                          <p className="truncate text-[11px] font-extrabold text-[#1F2937]">{avatar.label}</p>
+                          <p className="mt-0.5 text-[10px] font-semibold text-gray-400">
+                            {avatar.origin === "ai" ? "AI 생성" : "직접 등록"}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 rounded-xl bg-white p-3 text-xs leading-relaxed text-gray-500">
+                    AI로 생성하거나 직접 넣은 건강이가 여기에 저장돼요. 마음에 드는 결과를 언제든 다시 불러올 수 있어요.
+                  </p>
+                )}
+              </div>
+
               <div className="mt-3 rounded-2xl border border-green-100 bg-[#F7FBF8] p-3">
                 <p className="text-sm font-extrabold text-[#1F2937]">내가 만든 파일 직접 넣기</p>
                 <p className="mt-1 text-xs leading-relaxed text-gray-500">상반신과 전신을 따로 넣을 수 있어요. 영상은 3MB 이하 mp4/webm만 권장합니다.</p>
