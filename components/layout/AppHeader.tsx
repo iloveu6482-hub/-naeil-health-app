@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 import { Sprout, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getFromStorage, STORAGE_KEYS } from "@/lib/storage";
@@ -18,6 +19,8 @@ interface AppHeaderProps {
 }
 
 export default function AppHeader({ title, showBack, backHref }: AppHeaderProps) {
+  const pathname = usePathname();
+  const router = useRouter();
   const [points, setPoints] = useState(0);
   const [user, setUser] = useState<UserProfile>(sampleUser);
 
@@ -46,16 +49,36 @@ export default function AppHeader({ title, showBack, backHref }: AppHeaderProps)
 
   const avatarGender = user.defaultAvatarGender || (user.gender === "male" ? "male" : "female");
   const headerAvatar = getHeaderAvatarSource(user, avatarGender);
+  const shouldShowBack = showBack ?? pathname !== "/dashboard";
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push("/dashboard");
+  };
+
+  const backIcon = (
+    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-1.5">
       <div className="flex items-center gap-2">
-        {showBack && backHref ? (
-          <Link href={backHref} className="mr-1 text-gray-500 hover:text-gray-800">
-            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Link>
+        {shouldShowBack ? (
+          backHref ? (
+            <Link href={backHref} aria-label="뒤로가기" className="mr-1 text-gray-500 hover:text-gray-800">
+              {backIcon}
+            </Link>
+          ) : (
+            <button type="button" onClick={handleBack} aria-label="뒤로가기" className="mr-1 text-gray-500 hover:text-gray-800">
+              {backIcon}
+            </button>
+          )
         ) : null}
         <Link href="/dashboard" className="flex items-center gap-1">
           <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full border-2 border-[#BDE8CA] bg-[#EAF7EF] shadow-sm ring-1 ring-white">
