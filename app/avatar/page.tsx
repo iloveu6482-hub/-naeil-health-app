@@ -390,21 +390,6 @@ export default function AvatarPage() {
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <article className="rounded-2xl border border-green-100 bg-white p-2 shadow-sm">
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-[#EAF7EF]">
-                    <MediaPreview src={avatarPortraitImage || avatarImage} alt="상반신 미리보기" />
-                  </div>
-                  <p className="mt-2 text-center text-xs font-extrabold text-[#1F2937]">상반신 미리보기</p>
-                </article>
-                <article className="rounded-2xl border border-green-100 bg-white p-2 shadow-sm">
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-[#EAF7EF]">
-                    <MediaPreview src={avatarFullbodyImage} alt="전신 미리보기" />
-                  </div>
-                  <p className="mt-2 text-center text-xs font-extrabold text-[#1F2937]">전신 미리보기</p>
-                </article>
-              </div>
-
               {customPanel === "saved" && (
               <div className="mt-3 rounded-2xl border border-green-100 bg-[#F7FBF8] p-3">
                 <div className="flex items-center justify-between gap-2">
