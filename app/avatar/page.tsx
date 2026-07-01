@@ -3,7 +3,7 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Check, Images, Sparkles, Shirt, Trash2, Upload, UserRound } from "lucide-react";
+import { Check, ChevronRight, Images, Sparkles, Shirt, Trash2, Upload, UserRound } from "lucide-react";
 import MobileShell from "@/components/layout/MobileShell";
 import { prepareDirectAvatarMedia } from "@/lib/avatarImage";
 import { getDefaultAvatars } from "@/lib/defaultAvatars";
@@ -11,7 +11,11 @@ import { getFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
 import { sampleUser } from "@/lib/sampleData";
 import type { AvatarGender, AvatarStyle, UserProfile } from "@/types/user";
 
-const SAVED_CUSTOM_AVATAR_LIMIT = 8;
+const SAVED_CUSTOM_AVATAR_LIMIT = 3;
+const PORTRAIT_REFERENCE_IMAGE = "/avatars/guides/custom-portrait-reference.jpg";
+const FULLBODY_REFERENCE_IMAGE = "/avatars/guides/custom-fullbody-reference.jpg";
+
+type CustomAvatarPanel = "main" | "guide" | "saved";
 
 type SavedCustomAvatar = {
   id: string;
@@ -61,6 +65,8 @@ export default function AvatarPage() {
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState("");
   const [savedCustomAvatars, setSavedCustomAvatars] = useState<SavedCustomAvatar[]>([]);
+  const [expandedGuide, setExpandedGuide] = useState<{ src: string; title: string }>();
+  const [customPanel, setCustomPanel] = useState<CustomAvatarPanel>("main");
 
   const displayName = profile.name?.trim() || "사용자";
   const currentDefaultAvatars = useMemo(() => getDefaultAvatars(avatarGender), [avatarGender]);
@@ -87,7 +93,7 @@ export default function AvatarPage() {
     const currentCustomImage = saved.avatarPortraitImage || saved.avatarImage;
     setSavedCustomAvatars(
       savedCustomList.length || !currentCustomImage
-        ? savedCustomList
+        ? savedCustomList.slice(0, SAVED_CUSTOM_AVATAR_LIMIT)
         : [
             {
               id: saved.lastAvatarGeneratedAt || `custom-${Date.now()}`,
@@ -296,30 +302,69 @@ export default function AvatarPage() {
                 앱 안에서 AI 합성은 하지 않아요. 아래 기준점처럼 배경, 아바타 위치, 여백을 맞춰 만든 파일을 상반신/전신으로 넣어주세요.
               </p>
 
-              <div className="rounded-2xl bg-[#EAF7EF] p-3">
+              <div className="grid gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCustomPanel(customPanel === "guide" ? "main" : "guide")}
+                  className="flex min-h-14 items-center justify-between rounded-2xl border border-green-100 bg-[#F7FBF8] px-4 text-left shadow-sm active:scale-[0.98]"
+                >
+                  <span className="flex items-center gap-2 text-sm font-extrabold text-[#1F2937]">
+                    <UserRound size={17} className="text-[#4CAF6A]" />
+                    제작 기준점 보기
+                  </span>
+                  <ChevronRight size={18} className={`text-gray-300 transition ${customPanel === "guide" ? "rotate-90" : ""}`} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCustomPanel(customPanel === "saved" ? "main" : "saved")}
+                  className="flex min-h-14 items-center justify-between rounded-2xl border border-green-100 bg-[#F7FBF8] px-4 text-left shadow-sm active:scale-[0.98]"
+                >
+                  <span className="flex items-center gap-2 text-sm font-extrabold text-[#1F2937]">
+                    <Images size={17} className="text-[#4CAF6A]" />
+                    내 아바타 저장 목록
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#4CAF6A]">
+                      {savedCustomAvatars.length}/{SAVED_CUSTOM_AVATAR_LIMIT}
+                    </span>
+                    <ChevronRight size={18} className={`text-gray-300 transition ${customPanel === "saved" ? "rotate-90" : ""}`} />
+                  </span>
+                </button>
+              </div>
+
+              {customPanel === "guide" && (
+              <div className="mt-3 rounded-2xl bg-[#EAF7EF] p-3">
                 <div className="mb-3 flex items-center gap-2">
                   <UserRound size={17} className="text-[#4CAF6A]" />
                   <p className="text-sm font-extrabold text-[#1F2937]">제작 기준점</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <article className="overflow-hidden rounded-2xl bg-white shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedGuide({ src: PORTRAIT_REFERENCE_IMAGE, title: "상반신 기준" })}
+                    className="overflow-hidden rounded-2xl bg-white text-left shadow-sm transition active:scale-[0.98]"
+                  >
                     <div className="relative aspect-[3/4] bg-[#EAF7EF]">
-                      <Image src="/avatars/guides/custom-portrait-reference.png" alt="상반신 기준 이미지" fill sizes="190px" className="object-cover object-top" />
+                      <Image src={PORTRAIT_REFERENCE_IMAGE} alt="상반신 기준 이미지" fill sizes="190px" className="object-cover object-top" />
                     </div>
                     <div className="p-2">
                       <p className="text-xs font-extrabold text-[#1F2937]">상반신 기준</p>
                       <p className="mt-1 text-[11px] leading-relaxed text-gray-500">얼굴과 상체가 UI 중앙에 자연스럽게 보이도록 맞춰주세요.</p>
                     </div>
-                  </article>
-                  <article className="overflow-hidden rounded-2xl bg-white shadow-sm">
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedGuide({ src: FULLBODY_REFERENCE_IMAGE, title: "전신 기준" })}
+                    className="overflow-hidden rounded-2xl bg-white text-left shadow-sm transition active:scale-[0.98]"
+                  >
                     <div className="relative aspect-[3/4] bg-[#EAF7EF]">
-                      <Image src="/avatars/guides/custom-fullbody-reference.png" alt="전신 기준 이미지" fill sizes="190px" className="object-cover object-top" />
+                      <Image src={FULLBODY_REFERENCE_IMAGE} alt="전신 기준 이미지" fill sizes="190px" className="object-cover object-top" />
                     </div>
                     <div className="p-2">
                       <p className="text-xs font-extrabold text-[#1F2937]">전신 기준</p>
                       <p className="mt-1 text-[11px] leading-relaxed text-gray-500">전신은 발끝까지 보이고 좌우 여백이 충분해야 해요.</p>
                     </div>
-                  </article>
+                  </button>
                 </div>
                 <ul className="mt-3 space-y-1 rounded-2xl bg-white/80 p-3 text-xs leading-relaxed text-gray-600">
                   <li>1. 초록 숲길 배경과 밝은 햇살 분위기를 유지하면 앱 화면과 잘 맞아요.</li>
@@ -327,6 +372,7 @@ export default function AvatarPage() {
                   <li>3. 얼굴이 너무 크게 나오면 메인 UI와 겹칠 수 있어요.</li>
                 </ul>
               </div>
+              )}
 
               <input ref={directPortraitInputRef} type="file" accept="image/png,image/jpeg,image/webp,video/mp4,video/webm" className="hidden" onChange={(event) => handleDirectMedia(event, "portrait")} />
               <input ref={directFullbodyInputRef} type="file" accept="image/png,image/jpeg,image/webp,video/mp4,video/webm" className="hidden" onChange={(event) => handleDirectMedia(event, "fullbody")} />
@@ -359,24 +405,40 @@ export default function AvatarPage() {
                 </article>
               </div>
 
+              {customPanel === "saved" && (
               <div className="mt-3 rounded-2xl border border-green-100 bg-[#F7FBF8] p-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <Images size={17} className="text-[#4CAF6A]" />
                     <p className="text-sm font-extrabold text-[#1F2937]">나만의 건강이 불러오기</p>
                   </div>
-                  <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#4CAF6A]">최근 {savedCustomAvatars.length}개</span>
+                  <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#4CAF6A]">{savedCustomAvatars.length}/{SAVED_CUSTOM_AVATAR_LIMIT}</span>
                 </div>
                 {savedCustomAvatars.length ? (
-                  <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1">
-                    {savedCustomAvatars.map((avatar) => (
-                      <button key={avatar.id} onClick={() => loadCustomAvatar(avatar)} className="w-[92px] shrink-0 overflow-hidden rounded-2xl border border-white bg-white text-left shadow-sm transition active:scale-95">
-                        <div className="relative h-[92px] bg-[#EAF7EF]">
-                          <MediaPreview src={avatar.portraitImage || avatar.fullbodyImage} alt={`${avatar.label} 미리보기`} />
+                  <div className="mt-3 space-y-2">
+                    {savedCustomAvatars.map((avatar, index) => (
+                      <button
+                        key={avatar.id}
+                        onClick={() => loadCustomAvatar(avatar)}
+                        className="w-full rounded-2xl border border-white bg-white p-2 text-left shadow-sm transition active:scale-[0.98]"
+                      >
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                          <p className="truncate text-xs font-extrabold text-[#1F2937]">{index + 1}. {avatar.label}</p>
+                          <span className="rounded-full bg-[#EAF7EF] px-2 py-1 text-[10px] font-bold text-[#4CAF6A]">불러오기</span>
                         </div>
-                        <div className="p-2">
-                          <p className="truncate text-[11px] font-extrabold text-[#1F2937]">{avatar.label}</p>
-                          <p className="mt-0.5 text-[10px] font-semibold text-gray-400">직접 등록</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-[#EAF7EF]">
+                              <MediaPreview src={avatar.portraitImage} alt={`${avatar.label} 상반신`} />
+                            </div>
+                            <p className="mt-1 text-center text-[10px] font-bold text-gray-500">상반신</p>
+                          </div>
+                          <div>
+                            <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-[#EAF7EF]">
+                              <MediaPreview src={avatar.fullbodyImage} alt={`${avatar.label} 전신`} />
+                            </div>
+                            <p className="mt-1 text-center text-[10px] font-bold text-gray-500">전신</p>
+                          </div>
                         </div>
                       </button>
                     ))}
@@ -387,6 +449,7 @@ export default function AvatarPage() {
                   </p>
                 )}
               </div>
+              )}
 
               {(avatarPortraitImage || avatarFullbodyImage || avatarImage) && (
                 <button onClick={clearCustomAvatar} disabled={processing} className="mt-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 font-bold text-gray-600 disabled:opacity-50">
@@ -407,6 +470,38 @@ export default function AvatarPage() {
             다음
           </button>
         </div>
+
+        {expandedGuide ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+            <button
+              type="button"
+              aria-label="기준 이미지 닫기"
+              onClick={() => setExpandedGuide(undefined)}
+              className="absolute inset-0 cursor-default"
+            />
+            <div className="relative z-10 w-full max-w-[430px] overflow-hidden rounded-3xl bg-white shadow-2xl">
+              <div className="flex items-center justify-between px-4 py-3">
+                <p className="text-base font-extrabold text-[#1F2937]">{expandedGuide.title}</p>
+                <button
+                  type="button"
+                  onClick={() => setExpandedGuide(undefined)}
+                  className="rounded-full bg-[#EAF7EF] px-3 py-1.5 text-sm font-extrabold text-[#1F5A3A]"
+                >
+                  닫기
+                </button>
+              </div>
+              <div className="max-h-[80vh] overflow-auto bg-black">
+                <Image
+                  src={expandedGuide.src}
+                  alt={`${expandedGuide.title} 전체 이미지`}
+                  width={1080}
+                  height={1620}
+                  className="h-auto w-full"
+                />
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </MobileShell>
   );
