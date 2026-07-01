@@ -291,6 +291,14 @@ export default function DashboardPage() {
   const [challengeBadgeProgress, setChallengeBadgeProgress] = useState(0);
   const avatarSwipeStartX = useRef<number | null>(null);
   const avatarSwipeStartY = useRef<number | null>(null);
+  const coachAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      coachAudioRef.current?.pause();
+      coachAudioRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     const savedUser = getFromStorage<UserProfile>(STORAGE_KEYS.USER_PROFILE, sampleUser);
@@ -450,7 +458,24 @@ export default function DashboardPage() {
   };
 
   const handleCoachMessageClick = () => {
-    console.log("코치 음성 안내는 추후 제공될 예정입니다.");
+    if (showPriorityCoachMessage && activeTodayCoachMessage) {
+      console.log("AI 코칭 메시지는 아직 음성 파일이 연결되지 않았습니다.");
+      return;
+    }
+
+    if (selectedCoachId !== "haru") {
+      console.log("선택된 코치 음성 파일은 아직 준비 중입니다.");
+      return;
+    }
+
+    const audioSrc = `/audio/coaches/${selectedCoachId}/${selectedCoachMessage.message.audioFile}`;
+    coachAudioRef.current?.pause();
+    coachAudioRef.current = new Audio(audioSrc);
+    coachAudioRef.current.currentTime = 0;
+
+    void coachAudioRef.current.play().catch((error) => {
+      console.error("Coach audio playback failed", error);
+    });
   };
 
   const handleCreateFinalCoaching = async () => {
@@ -675,7 +700,7 @@ export default function DashboardPage() {
             <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-white bg-[#EAF7EF] shadow-md ring-1 ring-[#BDE8CA]">
               <Image src={selectedCoach.faceImageUrl || selectedCoach.imageUrl} alt={`${selectedCoach.name} 코치`} fill className="object-cover" />
             </div>
-            <button type="button" onClick={handleCoachMessageClick} aria-label="코치 음성 안내 준비중" title="코치 음성 안내 준비중" className="relative flex-1 rounded-2xl border border-[#BDE8CA] bg-white/92 px-3.5 py-2 text-left shadow-[0_10px_24px_rgba(31,90,58,0.16)] backdrop-blur-md transition duration-150 hover:bg-white/95 active:scale-[0.98] active:bg-white before:absolute before:left-[-6px] before:top-3.5 before:h-3 before:w-3 before:rotate-45 before:border-b before:border-l before:border-[#BDE8CA] before:bg-white/92">
+            <button type="button" onClick={handleCoachMessageClick} aria-label="코치 멘트 음성 듣기" title="코치 멘트 음성 듣기" className="relative flex-1 rounded-2xl border border-[#BDE8CA] bg-white/92 px-3.5 py-2 text-left shadow-[0_10px_24px_rgba(31,90,58,0.16)] backdrop-blur-md transition duration-150 hover:bg-white/95 active:scale-[0.98] active:bg-white before:absolute before:left-[-6px] before:top-3.5 before:h-3 before:w-3 before:rotate-45 before:border-b before:border-l before:border-[#BDE8CA] before:bg-white/92">
               <span className="flex items-start gap-2">
                 <span className="flex-1 text-sm font-medium leading-5 text-[#173425]">{bubbleMessageText}</span>
                 <Volume2 size={15} className="mt-0.5 shrink-0 text-[#4CAF6A]/55" aria-hidden="true" />
