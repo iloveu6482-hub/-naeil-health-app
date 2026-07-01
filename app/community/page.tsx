@@ -254,16 +254,21 @@ function InitialBadge({ name, size = "md" }: { name: string; size?: "sm" | "md" 
 }
 
 type AvatarPlazaView = "main" | "toon" | "daily" | "characters";
+type ToonSeasonView = "list" | "prologue" | "season1" | "season2";
 
 function AvatarPlaza() {
   const [view, setView] = useState<AvatarPlazaView>("main");
+  const [toonSeasonView, setToonSeasonView] = useState<ToonSeasonView>("list");
   const [filter, setFilter] = useState<CharacterFilter>("전체");
   const filteredCharacters = filter === "전체" ? characterCards : characterCards.filter((card) => card.filter === filter);
 
   const BackToPlaza = ({ title }: { title: string }) => (
     <button
       type="button"
-      onClick={() => setView("main")}
+      onClick={() => {
+        setView("main");
+        setToonSeasonView("list");
+      }}
       className="mb-3 inline-flex min-h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-black text-[#1F5A3A] shadow-sm active:scale-[0.98]"
     >
       <ChevronRight size={17} className="rotate-180" />
@@ -272,12 +277,114 @@ function AvatarPlaza() {
   );
 
   if (view === "toon") {
+    const prologueEpisodes = toonEpisodes.filter((episode) => episode.category === "프롤로그");
+
+    if (toonSeasonView === "list") {
+      const seasons: Array<{
+        id: ToonSeasonView;
+        title: string;
+        desc: string;
+        status: string;
+        icon: LucideIcon;
+        ready: boolean;
+      }> = [
+        {
+          id: "prologue",
+          title: "프롤로그",
+          desc: "내일의건강 커뮤니티가 열리고 첫 미션이 시작되는 이야기",
+          status: `${prologueEpisodes.length}편`,
+          icon: BookOpen,
+          ready: true,
+        },
+        {
+          id: "season1",
+          title: "시즌 1",
+          desc: "아바타들이 건강 루틴을 만들어가는 첫 번째 시즌",
+          status: "준비 중",
+          icon: Droplets,
+          ready: false,
+        },
+        {
+          id: "season2",
+          title: "시즌 2",
+          desc: "코치와 함께 성장하는 다음 이야기",
+          status: "준비 중",
+          icon: Sparkles,
+          ready: false,
+        },
+      ];
+
+      return (
+        <>
+          <BackToPlaza title="아바타 광장으로" />
+          <SectionTitle desc="보고 싶은 시즌을 선택해 이어서 볼 수 있어요.">내건툰 연재</SectionTitle>
+          <section className="space-y-3">
+            {seasons.map(({ id, title, desc, status, icon: Icon, ready }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setToonSeasonView(id)}
+                className="flex w-full items-center justify-between gap-3 rounded-3xl bg-white p-4 text-left shadow-sm active:scale-[0.98]"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EAF7EF]">
+                    <Icon size={24} className="text-[#4CAF6A]" />
+                  </span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-black text-[#1F2937]">{title}</h3>
+                      <span className={`rounded-full px-2 py-1 text-[11px] font-black ${ready ? "bg-[#EAF7EF] text-[#1F5A3A]" : "bg-gray-100 text-gray-400"}`}>
+                        {status}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm leading-relaxed text-gray-500">{desc}</p>
+                  </div>
+                </div>
+                <ChevronRight className="shrink-0 text-gray-300" />
+              </button>
+            ))}
+          </section>
+        </>
+      );
+    }
+
+    if (toonSeasonView !== "prologue") {
+      const seasonTitle = toonSeasonView === "season1" ? "시즌 1" : "시즌 2";
+
+      return (
+        <>
+          <button
+            type="button"
+            onClick={() => setToonSeasonView("list")}
+            className="mb-3 inline-flex min-h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-black text-[#1F5A3A] shadow-sm active:scale-[0.98]"
+          >
+            <ChevronRight size={17} className="rotate-180" />
+            내건툰 목록으로
+          </button>
+          <section className="rounded-3xl bg-white p-6 text-center shadow-sm">
+            <Sparkles className="mx-auto text-[#4CAF6A]" size={34} />
+            <h2 className="mt-3 text-xl font-black text-[#1F2937]">{seasonTitle}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-gray-500">
+              곧 만나요! 준비 중이에요 🌱
+            </p>
+          </section>
+        </>
+      );
+    }
+
     return (
       <>
-        <BackToPlaza title="아바타 광장으로" />
-        <SectionTitle desc="아바타와 코치들이 함께 만드는 건강생활 이야기">내건툰 연재</SectionTitle>
+        <button
+          type="button"
+          onClick={() => setToonSeasonView("list")}
+          className="mb-3 inline-flex min-h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-black text-[#1F5A3A] shadow-sm active:scale-[0.98]"
+        >
+          <ChevronRight size={17} className="rotate-180" />
+          내건툰 목록으로
+        </button>
+        <SectionTitle desc="아바타와 코치들이 함께 만드는 건강생활 이야기">프롤로그</SectionTitle>
         <section className="space-y-3">
-          {toonEpisodes.map((episode, index) => (
+          {prologueEpisodes.map((episode, index) => (
             <article key={episode.title} className="overflow-hidden rounded-3xl bg-white shadow-sm">
               <div className="relative h-32 bg-gradient-to-br from-[#DDF4E5] to-[#FFF8CF] p-4">
                 <span className="rounded-full bg-white/85 px-3 py-1 text-xs font-black text-[#1F5A3A]">{episode.category}</span>
@@ -422,7 +529,10 @@ function AvatarPlaza() {
       <section className="mt-4 grid grid-cols-1 gap-3">
         <button
           type="button"
-          onClick={() => setView("toon")}
+          onClick={() => {
+            setToonSeasonView("list");
+            setView("toon");
+          }}
           className="flex items-center justify-between rounded-3xl bg-white p-4 text-left shadow-sm active:scale-[0.98]"
         >
           <div className="flex items-center gap-3">
