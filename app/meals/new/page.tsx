@@ -206,7 +206,7 @@ export default function NewMealPage() {
       ...additions,
     ]);
     window.dispatchEvent(new Event("pointsUpdated"));
-    router.push("/meals");
+    router.replace("/meals");
   };
 
   return (

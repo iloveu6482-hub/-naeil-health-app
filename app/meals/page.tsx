@@ -40,7 +40,7 @@ export default function MealsPage() {
 
   return (
     <MobileShell>
-      <AppHeader title="식단 기록" />
+      <AppHeader title="식단 기록" showBack backHref="/dashboard" />
       <main className="flex-1 bg-[#F7FBF8] px-4 pb-24 pt-4">
         <section className="rounded-3xl bg-gradient-to-br from-[#176B3A] to-[#4CAF6A] p-5 text-white shadow-lg">
           <p className="text-sm text-green-100">오늘의 식사 흐름</p>
