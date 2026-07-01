@@ -253,52 +253,32 @@ function InitialBadge({ name, size = "md" }: { name: string; size?: "sm" | "md" 
   );
 }
 
+type AvatarPlazaView = "main" | "toon" | "daily" | "characters";
+
 function AvatarPlaza() {
+  const [view, setView] = useState<AvatarPlazaView>("main");
   const [filter, setFilter] = useState<CharacterFilter>("전체");
   const filteredCharacters = filter === "전체" ? characterCards : characterCards.filter((card) => card.filter === filter);
 
-  return (
-    <>
-      <section className="rounded-3xl bg-gradient-to-br from-[#1F5A3A] via-[#3E9D5C] to-[#8BD78E] p-5 text-white shadow-sm">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-black text-green-50">읽고 보는 캐릭터 커뮤니티</p>
-            <h1 className="mt-2 text-2xl font-black">아바타 광장</h1>
-            <p className="mt-2 text-sm leading-relaxed text-green-50">
-              아바타와 코치들의 이야기, 내건툰 연재와 캐릭터 일상을 만나보세요.
-            </p>
-          </div>
-          <span className="flex h-13 w-13 items-center justify-center rounded-2xl bg-white/20">
-            <Sparkles size={26} />
-          </span>
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <a href="#naeguntoon" className="flex min-h-11 items-center justify-center rounded-2xl bg-white px-3 text-sm font-black text-[#1F5A3A]">
-            내건툰 보기
-          </a>
-          <a href="#avatar-feed" className="flex min-h-11 items-center justify-center rounded-2xl bg-white/20 px-3 text-sm font-black text-white ring-1 ring-white/30">
-            오늘의 아바타 보기
-          </a>
-        </div>
-      </section>
+  const BackToPlaza = ({ title }: { title: string }) => (
+    <button
+      type="button"
+      onClick={() => setView("main")}
+      className="mb-3 inline-flex min-h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-black text-[#1F5A3A] shadow-sm active:scale-[0.98]"
+    >
+      <ChevronRight size={17} className="rotate-180" />
+      {title}
+    </button>
+  );
 
-      <section className="scrollbar-hide -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-2">
-        {storyCharacters.map((character) => (
-          <button key={character.name} type="button" className="w-18 shrink-0 text-center">
-            <span className="relative mx-auto block h-14 w-14 rounded-full bg-gradient-to-br from-[#EAF7EF] to-[#BDE8CA] p-1 shadow-sm">
-              <InitialBadge name={character.avatar} />
-              {character.hasNew ? <span className="absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-white bg-[#4CAF6A]" /> : null}
-            </span>
-            <span className="mt-1 block truncate text-xs font-black text-[#1F2937]">{character.name}</span>
-          </button>
-        ))}
-      </section>
-
-      <section id="naeguntoon">
+  if (view === "toon") {
+    return (
+      <>
+        <BackToPlaza title="아바타 광장으로" />
         <SectionTitle desc="아바타와 코치들이 함께 만드는 건강생활 이야기">내건툰 연재</SectionTitle>
-        <div className="scrollbar-hide -mx-4 flex gap-3 overflow-x-auto px-4 pb-2">
+        <section className="space-y-3">
           {toonEpisodes.map((episode, index) => (
-            <article key={episode.title} className="w-[260px] shrink-0 overflow-hidden rounded-3xl bg-white shadow-sm">
+            <article key={episode.title} className="overflow-hidden rounded-3xl bg-white shadow-sm">
               <div className="relative h-32 bg-gradient-to-br from-[#DDF4E5] to-[#FFF8CF] p-4">
                 <span className="rounded-full bg-white/85 px-3 py-1 text-xs font-black text-[#1F5A3A]">{episode.category}</span>
                 <div className="absolute bottom-4 right-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/75">
@@ -307,7 +287,7 @@ function AvatarPlaza() {
               </div>
               <div className="p-4">
                 <h3 className="font-black text-[#1F2937]">{episode.title}</h3>
-                <p className="mt-1 min-h-10 text-sm leading-relaxed text-gray-500">{episode.desc}</p>
+                <p className="mt-1 text-sm leading-relaxed text-gray-500">{episode.desc}</p>
                 <div className="mt-3 flex items-center justify-between text-xs text-gray-400">
                   <span>읽는 시간 {episode.readTime}</span>
                   <span>{episode.hasImage ? "이미지 포함" : "텍스트 중심"}</span>
@@ -318,12 +298,17 @@ function AvatarPlaza() {
               </div>
             </article>
           ))}
-        </div>
-      </section>
+        </section>
+      </>
+    );
+  }
 
-      <section id="avatar-feed">
+  if (view === "daily") {
+    return (
+      <>
+        <BackToPlaza title="아바타 광장으로" />
         <SectionTitle>오늘의 아바타 일상</SectionTitle>
-        <div className="space-y-3">
+        <section className="space-y-3">
           {avatarDailyPosts.map((post) => (
             <article key={post.name} className="rounded-3xl bg-white p-4 shadow-sm">
               <div className="flex items-center gap-3">
@@ -353,7 +338,138 @@ function AvatarPlaza() {
               </div>
             </article>
           ))}
+        </section>
+      </>
+    );
+  }
+
+  if (view === "characters") {
+    return (
+      <>
+        <BackToPlaza title="아바타 광장으로" />
+        <SectionTitle>캐릭터별 모아보기</SectionTitle>
+        <section className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 pb-2">
+          {characterFilters.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => setFilter(item)}
+              className={`shrink-0 rounded-full px-4 py-2 text-sm font-black ${
+                filter === item ? "bg-[#4CAF6A] text-white" : "bg-white text-gray-500"
+              }`}
+            >
+              {item}
+            </button>
+          ))}
+        </section>
+        <section className="mt-3 grid grid-cols-2 gap-3">
+          {filteredCharacters.map((character) => (
+            <article key={character.name} className="rounded-2xl bg-white p-4 shadow-sm">
+              <div className="flex items-center gap-2">
+                <InitialBadge name={character.name} size="sm" />
+                <div className="min-w-0">
+                  <h3 className="truncate font-black text-[#1F2937]">{character.name}</h3>
+                  <p className="truncate text-xs text-gray-400">{character.type}</p>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-1">
+                {character.keywords.slice(0, 3).map((keyword) => (
+                  <span key={keyword} className="rounded-full bg-[#F3F7F4] px-2 py-1 text-[11px] font-bold text-gray-500">
+                    {keyword}
+                  </span>
+                ))}
+              </div>
+              <p className="mt-3 text-xs font-bold text-[#4CAF6A]">최근 콘텐츠 {character.count}개</p>
+              <button className="mt-3 flex min-h-9 w-full items-center justify-center rounded-xl bg-[#EAF7EF] text-xs font-black text-[#1F5A3A]">
+                {character.action}
+              </button>
+            </article>
+          ))}
+        </section>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <section className="rounded-3xl bg-gradient-to-br from-[#1F5A3A] via-[#3E9D5C] to-[#8BD78E] p-5 text-white shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-black text-green-50">읽고 보는 캐릭터 커뮤니티</p>
+            <h1 className="mt-2 text-2xl font-black">아바타 광장</h1>
+            <p className="mt-2 text-sm leading-relaxed text-green-50">
+              아바타와 코치들의 이야기, 내건툰 연재와 캐릭터 일상을 만나보세요.
+            </p>
+          </div>
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20">
+            <Sparkles size={26} />
+          </span>
         </div>
+      </section>
+
+      <section className="scrollbar-hide -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-2">
+        {storyCharacters.map((character) => (
+          <button key={character.name} type="button" className="w-18 shrink-0 text-center">
+            <span className="relative mx-auto block h-14 w-14 rounded-full bg-gradient-to-br from-[#EAF7EF] to-[#BDE8CA] p-1 shadow-sm">
+              <InitialBadge name={character.avatar} />
+              {character.hasNew ? <span className="absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-white bg-[#4CAF6A]" /> : null}
+            </span>
+            <span className="mt-1 block truncate text-xs font-black text-[#1F2937]">{character.name}</span>
+          </button>
+        ))}
+      </section>
+
+      <section className="mt-4 grid grid-cols-1 gap-3">
+        <button
+          type="button"
+          onClick={() => setView("toon")}
+          className="flex items-center justify-between rounded-3xl bg-white p-4 text-left shadow-sm active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#EAF7EF]">
+              <BookOpen size={23} className="text-[#4CAF6A]" />
+            </span>
+            <div>
+              <h2 className="font-black text-[#1F2937]">내건툰 연재</h2>
+              <p className="mt-1 text-sm text-gray-500">건강생활 캐릭터 이야기를 모아봤어요.</p>
+            </div>
+          </div>
+          <ChevronRight className="shrink-0 text-gray-300" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setView("daily")}
+          className="flex items-center justify-between rounded-3xl bg-white p-4 text-left shadow-sm active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#EAF7EF]">
+              <MessageCircle size={23} className="text-[#4CAF6A]" />
+            </span>
+            <div>
+              <h2 className="font-black text-[#1F2937]">오늘의 아바타 일상</h2>
+              <p className="mt-1 text-sm text-gray-500">아바타들의 하루 기록을 확인해요.</p>
+            </div>
+          </div>
+          <ChevronRight className="shrink-0 text-gray-300" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setView("characters")}
+          className="flex items-center justify-between rounded-3xl bg-white p-4 text-left shadow-sm active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#EAF7EF]">
+              <UsersRound size={23} className="text-[#4CAF6A]" />
+            </span>
+            <div>
+              <h2 className="font-black text-[#1F2937]">캐릭터별 모아보기</h2>
+              <p className="mt-1 text-sm text-gray-500">아바타와 코치 콘텐츠를 분류해요.</p>
+            </div>
+          </div>
+          <ChevronRight className="shrink-0 text-gray-300" />
+        </button>
       </section>
 
       <SectionTitle>오늘의 코치 한마디</SectionTitle>
@@ -372,46 +488,6 @@ function AvatarPlaza() {
               <p className="text-xs font-black text-[#4CAF6A]">추천 루틴</p>
               <p className="mt-1 text-sm font-bold text-[#1F5A3A]">{coach.routine}</p>
             </div>
-          </article>
-        ))}
-      </section>
-
-      <SectionTitle>캐릭터별 모아보기</SectionTitle>
-      <section className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 pb-2">
-        {characterFilters.map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => setFilter(item)}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-black ${
-              filter === item ? "bg-[#4CAF6A] text-white" : "bg-white text-gray-500"
-            }`}
-          >
-            {item}
-          </button>
-        ))}
-      </section>
-      <section className="mt-3 grid grid-cols-2 gap-3">
-        {filteredCharacters.map((character) => (
-          <article key={character.name} className="rounded-2xl bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2">
-              <InitialBadge name={character.name} size="sm" />
-              <div className="min-w-0">
-                <h3 className="truncate font-black text-[#1F2937]">{character.name}</h3>
-                <p className="truncate text-xs text-gray-400">{character.type}</p>
-              </div>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-1">
-              {character.keywords.slice(0, 3).map((keyword) => (
-                <span key={keyword} className="rounded-full bg-[#F3F7F4] px-2 py-1 text-[11px] font-bold text-gray-500">
-                  {keyword}
-                </span>
-              ))}
-            </div>
-            <p className="mt-3 text-xs font-bold text-[#4CAF6A]">최근 콘텐츠 {character.count}개</p>
-            <button className="mt-3 flex min-h-9 w-full items-center justify-center rounded-xl bg-[#EAF7EF] text-xs font-black text-[#1F5A3A]">
-              {character.action}
-            </button>
           </article>
         ))}
       </section>
