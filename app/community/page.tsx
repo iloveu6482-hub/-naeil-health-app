@@ -33,9 +33,9 @@ import BottomNav from "@/components/layout/BottomNav";
 type CommunityTab = "home" | "avatar" | "records" | "family" | "meetup";
 type CharacterFilter = "전체" | "웹툰형" | "감성형" | "시니어형" | "코치";
 
-const communityTabs: Array<{ id: CommunityTab; label: string }> = [
+const communityTabs: Array<{ id: CommunityTab; label: string; hasNew?: boolean }> = [
   { id: "home", label: "홈" },
-  { id: "avatar", label: "아바타" },
+  { id: "avatar", label: "아바타", hasNew: true },
   { id: "records", label: "기록" },
   { id: "family", label: "가족" },
   { id: "meetup", label: "모임" },
@@ -48,6 +48,7 @@ const quickCards = [
     title: "아바타 광장",
     desc: "아바타와 코치들의 이야기를 만나보세요.",
     action: "아바타 보기",
+    hasNew: true,
   },
   {
     tab: "records" as CommunityTab,
@@ -95,6 +96,123 @@ const toonEpisodes = [
     hasImage: true,
     imageUrl: "/community/toon/prologue-01.png",
     initialLikes: 12,
+    isNew: true,
+    body: `며칠 동안 커뮤니티 화면에는 같은 문구가 떠 있었다.
+
+곧 만나요! 준비 중이에요 🌱
+
+그 문구는 조용했지만, 이상하게 사람을 기다리게 만드는 힘이 있었다.
+
+하얀 카드처럼 비어 있던 공간. 민트빛 새싹 아이콘 하나가 중앙에서 살짝 흔들리고 있었다.
+
+그리고 어느 날 아침.
+
+띵.
+
+작은 알림음과 함께 화면이 바뀌었다.
+
+내일의건강 커뮤니티가 열렸어요 🌱
+오늘의 기록을 나누고, 가족과 함께하고, 아바타와 코치의 응원을 받아보세요.
+
+하얀 공간 위로 초록빛이 번지더니, 커뮤니티 중앙에 작은 문이 생겼다.
+
+문 위에는 이렇게 적혀 있었다.
+
+내일의건강 커뮤니티
+
+가장 먼저 문을 열고 들어온 사람은 한지훈이었다.
+
+그는 주변을 둘러보다가 팔짱을 꼈다.
+
+“좋아. 오늘부터 여기서 같이 시작하는 거야.”
+
+그 말투는 마치 이미 모든 계획을 세운 사람 같았다. 하지만 그의 손에는 아직 아무 기록도 없었다.
+
+곧이어 서아린이 가볍게 걸어 들어왔다.
+
+“오, 생각보다 예쁜데요? 건강 앱 커뮤니티라길래 딱딱할 줄 알았는데.”
+
+한지훈은 고개를 끄덕였다.
+
+“공간은 괜찮습니다. 이제 문제는 사람들이 얼마나 실천하느냐죠.”
+
+서아린이 그를 바라봤다.
+
+“지훈 씨는 이미 실천했어요?”
+
+한지훈은 잠시 멈췄다.
+
+“…이제 하려고 했습니다.”
+
+서아린은 웃었다.
+
+“그럼 우리 둘 다 아직 시작 전이네요.”
+
+그 뒤로 윤서준이 조용히 들어왔다. 그는 커뮤니티 한쪽 벤치를 발견하더니 천천히 앉았다.
+
+“이런 공간이면 기록을 남기기에는 좋겠네요.”
+
+서유나는 작은 기록장을 들고 들어왔다.
+
+“혼자 적는 기록도 좋지만, 누군가와 같이 남기면 조금 덜 외로울 것 같아요.”
+
+조금 뒤, 박성호와 윤정희도 나란히 걸어 들어왔다.
+
+박성호는 커뮤니티 안내판을 천천히 읽었다.
+
+“걷기, 수분, 마음 기록, 루틴 인증이라… 복잡한 건 아니군요.”
+
+윤정희가 미소 지었다.
+
+“천천히 하면 되겠네요. 우리도 하나씩 해봐요.”
+
+그때 커뮤니티 중앙에 다시 알림이 떴다.
+
+첫 번째 안내가 도착했습니다.
+
+모두가 화면을 바라봤다. 그리고 네 명의 코치가 차례로 모습을 드러냈다.
+
+부드럽게 웃는 하루쌤. 밝게 손을 흔드는 루미. 단단한 자세로 선 강태오 코치. 편안한 미소를 지은 온유쌤.
+
+하루쌤이 먼저 말했다.
+
+“작은 기록 하나부터 시작해봐요.”
+
+루미가 활짝 웃었다.
+
+“어색해도 괜찮아요! 같이 하면 재밌어요.”
+
+강태오 코치는 짧고 단호하게 말했다.
+
+“오늘은 가볍게. 내일부터는 꾸준하게.”
+
+온유쌤은 천천히 덧붙였다.
+
+“무리하지 않아도 괜찮습니다. 건강은 매일의 습관에서 시작돼요.”
+
+한지훈은 커뮤니티 중앙 화면을 바라봤다.
+
+처음엔 단순한 앱 공간이라고 생각했다. 하지만 이곳은 조금 달랐다.
+
+기록을 남기고, 서로 응원하고, 작은 실천을 함께 시작하는 공간.
+
+서아린이 말했다.
+
+“그럼 오늘부터 진짜 시작이네요.”
+
+한지훈이 고개를 끄덕였다.
+
+“좋습니다. 오늘 목표 하나만 바로 실천해봅시다.”
+
+커뮤니티 화면 아래에 오늘의 문장이 떠올랐다.
+
+작은 변화가 내일의 건강을 만듭니다.
+
+오늘의 미션
+
+오늘의 작은 기록 하나 남기기
+
+거창하지 않아도 괜찮아요. 물 한 잔, 산책 5분, 스트레칭 한 번처럼 오늘 내가 한 작은 실천을 기록해보세요.`,
   },
   {
     id: "prologue-02",
@@ -105,6 +223,8 @@ const toonEpisodes = [
     hasImage: true,
     imageUrl: "",
     initialLikes: 8,
+    isNew: false,
+    body: "",
   },
   {
     id: "season1-01",
@@ -115,6 +235,8 @@ const toonEpisodes = [
     hasImage: false,
     imageUrl: "",
     initialLikes: 0,
+    isNew: false,
+    body: "",
   },
 ];
 
@@ -222,6 +344,14 @@ function SectionTitle({
   );
 }
 
+function NewBadge() {
+  return (
+    <span className="inline-flex items-center rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-black leading-none text-white">
+      NEW
+    </span>
+  );
+}
+
 function EmptyActionCard({
   icon: Icon,
   title,
@@ -268,6 +398,7 @@ type ToonSeasonView = "list" | "prologue" | "season1" | "season2";
 function AvatarPlaza() {
   const [view, setView] = useState<AvatarPlazaView>("main");
   const [toonSeasonView, setToonSeasonView] = useState<ToonSeasonView>("list");
+  const [selectedToonId, setSelectedToonId] = useState<string | null>(null);
   const [filter, setFilter] = useState<CharacterFilter>("전체");
   const [toonLikes, setToonLikes] = useState<Record<string, number>>({});
   const [likedToons, setLikedToons] = useState<Record<string, boolean>>({});
@@ -310,6 +441,7 @@ function AvatarPlaza() {
       onClick={() => {
         setView("main");
         setToonSeasonView("list");
+        setSelectedToonId(null);
       }}
       className="mb-3 inline-flex min-h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-black text-[#1F5A3A] shadow-sm active:scale-[0.98]"
     >
@@ -320,6 +452,7 @@ function AvatarPlaza() {
 
   if (view === "toon") {
     const prologueEpisodes = toonEpisodes.filter((episode) => episode.category === "프롤로그");
+    const selectedToon = prologueEpisodes.find((episode) => episode.id === selectedToonId);
 
     if (toonSeasonView === "list") {
       const seasons: Array<{
@@ -329,6 +462,7 @@ function AvatarPlaza() {
         status: string;
         icon: LucideIcon;
         ready: boolean;
+        hasNew?: boolean;
       }> = [
         {
           id: "prologue",
@@ -337,6 +471,7 @@ function AvatarPlaza() {
           status: `${prologueEpisodes.length}편`,
           icon: BookOpen,
           ready: true,
+          hasNew: true,
         },
         {
           id: "season1",
@@ -361,11 +496,14 @@ function AvatarPlaza() {
           <BackToPlaza title="아바타 광장으로" />
           <SectionTitle desc="보고 싶은 시즌을 선택해 이어서 볼 수 있어요.">내건툰 연재</SectionTitle>
           <section className="space-y-3">
-            {seasons.map(({ id, title, desc, status, icon: Icon, ready }) => (
+            {seasons.map(({ id, title, desc, status, icon: Icon, ready, hasNew }) => (
               <button
                 key={id}
                 type="button"
-                onClick={() => setToonSeasonView(id)}
+                onClick={() => {
+                  setSelectedToonId(null);
+                  setToonSeasonView(id);
+                }}
                 className="flex w-full items-center justify-between gap-3 rounded-3xl bg-white p-4 text-left shadow-sm active:scale-[0.98]"
               >
                 <div className="flex items-center gap-3">
@@ -375,6 +513,7 @@ function AvatarPlaza() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-black text-[#1F2937]">{title}</h3>
+                      {hasNew ? <NewBadge /> : null}
                       <span className={`rounded-full px-2 py-1 text-[11px] font-black ${ready ? "bg-[#EAF7EF] text-[#1F5A3A]" : "bg-gray-100 text-gray-400"}`}>
                         {status}
                       </span>
@@ -414,11 +553,87 @@ function AvatarPlaza() {
       );
     }
 
+    if (selectedToon) {
+      const bodyLines = selectedToon.body
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+      return (
+        <>
+          <button
+            type="button"
+            onClick={() => setSelectedToonId(null)}
+            className="mb-3 inline-flex min-h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-black text-[#1F5A3A] shadow-sm active:scale-[0.98]"
+          >
+            <ChevronRight size={17} className="rotate-180" />
+            프롤로그 목록으로
+          </button>
+          <article className="overflow-hidden rounded-3xl bg-white shadow-sm">
+            {selectedToon.imageUrl ? (
+              <div className="relative aspect-[4/5] overflow-hidden bg-[#EAF7EF]">
+                <img
+                  src={selectedToon.imageUrl}
+                  alt={selectedToon.title}
+                  className="h-full w-full object-cover"
+                />
+                <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-black text-[#1F5A3A] shadow-sm">
+                  {selectedToon.category}
+                </span>
+                {selectedToon.isNew ? <span className="absolute right-4 top-4"><NewBadge /></span> : null}
+              </div>
+            ) : null}
+            <div className="p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black text-[#4CAF6A]">내건툰 연재</p>
+                  <h2 className="mt-1 text-xl font-black leading-snug text-[#1F2937]">{selectedToon.title}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-gray-500">{selectedToon.desc}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => toggleToonLike(selectedToon.id)}
+                  className={`flex min-h-10 shrink-0 items-center gap-1 rounded-2xl px-4 text-sm font-black transition active:scale-[0.98] ${
+                    likedToons[selectedToon.id]
+                      ? "bg-[#4CAF6A] text-white"
+                      : "bg-[#F3F7F4] text-[#1F5A3A]"
+                  }`}
+                >
+                  <Heart size={16} fill={likedToons[selectedToon.id] ? "currentColor" : "none"} />
+                  {(toonLikes[selectedToon.id] ?? selectedToon.initialLikes).toLocaleString()}
+                </button>
+              </div>
+              <div className="mt-4 flex items-center justify-between text-xs text-gray-400">
+                <span>읽는 시간 {selectedToon.readTime}</span>
+                <span>{selectedToon.hasImage ? "이미지 포함" : "텍스트 중심"}</span>
+              </div>
+              <div className="mt-5 space-y-3 rounded-3xl bg-[#F7FBF8] p-4 text-sm leading-relaxed text-[#374151]">
+                {bodyLines.map((line, index) => {
+                  const isHeading = line === "오늘의 미션" || line === "오늘의 작은 기록 하나 남기기";
+                  return (
+                    <p
+                      key={`${line}-${index}`}
+                      className={isHeading ? "text-base font-black text-[#1F5A3A]" : "font-medium"}
+                    >
+                      {line}
+                    </p>
+                  );
+                })}
+              </div>
+            </div>
+          </article>
+        </>
+      );
+    }
+
     return (
       <>
         <button
           type="button"
-          onClick={() => setToonSeasonView("list")}
+          onClick={() => {
+            setSelectedToonId(null);
+            setToonSeasonView("list");
+          }}
           className="mb-3 inline-flex min-h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-black text-[#1F5A3A] shadow-sm active:scale-[0.98]"
         >
           <ChevronRight size={17} className="rotate-180" />
@@ -427,7 +642,7 @@ function AvatarPlaza() {
         <SectionTitle desc="아바타와 코치들이 함께 만드는 건강생활 이야기">프롤로그</SectionTitle>
         <section className="space-y-3">
           {prologueEpisodes.map((episode, index) => (
-            <article key={episode.title} className="overflow-hidden rounded-3xl bg-white shadow-sm">
+            <article key={episode.id} className="overflow-hidden rounded-3xl bg-white shadow-sm">
               {episode.imageUrl ? (
                 <div className="relative aspect-[4/5] overflow-hidden bg-[#EAF7EF]">
                   <img
@@ -438,6 +653,7 @@ function AvatarPlaza() {
                   <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-black text-[#1F5A3A] shadow-sm">
                     {episode.category}
                   </span>
+                  {episode.isNew ? <span className="absolute right-4 top-4"><NewBadge /></span> : null}
                 </div>
               ) : (
                 <div className="relative h-32 bg-gradient-to-br from-[#DDF4E5] to-[#FFF8CF] p-4">
@@ -455,7 +671,11 @@ function AvatarPlaza() {
                   <span>{episode.hasImage ? "이미지 포함" : "텍스트 중심"}</span>
                 </div>
                 <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
-                  <button className="flex min-h-10 items-center justify-center gap-1 rounded-2xl bg-[#EAF7EF] text-sm font-black text-[#1F5A3A]">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedToonId(episode.id)}
+                    className="flex min-h-10 items-center justify-center gap-1 rounded-2xl bg-[#EAF7EF] text-sm font-black text-[#1F5A3A]"
+                  >
                     <PlayCircle size={16} /> 이어보기
                   </button>
                   <button
@@ -609,7 +829,10 @@ function AvatarPlaza() {
               <BookOpen size={23} className="text-[#4CAF6A]" />
             </span>
             <div>
-              <h2 className="font-black text-[#1F2937]">내건툰 연재</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="font-black text-[#1F2937]">내건툰 연재</h2>
+                <NewBadge />
+              </div>
               <p className="mt-1 text-sm text-gray-500">건강생활 캐릭터 이야기를 모아봤어요.</p>
             </div>
           </div>
@@ -687,10 +910,11 @@ export default function CommunityPage() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`shrink-0 rounded-full px-4 py-2 text-sm font-black transition ${
+              className={`relative shrink-0 rounded-full px-4 py-2 text-sm font-black transition ${
                 activeTab === tab.id ? "bg-[#4CAF6A] text-white shadow-sm" : "bg-white text-gray-500"
               }`}
             >
+              {tab.hasNew ? <span className="absolute -right-1 -top-1"><NewBadge /></span> : null}
               {tab.label}
             </button>
           ))}
@@ -725,13 +949,14 @@ export default function CommunityPage() {
 
             <SectionTitle>빠른 진입</SectionTitle>
             <section className="grid grid-cols-2 gap-3">
-              {quickCards.map(({ tab, icon: Icon, title, desc, action }) => (
+              {quickCards.map(({ tab, icon: Icon, title, desc, action, hasNew }) => (
                 <button
                   key={title}
                   type="button"
                   onClick={() => setActiveTab(tab)}
-                  className="rounded-2xl border border-green-100 bg-white p-4 text-left shadow-sm transition active:scale-[0.98]"
+                  className="relative rounded-2xl border border-green-100 bg-white p-4 text-left shadow-sm transition active:scale-[0.98]"
                 >
+                  {hasNew ? <span className="absolute right-3 top-3"><NewBadge /></span> : null}
                   <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#EAF7EF]">
                     <Icon size={21} className="text-[#4CAF6A]" />
                   </span>
