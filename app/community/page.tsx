@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Bookmark,
@@ -87,25 +87,34 @@ const storyCharacters = [
 
 const toonEpisodes = [
   {
+    id: "prologue-01",
     category: "프롤로그",
-    title: "내일의건강 커뮤니티가 열렸다",
-    desc: "아바타와 코치들이 처음 만나는 이야기",
+    title: "1화. 내일의건강 커뮤니티가 열렸다",
+    desc: "첫 번째 코치를 선택하는 이야기",
     readTime: "3분",
     hasImage: true,
+    imageUrl: "/community/toon/prologue-01.png",
+    initialLikes: 12,
   },
   {
+    id: "prologue-02",
     category: "프롤로그",
     title: "첫 번째 미션은 물 한 잔",
     desc: "작은 건강 습관이 시작되는 순간",
     readTime: "3분",
     hasImage: true,
+    imageUrl: "",
+    initialLikes: 8,
   },
   {
+    id: "season1-01",
     category: "시즌1",
     title: "아바타라고 다 건강한 건 아닙니다",
     desc: "건강해 보이지만 사실은 각자 사정이 있는 아바타들",
     readTime: "5분",
     hasImage: false,
+    imageUrl: "",
+    initialLikes: 0,
   },
 ];
 
@@ -260,7 +269,40 @@ function AvatarPlaza() {
   const [view, setView] = useState<AvatarPlazaView>("main");
   const [toonSeasonView, setToonSeasonView] = useState<ToonSeasonView>("list");
   const [filter, setFilter] = useState<CharacterFilter>("전체");
+  const [toonLikes, setToonLikes] = useState<Record<string, number>>({});
+  const [likedToons, setLikedToons] = useState<Record<string, boolean>>({});
   const filteredCharacters = filter === "전체" ? characterCards : characterCards.filter((card) => card.filter === filter);
+
+  useEffect(() => {
+    const savedLikes = localStorage.getItem("naeilToonLikes");
+    const savedLikedToons = localStorage.getItem("naeilLikedToons");
+    if (savedLikes) {
+      setToonLikes(JSON.parse(savedLikes));
+    }
+    if (savedLikedToons) {
+      setLikedToons(JSON.parse(savedLikedToons));
+    }
+  }, []);
+
+  const toggleToonLike = (episodeId: string) => {
+    const episode = toonEpisodes.find((item) => item.id === episodeId);
+    const baseLikes = episode?.initialLikes ?? 0;
+    const isLiked = Boolean(likedToons[episodeId]);
+    const currentLikes = toonLikes[episodeId] ?? baseLikes;
+    const nextLikes = {
+      ...toonLikes,
+      [episodeId]: Math.max(0, currentLikes + (isLiked ? -1 : 1)),
+    };
+    const nextLikedToons = {
+      ...likedToons,
+      [episodeId]: !isLiked,
+    };
+
+    setToonLikes(nextLikes);
+    setLikedToons(nextLikedToons);
+    localStorage.setItem("naeilToonLikes", JSON.stringify(nextLikes));
+    localStorage.setItem("naeilLikedToons", JSON.stringify(nextLikedToons));
+  };
 
   const BackToPlaza = ({ title }: { title: string }) => (
     <button
@@ -386,12 +428,25 @@ function AvatarPlaza() {
         <section className="space-y-3">
           {prologueEpisodes.map((episode, index) => (
             <article key={episode.title} className="overflow-hidden rounded-3xl bg-white shadow-sm">
-              <div className="relative h-32 bg-gradient-to-br from-[#DDF4E5] to-[#FFF8CF] p-4">
-                <span className="rounded-full bg-white/85 px-3 py-1 text-xs font-black text-[#1F5A3A]">{episode.category}</span>
-                <div className="absolute bottom-4 right-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/75">
-                  {index === 0 ? <BookOpen className="text-[#4CAF6A]" /> : index === 1 ? <Droplets className="text-[#20B8D6]" /> : <Sparkles className="text-[#D7A500]" />}
+              {episode.imageUrl ? (
+                <div className="relative aspect-[4/5] overflow-hidden bg-[#EAF7EF]">
+                  <img
+                    src={episode.imageUrl}
+                    alt={episode.title}
+                    className="h-full w-full object-cover"
+                  />
+                  <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-black text-[#1F5A3A] shadow-sm">
+                    {episode.category}
+                  </span>
                 </div>
-              </div>
+              ) : (
+                <div className="relative h-32 bg-gradient-to-br from-[#DDF4E5] to-[#FFF8CF] p-4">
+                  <span className="rounded-full bg-white/85 px-3 py-1 text-xs font-black text-[#1F5A3A]">{episode.category}</span>
+                  <div className="absolute bottom-4 right-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/75">
+                    {index === 0 ? <BookOpen className="text-[#4CAF6A]" /> : index === 1 ? <Droplets className="text-[#20B8D6]" /> : <Sparkles className="text-[#D7A500]" />}
+                  </div>
+                </div>
+              )}
               <div className="p-4">
                 <h3 className="font-black text-[#1F2937]">{episode.title}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-gray-500">{episode.desc}</p>
@@ -399,9 +454,23 @@ function AvatarPlaza() {
                   <span>읽는 시간 {episode.readTime}</span>
                   <span>{episode.hasImage ? "이미지 포함" : "텍스트 중심"}</span>
                 </div>
-                <button className="mt-3 flex min-h-10 w-full items-center justify-center gap-1 rounded-2xl bg-[#EAF7EF] text-sm font-black text-[#1F5A3A]">
-                  <PlayCircle size={16} /> 이어보기
-                </button>
+                <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+                  <button className="flex min-h-10 items-center justify-center gap-1 rounded-2xl bg-[#EAF7EF] text-sm font-black text-[#1F5A3A]">
+                    <PlayCircle size={16} /> 이어보기
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleToonLike(episode.id)}
+                    className={`flex min-h-10 items-center gap-1 rounded-2xl px-4 text-sm font-black transition active:scale-[0.98] ${
+                      likedToons[episode.id]
+                        ? "bg-[#4CAF6A] text-white"
+                        : "bg-[#F3F7F4] text-[#1F5A3A]"
+                    }`}
+                  >
+                    <Heart size={16} fill={likedToons[episode.id] ? "currentColor" : "none"} />
+                    {(toonLikes[episode.id] ?? episode.initialLikes).toLocaleString()}
+                  </button>
+                </div>
               </div>
             </article>
           ))}
