@@ -711,18 +711,14 @@ export default function DashboardPage() {
           <Link
             href="/challenges"
             aria-label="챌린지로 이동"
-            title={`챌린지 진행률 ${challengeBadgePercent}%`}
-            className={`absolute right-3 top-[12%] z-30 flex items-center gap-2 rounded-full border px-2.5 py-1.5 text-xs font-black text-[#1F5A3A] shadow-[0_12px_28px_rgba(10,66,40,0.16),inset_0_1px_0_rgba(255,255,255,0.76)] ring-1 backdrop-blur-[18px] backdrop-saturate-150 transition active:scale-95 ${challengeBadgeComplete ? "border-yellow-100/90 bg-[#FEF9C3]/56 ring-yellow-100/70 shadow-[0_0_22px_rgba(250,204,21,0.32),0_12px_28px_rgba(10,66,40,0.16),inset_0_1px_0_rgba(255,255,255,0.84)]" : "border-white/68 bg-white/30 ring-white/25"}`}
+            title="챌린지로 이동"
+            className={`absolute left-2 top-[9%] z-30 flex h-11 w-11 items-center justify-center rounded-full border p-1 shadow-[0_12px_24px_rgba(10,66,40,0.16),inset_0_1px_0_rgba(255,255,255,0.76)] ring-1 backdrop-blur-[18px] backdrop-saturate-150 transition active:scale-95 ${challengeBadgeComplete ? "border-yellow-100/90 bg-[#FEF9C3]/56 ring-yellow-100/70 shadow-[0_0_22px_rgba(250,204,21,0.32),0_12px_24px_rgba(10,66,40,0.16),inset_0_1px_0_rgba(255,255,255,0.84)]" : "border-white/68 bg-white/30 ring-white/25"}`}
             style={avatarChallengeStyle}
           >
-            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/80 bg-white/46 shadow-[inset_0_1px_0_rgba(255,255,255,0.88)]">
+            <span className="relative flex h-full w-full shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/80 bg-white/46 shadow-[inset_0_1px_0_rgba(255,255,255,0.88)]">
               <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#FACC15] via-[#D9F99D] to-[#86EFAC] transition-all duration-500" style={challengeBadgeFillStyle} />
               {challengeBadgeComplete && <span className="absolute inset-0 animate-ping rounded-full bg-yellow-200/30" />}
-              <Trophy size={17} className={`relative z-10 ${challengeBadgeComplete ? "text-[#B7791F]" : "text-[#4CAF6A]"}`} />
-            </span>
-            <span className="text-xs leading-tight">
-              챌린지
-              <span className="block text-[10px] font-extrabold text-[#1F5A3A]/70">{challengeBadgePercent}%</span>
+              <Trophy size={19} className={`relative z-10 ${challengeBadgeComplete ? "text-[#B7791F]" : "text-[#4CAF6A]"}`} />
             </span>
           </Link>
 
